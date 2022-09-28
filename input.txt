@@ -1,0 +1,1 @@
+blender --python rendering/blender_pix2surf.py -- --mesh ./data/3d_models/chair/backseat.obj --texture C:\Users\r-gal\OneDrive\Documents\Academics\PhD\phd-project-1-improved\hardwood-texture.png --renderfolder C:\Users\r-gal\OneDrive\Documents\Academics\PhD\phd-project-1-improved\out       
