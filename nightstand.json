@@ -1,0 +1,20 @@
+{   
+    "dir": "./data/3d_models/nightstand",
+    "parts": {
+        "names":["base","top_drawer","top_handle","bottom_drawer","bottom_handle","legs"],
+        "loc": [0.0,0.0,2.636],
+        "rot": [90,0,0],
+        "scale": [1.0, 1.0, 1.0]
+    },
+    "camera": {
+        "loc": [13.244,-12.473,5.12852],
+        "rot": [86.3394,0,46.6919],
+        "scale": [1.0, 1.0, 1.0]
+    },
+    "light": {
+        "loc": [4.07625, -7.14138, 7.53544],
+        "rot": [37.261, 3.16371, 106.936],
+        "scale": [1.0, 1.0, 1.0]
+    }
+    
+}
