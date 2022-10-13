@@ -2,8 +2,8 @@
 import bpy, sys, os
 import numpy as np
 import argparse
-sys.path.append("C:/Users/r-gal/OneDrive/Documents/Generative-AI-Projects/Libraries/BlenderToolbox")
-import BlenderToolBox as bt 
+# sys.path.append("C:/Users/r-gal/OneDrive/Documents/Generative-AI-Projects/Libraries/BlenderToolbox")
+# import BlenderToolBox as bt 
 import logging, math
 
 
@@ -109,14 +109,14 @@ class Renderer():
     def setup_lights(self):
         # Create new lamp datablock
         lamp_data = bpy.data.lights.new(name="New Lamp", type='SUN')
-        lamp_data.energy = 5
+        lamp_data.energy = 7
         # Create new object with our lamp datablock
         lamp_object = bpy.data.objects.new(name="New Lamp", object_data=lamp_data)
         # Link lamp object to the scene so it'll appear in this scene
         self.scene.collection.objects.link(lamp_object)
         # Place lamp to a specified location
-        lamp_object.location = (4.07625, -7.14138, 7.53544)
-        lamp_object.rotation_euler = (math.radians(37.261), math.radians(3.16371), math.radians(106.936))
+        lamp_object.location = (14.188, -13.29, 16.627)
+        lamp_object.rotation_euler = (math.radians(11.7), math.radians(-54.7), math.radians(126))
         # And finally select it make active
         lamp_object.select_set(state=True)
         # self.scene.objects.active = lamp_object
@@ -246,42 +246,13 @@ class Renderer():
         for i in range(self.args.total_frame):
             bpy.context.scene.render.filepath = os.path.join(self.args.renderfolder, f'im_{i:02}.png')
             bpy.ops.render.render(write_still=True)
-        sys.exit()
+        # sys.exit()
 
 
 if __name__ == "__main__":
     renderer = Renderer()
     renderer.setup_objects()
     renderer.run()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     
     # def insert_object(self, gar_loc, tex_loc):
