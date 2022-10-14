@@ -1,3 +1,6 @@
+# from rendering import blender
+import numpy as np
+import argparse, sys, json, os
 
 import bpy, sys, os
 import numpy as np
@@ -31,41 +34,11 @@ def unwrap_method(method:str):
 
 class Renderer():
     def __init__(self,cam_info, light_info):
-        # self.get_args()
         self.set_gpu()
-        self.make_dirs()
         self.setup_scene()
         self.setup_camera(cam_info['loc'],cam_info['rot'],cam_info['scale'])
         self.setup_light(light_info['loc'],light_info['rot'],light_info['scale'])
         self.objects = []
-        
-    def get_args(self):
-        ap = argparse.ArgumentParser()
-        # ap.add_argument("--mesh_folder", type = str, help = "location of mesh folder")
-        ap.add_argument("--mesh", type = str, help = "location of mesh")
-        ap.add_argument("--texture", type = str, help = "location of texture")
-        ap.add_argument("--scene_width", type = int, default = 512, help = "scene width")
-        ap.add_argument("--scene_height", type = str, default = 512, help = "scene height")
-        # ap.add_argument("--total_frame", type = int, default = 1, help = "Total frames to render")
-        ap.add_argument("--renderfolder", type = str, default="./out",help = "Location of rendering folder")
-        
-        # ap.add_argument("--obj_loc",nargs="*",type=float)
-        # ap.add_argument("--obj_rot",nargs="*",type=float)
-        # ap.add_argument("--obj_scale",nargs="*",type=float)
-
-        # ap.add_argument("--cam_loc",nargs="*",type=float)
-        # ap.add_argument("--cam_rot",nargs="*",type=float)
-        # ap.add_argument("--cam_scale",nargs="*",type=float)
-
-        # ap.add_argument("--light_loc",nargs="*",type=float)
-        # ap.add_argument("--light_rot",nargs="*",type=float)
-        # ap.add_argument("--light_scale",nargs="*",type=float)
-        print(ap)
-        self.args = ap.parse_args(self.extract_args())
-
-    def make_dirs(self):
-        if not os.path.isdir(self.args.renderfolder):
-            os.makedirs(self.args.renderfolder)
     
     def set_gpu(self):
         bpy.context.scene.render.engine = 'CYCLES'
@@ -234,13 +207,54 @@ class Renderer():
             print(output_argv)
         return output_argv
 
-    def render(self, out_dir = './out'):
+    def render(self, out_dir = './tmp'):
         bpy.context.scene.render.filepath = os.path.join(out_dir, f'rendering.png')
         bpy.ops.render.render(write_still=True)
         sys.exit()
 
+def extract_args(input_argv=None):
+        """
+        Pull out command-line arguments after "--". Blender ignores command-line flags
+        after --, so this lets us forward command line arguments from the blender
+        invocation to our own script.
+        """
+        if input_argv is None:
+            input_argv = sys.argv
+            print(input_argv)
+        output_argv = []
+        if '--' in input_argv:
+            idx = input_argv.index('--')
+            print(idx)
+            output_argv = input_argv[(idx + 1):]
+            print(output_argv)
+        return output_argv
 
-if __name__ == "__main__":
-    renderer = Renderer()
-    # renderer.setup_objects()
+def get_args():
+        ap = argparse.ArgumentParser()
+        ap.add_argument("--obj_json", type = str, default='./nightstand.json', help = "Path to .json file containing filenames of 3D parts and their placements, lighting, & camera configs in Blender.")
+        ap.add_argument("--texture_parts_json", type = str, help = "Path to .json file containing 3D parts and their corresponding textures.")
+        args = ap.parse_args(extract_args())
+        return args
+
+    
+if __name__=="__main__":
+    args = get_args()
+    unwrap_method_='smart_project'
+    with open(args.obj_json) as json_file:
+        model_info = json.load(json_file)
+        model_dir = model_info['dir']
+        parts_info = model_info['parts']
+        cam_info = model_info['camera']
+        light_info = model_info['light']
+    
+    renderer = Renderer(cam_info=cam_info,light_info=light_info)
+    with open(args.texture_parts_json) as json_file:
+        texture_parts = json.load(json_file)
+    
+    for part in parts_info['names']:
+        part_path = os.path.join(model_dir,f'{part}.obj')
+        texture_path = texture_parts[part]
+        obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
+        renderer.recalculate_normals(obj)
+        renderer.bake_texture(obj,unwrap_method_,texture_path)
     renderer.render()

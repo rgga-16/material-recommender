@@ -1,7 +1,8 @@
 # Data
 
 data
-
+out
+tmp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
