@@ -62,11 +62,6 @@ def render_gif(renderer,save_path='./render.gif'):
 
     return
 
-
-def render_model(meshes_dir,textures_dir, mesh_texture_file_pairs,uv_test_sizes):
-
-    return
-
 if __name__ == '__main__':
     
 
