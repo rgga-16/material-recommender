@@ -38,12 +38,12 @@ if __name__=="__main__":
 
     model = TextureDiffusion()
 
-    prompt = "blue carpet"
+    prompt = "red leather"
     images = []
-    sample_num = 1
+    sample_num = 25
 
     start_synth = time.time() 
-    images = model.text2texture(prompt)
+    images = model.text2texture(prompt,imsize=256, n=sample_num)
     end_synth = time.time()
     print(f'Time elapsed for text-to-texture synthesis: {abs(end_synth-start_synth)}s')
 
@@ -52,15 +52,15 @@ if __name__=="__main__":
         text_path = str(p.Path.cwd() / text_impath)
         images[i].save(text_path)
 
-    start_transfer = time.time()
-    mesh_folder = "./data/3d_models/nightstand"
-    mesh_path = os.path.join(mesh_folder,'base.obj')
-    rendering_folder = str(p.Path.cwd() / "out")
-    command_str = f'blender --background --python rendering/blender.py -- --mesh_folder {mesh_folder} --texture {text_path} --renderfolder {rendering_folder}'
+    # start_transfer = time.time()
+    # mesh_folder = "./data/3d_models/nightstand"
+    # mesh_path = os.path.join(mesh_folder,'base.obj')
+    # rendering_folder = str(p.Path.cwd() / "out")
+    # command_str = f'blender --background --python rendering/blender.py -- --mesh_folder {mesh_folder} --texture {text_path} --renderfolder {rendering_folder}'
     
-    print(command_str)
-    os.system(command_str)
-    end_transfer = time.time()
-    print(f'Time elapsed for texture transfer: {abs(end_transfer-start_transfer)}s')
+    # print(command_str)
+    # os.system(command_str)
+    # end_transfer = time.time()
+    # print(f'Time elapsed for texture transfer: {abs(end_transfer-start_transfer)}s')
 
     
