@@ -46,10 +46,6 @@ def diffuse(
     uncond_embeddings = pipe.text_encoder(uncond_input.input_ids.to(torch_device))[0]
     text_embeddings = torch.cat([uncond_embeddings, cond_embeddings])
 
-    # if we use LMSDiscreteScheduler, let's make sure latents are mulitplied by sigmas
-    if isinstance(pipe.scheduler, LMSDiscreteScheduler):
-        cond_latents = cond_latents * pipe.scheduler.sigmas[0]
-
     # init the scheduler
     accepts_offset = "offset" in set(inspect.signature(pipe.scheduler.set_timesteps).parameters.keys())
     extra_set_kwargs = {}
@@ -83,7 +79,6 @@ def diffuse(
 
         # compute the previous noisy sample x_t -> x_t-1
         if isinstance(pipe.scheduler, LMSDiscreteScheduler):
-            
             '''
             cond_latents: contains ['pred_original_sample'] and ['prev_sample']
             '''

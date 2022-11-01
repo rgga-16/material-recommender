@@ -25,7 +25,7 @@ class TextureDiffusion():
         images = []
         for _ in range(n):
             with autocast("cuda"):
-                output_dict = self.diffusion_model(prompt, width=imsize,height=imsize,guidance_scale=7.5,prompt_strength=1.0,num_inference_steps=50)
+                output_dict = self.diffusion_model(prompt, width=imsize,height=imsize,guidance_scale=7.5,prompt_strength=1.0,num_inference_steps=150)
                 image = output_dict["sample"][0]
                 images.append(image)
                 
@@ -38,12 +38,12 @@ if __name__=="__main__":
 
     model = TextureDiffusion()
 
-    prompt = "red leather"
+    prompt = "blue resin"
     images = []
-    sample_num = 25
+    sample_num = 10
 
     start_synth = time.time() 
-    images = model.text2texture(prompt,imsize=256, n=sample_num)
+    images = model.text2texture(prompt,imsize=512, n=sample_num)
     end_synth = time.time()
     print(f'Time elapsed for text-to-texture synthesis: {abs(end_synth-start_synth)}s')
 
