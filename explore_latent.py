@@ -58,7 +58,7 @@ def latents_to_pil(vae,latents):
 def run(
         # --------------------------------------
         # args you probably want to change
-        prompt = "black leather texture map, 4k", # prompt to dream about
+        prompt = "cube patterns, texture map, 4k", # prompt to dream about
         gpu = 0, # id of the gpu to run on
         name = 'red leather_walk', # name of this project, for the output directory
         rootdir = './out',
@@ -89,7 +89,8 @@ def run(
     # lms = LMSDiscreteScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule="scaled_linear")
     # text2im_pipe = StableDiffusionPipeline.from_pretrained(weights_path, revision="fp16", scheduler=lms, use_auth_token=True, torch_dtype=torch.float16).to(torch_device)
     im2im_pipe = StableDiffusionImg2ImgPipeline.from_pretrained(weights_path, revision="fp16", torch_dtype=torch.float16,use_auth_token=True).to(torch_device)
-    n_images=12
+    # im2im_pipe = StableDiffusionImg2ImgPipeline.from_pretrained(weights_path, use_auth_token=True).to(torch_device)
+    n_images=10
     
     # t2i_vae = t2i_pipe.vae
     # i2i_vae = im2im_pipe.vae
@@ -103,7 +104,7 @@ def run(
         strength - [0,1] How familiar or various u want the images to be from the init_image. higher means more variation.
         guidance_scale - [0,15] How much the prompt should guide the generation. People say 6-12
         '''
-        out_image = im2im_pipe(prompt=prompt, init_image=input_image, strength=0.8, guidance_scale=5.0, generator=generator).images[0]
+        out_image = im2im_pipe(prompt=prompt, init_image=input_image, strength=0.8, guidance_scale=8.0, generator=generator).images[0]
         out_image.save(f'out_{i}.jpg')
     # outpath = os.path.join(outdir, f'init.jpg')
     # input_image.save(outpath)
