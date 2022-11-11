@@ -28,7 +28,7 @@ m means margin. Ex. m-5 is margin 5?
                         <ul class="list-group list-group-horizontal-sm">
                             {%for part in products[product]["parts"] %}
                             <li class="list-group-item">
-                                <input class="form-check-input" type="checkbox" value="" aria-label="...">
+                                <input class="form-check-input" type="checkbox" value={{part}} name={{product}} aria-label="...">
                                 {{part}}
                             </li>
                             {%endfor%}

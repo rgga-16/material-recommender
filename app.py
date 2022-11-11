@@ -13,15 +13,13 @@ app.register_error_handler(404, page_not_found)
 @app.route('/', methods=["GET", "POST"])
 def index():
 
-    products = {
-        "table": {"parts":["tabletop","legs"]},
-        "carpet":{"parts":["carpet"]},
-        "chair":{"parts":["backseat","seat","legs","arms"]},
-    }
-    
-    n_products = len(products.keys())
+    products = products_
 
     if request.method == 'POST':
+
+        # for p in products
+
+        parts = request.form.getlist('table')
         print()
     
     return render_template('index.html', **locals())
@@ -41,4 +39,11 @@ def productDescription():
 
 
 if __name__ == '__main__':
+
+    products_ = {
+        "table": {"parts":["tabletop","legs"]},
+        "carpet":{"parts":["carpet"]},
+        "chair":{"parts":["backseat","seat","legs","arms"]},
+    }
+
     app.run(host='0.0.0.0', port='8888', debug=True)
