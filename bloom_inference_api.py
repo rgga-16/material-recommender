@@ -1,3 +1,8 @@
+
+'''
+Watch tutorial: https://www.youtube.com/watch?v=5ef83Wljm-M
+'''
+
 import requests
 
 API_URL = "https://api-inference.huggingface.co/models/bigscience/bloom"
