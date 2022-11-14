@@ -87,6 +87,74 @@ def transfer_texture(base, top_drawer, top_handle, bottom_drawer, bottom_handle,
 
     return rendering
 
+
+def select_gen_material_texture():
+
+    return 
+
+
+
+def generate_material_textures(material_str, n=5):
+    material_textures = texture_generator.text2texture(material_str,n=n, gen_imsize=512)
+    material_names = [f'{material_str}_{i}' for i in range(len(material_textures))]
+
+
+    return material_textures
+
+def transfer_material_texture():
+
+    return 
+
+
+def create_interface():
+
+    with gr.Blocks() as interface:
+        with gr.Row() as design_specs_row:
+            with gr.Row() as design_specs:
+                design_specs_str = """ Location: Indoors\nTarget market: Class A"""
+                design_specs = gr.Textbox(label="Design Specifications", value = design_specs_str,lines=5,)
+        
+        with gr.Row() as main_row:
+            with gr.Column() as materials_generator_column:
+                with gr.Row() as object_part_inputs:
+
+                    with gr.Column():
+                        input_material = gr.Textbox(label="Input material texture")
+                        generate_button = gr.Button("Generate")
+                    
+                    with gr.Row() as material_outputs:
+                        generated_materials = gr.Gallery(label="Generated material texture images").style(grid=4,height="auto")
+                        generated_material_labels =gr.Radio(label="Generated material texture names", interactive=True,choices=None,type="value")
+                    
+                    # For each object, create a checkbox group of its parts.
+                    with gr.Row():
+                        texture_transfer_inputlist = []
+                        for i in range(4):
+                            with gr.Tab(f"Nighstand parts {i}"):
+                                nightstand_parts = [f"base_{i}", f"top_drawer_{i}", f"bottom_drawer_{i}", f"top_handle_{i}", f"bottom_handle_{i}", f"legs_{i}"]
+                                checkboxes = gr.CheckboxGroup(choices=nightstand_parts,label="Nightstand")
+                            texture_transfer_inputlist.append(checkboxes)
+                        transfer_button = gr.Button("Transfer textures")
+
+                # https://gradio.app/docs/#button
+                generate_button.click(fn=generate_material_textures, inputs=input_material,outputs=generated_materials)
+                # transfer_button.click(fn=, inputs=, outputs=)
+
+            with gr.Column() as display_column:
+                image = gr.Image(interactive=False, label="Current renderings")
+                save_button = gr.Button("Save to gallery")
+                saved_scenes = gr.Gallery(label="Saved renderings").style(grid=5,height="auto")
+
+            with gr.Column() as ai_suggest_column:
+                text1 = gr.Textbox(label="Nighstand base")
+
+    return interface
+
+def main2():
+    interface = create_interface()
+    interface.launch(debug=True)
+
+
 def main():
     ######################### Script to render the initial 3D shape in. #########################
 
@@ -96,6 +164,8 @@ def main():
     return 
 
 if __name__=='__main__':
+    selected_gen_texture = None 
     texture_part_dict = {}
     texture_generator = TextureDiffusion()
-    main()
+    # main()
+    main2()
