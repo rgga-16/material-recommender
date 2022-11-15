@@ -4,7 +4,14 @@ import os, time, json
 import pathlib as p
 from PIL import Image
 
+#############################
+# Put variables here
+#############################
+n_gen_materials = 5
+gen_material = ""
 
+gen_texture_choices_dict = {}
+#############################
 def transfer_texture(base, top_drawer, top_handle, bottom_drawer, bottom_handle, legs):
     output_str = f'{base} {top_drawer} {top_handle} {bottom_drawer} {bottom_handle} {legs}'
     texture_part_prompts = [base, top_drawer, top_handle, bottom_drawer, bottom_handle, legs]
@@ -88,71 +95,99 @@ def transfer_texture(base, top_drawer, top_handle, bottom_drawer, bottom_handle,
     return rendering
 
 
-def select_gen_material_texture():
+def transfer_material_texture(mat_option, *object_part_inputs):
+
+    for checkboxgroup in object_part_inputs:
+        print()
+
+    selected_image = gen_texture_choices_dict[mat_option]
+
+    print()
 
     return 
 
 
-
-def generate_material_textures(material_str, n=5):
+def generate_material_textures(material_str, n=n_gen_materials):
+    gen_material = material_str
+    gen_texture_choices_dict.clear()
     material_textures = texture_generator.text2texture(material_str,n=n, gen_imsize=512)
-    material_names = [f'{material_str}_{i}' for i in range(len(material_textures))]
+    material_options = []; gen_mats = []
 
+    for i in range(len(material_textures)):
+        mat_texture = material_textures[i]
+        mat_option = f"option_{i}"
+        gen_texture_choices_dict[mat_option] = mat_texture
+        gen_mats.append(gr.Image.update(value=mat_texture,visible=True,label=mat_option))
+        material_options.append(mat_option)
 
-    return material_textures
+    # gen_mats = [gr.Image.update(value=mt,visible=True,label="") for mt in material_textures]
 
-def transfer_material_texture():
+    return (gr.Radio.update(choices=material_options),*gen_mats)
 
-    return 
+selected_gen_texture = None 
+texture_part_dict = {}
 
+texture_generator = TextureDiffusion()
 
-def create_interface():
+gen_material_images = []
 
-    with gr.Blocks() as interface:
-        with gr.Row() as design_specs_row:
-            with gr.Row() as design_specs:
-                design_specs_str = """ Location: Indoors\nTarget market: Class A"""
-                design_specs = gr.Textbox(label="Design Specifications", value = design_specs_str,lines=5,)
-        
-        with gr.Row() as main_row:
-            with gr.Column() as materials_generator_column:
-                with gr.Row() as object_part_inputs:
+interface = gr.Blocks()
 
-                    with gr.Column():
-                        input_material = gr.Textbox(label="Input material texture")
-                        generate_button = gr.Button("Generate")
-                    
+with interface:
+    with gr.Row() as design_specs_row:
+        with gr.Row() as design_specs:
+            design_specs_str = """ Location: Indoors\nTarget market: Class A"""
+            design_specs = gr.Textbox(label="Design Specifications", value = design_specs_str,lines=5,)
+    
+    with gr.Row() as main_row:
+        with gr.Column() as materials_generator_column:
+            ####################################################################################
+            # Left section. Section for generating material texture and transferring onto parts.
+            ####################################################################################
+            with gr.Row() as object_part_inputs:
+                with gr.Column():
+                    input_material = gr.Textbox(label="Input material texture")
+                    generate_button = gr.Button("Generate")
                     with gr.Row() as material_outputs:
-                        generated_materials = gr.Gallery(label="Generated material texture images").style(grid=4,height="auto")
-                        generated_material_labels =gr.Radio(label="Generated material texture names", interactive=True,choices=None,type="value")
-                    
+                        with gr.Column():
+                            for i in range(n_gen_materials):
+                                gen_img = gr.Image(interactive=False,visible=False,shape=(128,128))
+                                gen_material_images.append(gen_img)
+                        gen_material_options = gr.Radio(label="Generated material texture names", interactive=True,choices=None,type="value")
                     # For each object, create a checkbox group of its parts.
-                    with gr.Row():
-                        texture_transfer_inputlist = []
-                        for i in range(4):
-                            with gr.Tab(f"Nighstand parts {i}"):
-                                nightstand_parts = [f"base_{i}", f"top_drawer_{i}", f"bottom_drawer_{i}", f"top_handle_{i}", f"bottom_handle_{i}", f"legs_{i}"]
-                                checkboxes = gr.CheckboxGroup(choices=nightstand_parts,label="Nightstand")
-                            texture_transfer_inputlist.append(checkboxes)
-                        transfer_button = gr.Button("Transfer textures")
+                    # with gr.Row():
+                        object_part_inputs = []
+                        with gr.Column():
+                            for i in range(4):
+                                with gr.Tab(f"Nighstand parts {i}"):
+                                    nightstand_parts = [f"base_{i}", f"top_drawer_{i}", f"bottom_drawer_{i}", f"top_handle_{i}", f"bottom_handle_{i}", f"legs_{i}"]
+                                    checkboxes = gr.CheckboxGroup(choices=nightstand_parts,label="Nightstand")
+                                object_part_inputs.append(checkboxes)
+                            transfer_button = gr.Button("Transfer textures")
+            ####################################################################################
+        
+        
+        with gr.Column() as display_column:
+            current_rendering = gr.Image(interactive=False, label="Current renderings")
+            save_button = gr.Button("Save to gallery")
+            saved_scenes = gr.Gallery(label="Saved renderings").style(grid=5,height="auto")
 
-                # https://gradio.app/docs/#button
-                generate_button.click(fn=generate_material_textures, inputs=input_material,outputs=generated_materials)
-                # transfer_button.click(fn=, inputs=, outputs=)
+        # with gr.Column() as ai_suggest_column:
+        #     text1 = gr.Textbox(label="Nighstand base")
 
-            with gr.Column() as display_column:
-                image = gr.Image(interactive=False, label="Current renderings")
-                save_button = gr.Button("Save to gallery")
-                saved_scenes = gr.Gallery(label="Saved renderings").style(grid=5,height="auto")
 
-            with gr.Column() as ai_suggest_column:
-                text1 = gr.Textbox(label="Nighstand base")
+    generate_button.click(fn=generate_material_textures, inputs=[input_material],outputs=[gen_material_options,*gen_material_images])
+    transfer_button.click(fn=transfer_material_texture, inputs=[gen_material_options, *object_part_inputs], outputs=[current_rendering])
 
-    return interface
 
-def main2():
-    interface = create_interface()
-    interface.launch(debug=True)
+################# Load obj files here ################
+
+
+
+######################################################
+
+interface.launch(debug=True)
+
 
 
 def main():
@@ -163,9 +198,3 @@ def main():
     interface.launch(share=True)
     return 
 
-if __name__=='__main__':
-    selected_gen_texture = None 
-    texture_part_dict = {}
-    texture_generator = TextureDiffusion()
-    # main()
-    main2()
