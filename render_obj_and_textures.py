@@ -135,17 +135,12 @@ class Renderer():
     
     def bake_texture(self,obj,unwrap_method_,texture):
         bpy.context.scene.cycles.device = 'GPU'
-        # Select object
         obj.select_set(True)
         bpy.context.view_layer.objects.active=obj
 
         # Get uv map of obj
         bpy.ops.object.mode_set(mode="EDIT")
         obj.select_set(True)
-        # bpy.context.view_layer.objects.active = obj
-        
-        # if obj.type=='MESH' and 'UV_ao' not in obj.data.uv_layers:
-        #     obj.data.uv_layers.new(name='UV_ao')
         unwrap_method(unwrap_method_)
 
         # Load object material's Principal BSDF node
@@ -231,16 +226,43 @@ def extract_args(input_argv=None):
 
 def get_args():
         ap = argparse.ArgumentParser()
-        ap.add_argument("--obj_json", type = str, default='./nightstand.json', help = "Path to .json file containing filenames of 3D parts and their placements, lighting, & camera configs in Blender.")
-        ap.add_argument("--texture_parts_json", type = str, help = "Path to .json file containing 3D parts and their corresponding textures.")
+        ap.add_argument("--rendering_setup_json", type = str, default='./nightstand.json', help = "Path to .json file containing filenames of 3D parts and their placements, lighting, & camera configs in Blender.")
+        ap.add_argument("--texture_object_parts_json", type = str, help = "Path to .json file containing 3D parts and their corresponding textures.")
+        ap.add_argument("--out_dir", type = str, help = "Directory to save the rendering.")
         args = ap.parse_args(extract_args())
         return args
 
-    
-if __name__=="__main__":
+def main2(): 
+    args = get_args()
+    unwrap_method_='unwrap'
+    with open(args.rendering_setup_json) as json_file:
+        info = json.load(json_file)
+        models_dir = info['dir']
+        models_info = info['objects']
+        cam_info = info['camera']
+        light_info = info['light']
+
+    renderer = Renderer(cam_info=cam_info,light_info=light_info)
+
+    with open(args.texture_object_parts_json) as json_file:
+        texture_object_parts = json.load(json_file)
+
+    for model_key in models_info:
+        model_info = models_info[model_key]
+        print(model_info)
+        parts_info = model_info['parts']
+        for part in parts_info['names']:
+            part_material_path = texture_object_parts[model_key][part]["mat_image_texture"]
+            part_path = os.path.join(models_dir,model_key, f'{part}.obj')
+            obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
+            renderer.recalculate_normals(obj)
+            renderer.bake_texture(obj,unwrap_method_,part_material_path)
+    renderer.render(out_dir=args.out_dir)
+
+def main1():
     args = get_args()
     unwrap_method_='smart_project'
-    with open(args.obj_json) as json_file:
+    with open(args.rendering_setup_json) as json_file:
         model_info = json.load(json_file)
         model_dir = model_info['dir']
         parts_info = model_info['parts']
@@ -258,3 +280,8 @@ if __name__=="__main__":
         renderer.recalculate_normals(obj)
         renderer.bake_texture(obj,unwrap_method_,texture_path)
     renderer.render()
+
+    
+if __name__=="__main__":
+    # main1()
+    main2()
