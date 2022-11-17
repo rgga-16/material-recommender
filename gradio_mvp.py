@@ -3,13 +3,13 @@ from texture_transfer_3d import TextureDiffusion
 import os, time, json, copy
 import pathlib as p
 from PIL import Image
+import bloom_inference_api as BLOOM_API
 
 #############################
 # Set variables here
 #############################
 n_gen_materials = 5
 gen_material = ""
-
 gen_texture_choices_dict = {}
 saved_renderings_list = []
 saved_texture_parts = []
@@ -28,18 +28,12 @@ rendering_setup_path = os.path.join(data_dir,"rendering_setup.json")
 f=open(rendering_setup_path)
 objects_data = json.load(f)
 
-
 n_objects = objects_data["objects"]
-
 renderings_dir = os.path.join(data_dir,"renderings")
-
 init_texture_parts_path = os.path.join(renderings_dir, str(curr_render_id),"object_part_material.json")
 f=open(init_texture_parts_path)
-
 init_texture_parts = json.load(f)
-
 current_texture_parts = copy.deepcopy(init_texture_parts)
-
 
 init_rendering_outdir = os.path.join(renderings_dir,str(curr_render_id))
 
@@ -215,19 +209,44 @@ def generate_material_textures(material_str, n=n_gen_materials):
 
     return (gr.Radio.update(choices=material_options),*gen_mats)
 
+def get_parts_from_object(object):
+    global object_inputs
+    selected_parts = copy.deepcopy(object_inputs[object]["parts"]["names"])
+    selected_parts.insert(0,"No specific part")
+    return gr.Dropdown.update(choices=selected_parts,value=selected_parts[0])
+
+def set_targets(target_place, target_market):
+    targets = [target_place,target_market]
+    return gr.Dropdown.update(choices=targets,value=targets[0])
+
+def make_suggest_prompt(material,product,part,target):
+    if part=="No specific part":
+        part=""
+    if material=="No specific material":
+        material=""
+    if target=="No targets set":
+        target=""
+    prompt = f"Examples of {material} materials for {product} {part} for {target} are"
+    return gr.Textbox.update(value=prompt,visible=True), gr.Button.update(visible=True)
+
+def get_suggestion(prompt):
+    response = BLOOM_API.iterative_query(prompt) # Send prompt to BLOOM API here. Get their response.
+    # return gr.Textbox.update(value=f"{response['generated_text']}",visible=True)
+    return gr.Textbox.update(value=f"{response}",visible=True)
 
 selected_gen_texture = None 
 texture_part_dict = {}
 texture_generator = TextureDiffusion()
 gen_material_images = []
-
 interface = gr.Blocks()
 
 with interface:
     with gr.Row() as design_specs_row:
-        with gr.Row() as design_specs:
-            design_specs_str = """ Location: Indoors\nTarget market: Class A"""
-            design_specs = gr.Textbox(label="Design Specifications", value = design_specs_str,lines=5,)
+        with gr.Column():
+            gr.Markdown("Material Specifications for AI")
+            target_place = gr.Textbox(label="Target Place", interactive=True)
+            target_market = gr.Textbox(label="Target Market", interactive=True)
+            set_targets_button = gr.Button(label="Set targets",value="Set targets")
     
     with gr.Row() as main_row:
         with gr.Column() as materials_generator_column:
@@ -244,7 +263,6 @@ with interface:
                                 gen_img = gr.Image(interactive=False,visible=False,shape=(128,128))
                                 gen_material_images.append(gen_img)
                         gen_material_options = gr.Radio(label="Generated material texture names", interactive=True,choices=None,type="value")
-
                         part_inputs = []
                         object_inputs = objects_data["objects"]
                         with gr.Column():
@@ -260,19 +278,39 @@ with interface:
             current_rendering = gr.Image(value=init_rendering, interactive=False, label="Current rendering")
             save_rendering_button = gr.Button("Save to gallery")
             saved_scenes = gr.Gallery(value=saved_renderings_list,label="Saved renderings").style(grid=5,height="auto")
+        with gr.Tab(label="Suggest") as ai_suggest_tab:
+            with gr.Column():
+                with gr.Row():
+                    gr.Markdown("Suggest ")
+                    suggest_material_type = ["No specific material","wood","metal","fabric","ceramic"]
+                    suggest_material_dropdown = gr.Dropdown(label="Material",choices=suggest_material_type,value=suggest_material_type[1],interactive=True)
+                    gr.Markdown(" materials for...")
+                with gr.Row():
+                    suggest_product_dropdown = gr.Dropdown(label="Product",value="Select a product", choices=list(object_inputs.keys()),interactive=True)
+                    suggest_select_product = gr.Button(value="Select product")
+                    suggest_part_dropdown = gr.Dropdown(label="Parts",value="Please select an object first",choices=["Please select an object first"],interactive=True)
+                with gr.Row():
+                    gr.Markdown("for ")
+                    suggest_target_dropdown = gr.Dropdown(label="Targets",value="No targets set",choices=["No targets set"], interactive=True)
+                preview_prompt_button = gr.Button("Preview prompt")
+                with gr.Row():
+                    preview_prompt = gr.Textbox(label="Prompt preview",value="",interactive=True,visible=False)
+                    suggest_button = gr.Button("Suggest to me!",visible=False)
+            with gr.Column():
+                ai_suggestion = gr.Textbox("", label="BLOOM AI says...",visible=False)
+        
 
-        # with gr.Column() as ai_suggest_column:
-        #     text1 = gr.Textbox(label="Nightstand base")
-
-    generate_button.click(fn=generate_material_textures, inputs=[input_material],outputs=[gen_material_options,*gen_material_images])
-    transfer_button.click(fn=transfer_material_texture, inputs=[gen_material_options, *part_inputs], outputs=[current_rendering])
+    generate_button.click(fn=generate_material_textures, inputs=[input_material],outputs=[gen_material_options,*gen_material_images], scroll_to_output=True)
+    transfer_button.click(fn=transfer_material_texture, inputs=[gen_material_options, *part_inputs], outputs=[current_rendering],scroll_to_output=True)
     save_rendering_button.click(fn=save_rendering, inputs=[current_rendering], outputs=[saved_scenes])
+    suggest_select_product.click(fn=get_parts_from_object,inputs=[suggest_product_dropdown],outputs=[suggest_part_dropdown])
+    set_targets_button.click(fn=set_targets, inputs=[target_place, target_market], outputs=[suggest_target_dropdown])
+    preview_prompt_button.click(fn=make_suggest_prompt, inputs = [suggest_material_dropdown,suggest_product_dropdown,suggest_part_dropdown,suggest_target_dropdown],outputs=[preview_prompt,suggest_button])
+    suggest_button.click(fn=get_suggestion, inputs=[preview_prompt],outputs=[ai_suggestion])
+
 interface.launch(debug=True)
 
 def main():
-    ######################### Script to render the initial 3D shape in. #########################
-
-    #########################
     interface = gr.Interface(fn=transfer_texture, inputs = ['text','text','text','text','text','text'], outputs = ['image'])
     interface.launch(share=True)
     return 
