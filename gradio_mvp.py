@@ -4,6 +4,10 @@ import os, time, json, copy
 import pathlib as p
 from PIL import Image
 import bloom_inference_api as BLOOM_API
+import spacy
+
+# nlp = spacy.load("en_core_web_trf")
+nlp = spacy.load("en_core_web_md")
 
 #############################
 # Set variables here
@@ -204,7 +208,7 @@ def generate_material_textures(material_str, n=n_gen_materials):
         mat_texture = material_textures[i]
         mat_option = f"option_{i}"
         gen_texture_choices_dict[mat_option] = mat_texture
-        gen_mats.append(gr.Image.update(value=mat_texture,visible=True,label=mat_option))
+        gen_mats.append(gr.Image.update(value=mat_texture,label=mat_option))
         material_options.append(mat_option)
 
     return (gr.Radio.update(choices=material_options),*gen_mats)
@@ -215,24 +219,59 @@ def get_parts_from_object(object):
     selected_parts.insert(0,"No specific part")
     return gr.Dropdown.update(choices=selected_parts,value=selected_parts[0])
 
+def set_descriptors(descriptor_str):
+    descriptor_list = descriptor_str.split(";")
+    descriptor_list.insert(0,"No descriptor")
+    return gr.Dropdown.update(choices=descriptor_list,value=descriptor_list[0])
+
 def set_targets(target_place, target_market):
     targets = [target_place,target_market]
     return gr.Dropdown.update(choices=targets,value=targets[0])
 
-def make_suggest_prompt(material,product,part,target):
+def make_suggest_prompt(material,descriptor,product,part,target):
     if part=="No specific part":
         part=""
     if material=="No specific material":
         material=""
     if target=="No targets set":
         target=""
-    prompt = f"Examples of {material} materials for {product} {part} for {target} are"
+    if descriptor=="No descriptor":
+        descriptor=""
+    
+    prompt = f"Examples of {material} materials"
+
+    if descriptor!="No descriptor":
+        prompt = f"{prompt} that are {descriptor}"
+    
+    prompt = f"{prompt} for {product} {part} for {target} are"
     return gr.Textbox.update(value=prompt,visible=True), gr.Button.update(visible=True)
 
-def get_suggestion(prompt):
+def get_suggestion(prompt, selected_material_type):
+    global nlp 
     response = BLOOM_API.iterative_query(prompt) # Send prompt to BLOOM API here. Get their response.
-    # return gr.Textbox.update(value=f"{response['generated_text']}",visible=True)
-    return gr.Textbox.update(value=f"{response}",visible=True)
+
+    if selected_material_type=="No specific material":
+        selected_material_type="material"
+    
+    filtered_response = response.replace(prompt,"")
+    
+    material_token = nlp(selected_material_type)
+    response_embedding = nlp(filtered_response)
+
+    similarities = [(i, material_token, material_token.similarity(i)) for i in response_embedding]
+
+    sorted_similarities = sorted(similarities, key=lambda tup: tup[2], reverse=True)
+    k=10
+    sorted_similar_words = [tuple_[0] for tuple_ in sorted_similarities]
+
+    top_k_words=sorted_similar_words[:k]
+
+    top_k_words = [t.text for t in top_k_words]
+    top_k_words_str = ", ".join(top_k_words)
+
+    # top_k_words_str = f"Estimated material suggestions: {top_k_words_str}"
+    # similarities = [(i, material_token, material_token.similarity(i)) for i in response_embedding if material_token.similarity(i) > similarity_threshold]
+    return gr.Textbox.update(value=f"{response}"), gr.Textbox.update(value=f"{top_k_words_str}")
 
 selected_gen_texture = None 
 texture_part_dict = {}
@@ -243,10 +282,13 @@ interface = gr.Blocks()
 with interface:
     with gr.Row() as design_specs_row:
         with gr.Column():
-            gr.Markdown("Material Specifications for AI")
             target_place = gr.Textbox(label="Target Place", interactive=True)
             target_market = gr.Textbox(label="Target Market", interactive=True)
             set_targets_button = gr.Button(label="Set targets",value="Set targets")
+        with gr.Column():
+            gr.Markdown("Material Specifications for AI")
+            descriptors = gr.Textbox(label="The materials should be... (separate each descriptor with a \";\") ", interactive=True)
+            set_descriptors_button = gr.Button(value="Set descriptors")
     
     with gr.Row() as main_row:
         with gr.Column() as materials_generator_column:
@@ -260,7 +302,8 @@ with interface:
                     with gr.Row() as material_outputs:
                         with gr.Column():
                             for i in range(n_gen_materials):
-                                gen_img = gr.Image(interactive=False,visible=False,shape=(128,128))
+                                # gen_img = gr.Image(interactive=False,visible=False,shape=(128,128))
+                                gen_img = gr.Image(interactive=False,shape=(128,128))
                                 gen_material_images.append(gen_img)
                         gen_material_options = gr.Radio(label="Generated material texture names", interactive=True,choices=None,type="value")
                         part_inputs = []
@@ -284,29 +327,35 @@ with interface:
                     gr.Markdown("Suggest ")
                     suggest_material_type = ["No specific material","wood","metal","fabric","ceramic"]
                     suggest_material_dropdown = gr.Dropdown(label="Material",choices=suggest_material_type,value=suggest_material_type[1],interactive=True)
-                    gr.Markdown(" materials for...")
+                    gr.Markdown(" materials that are ")
+                    suggest_descriptor_dropdown = gr.Dropdown(label="Descriptor (optional)", value="No descriptor", choices=["No descriptor"], interactive=True)
+                    gr.Markdown(" for...")
                 with gr.Row():
                     suggest_product_dropdown = gr.Dropdown(label="Product",value="Select a product", choices=list(object_inputs.keys()),interactive=True)
                     suggest_select_product = gr.Button(value="Select product")
                     suggest_part_dropdown = gr.Dropdown(label="Parts",value="Please select an object first",choices=["Please select an object first"],interactive=True)
                 with gr.Row():
                     gr.Markdown("for ")
-                    suggest_target_dropdown = gr.Dropdown(label="Targets",value="No targets set",choices=["No targets set"], interactive=True)
+                    suggest_target_dropdown = gr.Dropdown(label="Targets (optional)",value="No targets set",choices=["No targets set"], interactive=True)
                 preview_prompt_button = gr.Button("Preview prompt")
                 with gr.Row():
                     preview_prompt = gr.Textbox(label="Prompt preview",value="",interactive=True,visible=False)
                     suggest_button = gr.Button("Suggest to me!",visible=False)
             with gr.Column():
-                ai_suggestion = gr.Textbox("", label="BLOOM AI says...",visible=False)
+                with gr.Row():
+                    ai_suggestion = gr.Textbox("(Currently no response)", label="BLOOM AI says...")
+                    extracted_words = gr.Textbox("(Currently no suggested inputs)", label="Suggested inputs")
         
+        # with gr.Tab(label="Evaluate") as ai_evaluate_tab:
 
     generate_button.click(fn=generate_material_textures, inputs=[input_material],outputs=[gen_material_options,*gen_material_images], scroll_to_output=True)
     transfer_button.click(fn=transfer_material_texture, inputs=[gen_material_options, *part_inputs], outputs=[current_rendering],scroll_to_output=True)
     save_rendering_button.click(fn=save_rendering, inputs=[current_rendering], outputs=[saved_scenes])
     suggest_select_product.click(fn=get_parts_from_object,inputs=[suggest_product_dropdown],outputs=[suggest_part_dropdown])
     set_targets_button.click(fn=set_targets, inputs=[target_place, target_market], outputs=[suggest_target_dropdown])
-    preview_prompt_button.click(fn=make_suggest_prompt, inputs = [suggest_material_dropdown,suggest_product_dropdown,suggest_part_dropdown,suggest_target_dropdown],outputs=[preview_prompt,suggest_button])
-    suggest_button.click(fn=get_suggestion, inputs=[preview_prompt],outputs=[ai_suggestion])
+    set_descriptors_button.click(fn=set_descriptors, inputs=[descriptors], outputs=[suggest_descriptor_dropdown])
+    preview_prompt_button.click(fn=make_suggest_prompt, inputs = [suggest_material_dropdown,suggest_descriptor_dropdown,suggest_product_dropdown,suggest_part_dropdown,suggest_target_dropdown],outputs=[preview_prompt,suggest_button])
+    suggest_button.click(fn=get_suggestion, inputs=[preview_prompt, suggest_material_dropdown],outputs=[ai_suggestion, extracted_words])
 
 interface.launch(debug=True)
 
