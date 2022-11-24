@@ -10,7 +10,7 @@ class TextureDiffusion():
     def __init__(self, model_id="CompVis/stable-diffusion-v1-4"):
 
         print("Initializing diffusion model")
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         
         self.lms = LMSDiscreteScheduler(
             beta_start=0.00085, 
