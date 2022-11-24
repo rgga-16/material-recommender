@@ -234,7 +234,7 @@ def get_args():
 
 def main2(): 
     args = get_args()
-    unwrap_method_='unwrap'
+    unwrap_method_='CUBE_PROJECT'
     with open(args.rendering_setup_json) as json_file:
         info = json.load(json_file)
         models_dir = info['dir']
