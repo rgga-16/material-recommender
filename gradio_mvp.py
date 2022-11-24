@@ -12,7 +12,7 @@ nlp = spacy.load("en_core_web_md")
 #############################
 # Set variables here
 #############################
-n_gen_materials = 5
+n_gen_materials = 4
 gen_material = ""
 gen_texture_choices_dict = {}
 saved_renderings_list = []
@@ -301,10 +301,16 @@ with interface:
                     generate_button = gr.Button("Generate")
                     with gr.Row() as material_outputs:
                         with gr.Column():
-                            for i in range(n_gen_materials):
-                                # gen_img = gr.Image(interactive=False,visible=False,shape=(128,128))
-                                gen_img = gr.Image(interactive=False,shape=(128,128))
-                                gen_material_images.append(gen_img)
+                            with gr.Row():
+                                gen_img1 = gr.Image(interactive=False,shape=(128,128))
+                                gen_material_images.append(gen_img1)
+                                gen_img2 = gr.Image(interactive=False,shape=(128,128))
+                                gen_material_images.append(gen_img2)
+                            with gr.Row():
+                                gen_img3 = gr.Image(interactive=False,shape=(128,128))
+                                gen_material_images.append(gen_img3)
+                                gen_img4 = gr.Image(interactive=False,shape=(128,128))
+                                gen_material_images.append(gen_img4)
                         gen_material_options = gr.Radio(label="Generated material texture names", interactive=True,choices=None,type="value")
                         part_inputs = []
                         object_inputs = objects_data["objects"]
