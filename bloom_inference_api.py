@@ -9,9 +9,8 @@ from tqdm import tqdm
 API_URL = "https://api-inference.huggingface.co/models/bigscience/bloom"
 headers = {"Authorization": "Bearer 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"}
 
-def iterative_query(prompt, n_tokens=500,n_tokens_per_query=250):
+def iterative_query(prompt, n_tokens=4000,n_tokens_per_query=250):
 
-	# old_response = ""
 	for i in range(0,n_tokens,n_tokens_per_query):
 		input_dict = {
 			"inputs": prompt,
@@ -24,10 +23,7 @@ def iterative_query(prompt, n_tokens=500,n_tokens_per_query=250):
 	
 	if 'generated_text' in list(response.keys()):
 		response = response['generated_text']
-	
 	return response
-
-# def iterative_query(prompt, )
 
 def get_response(payload):
 	response = requests.post(API_URL, headers=headers, json=payload)
