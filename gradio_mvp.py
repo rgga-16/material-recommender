@@ -5,9 +5,15 @@ import pathlib as p
 from PIL import Image
 import bloom_inference_api as BLOOM_API
 import spacy
+from spacytextblob.spacytextblob import SpacyTextBlob
 
-# nlp = spacy.load("en_core_web_trf")
+from spacy import displacy
+from spacy.matcher import Matcher
+from nltk import tokenize
+
+
 nlp = spacy.load("en_core_web_md")
+nlp.add_pipe('spacytextblob')
 
 #############################
 # Set variables here
@@ -51,7 +57,6 @@ saved_renderings_list.append(init_rendering)
 def transfer_material_texture(mat_option, *part_inputs):
 
     global current_texture_parts
-
     global curr_obj_part_matname_txtboxes
     # global curr_part_matname_txtboxes
 
@@ -209,9 +214,76 @@ def get_suggestion(prompt, selected_material_type):
     return gr.Textbox.update(value=f"{response}"), gr.Textbox.update(value=f"{top_k_words_str}")
 
 
-def make_critique_prompt():
+def parts_assembling_critique(product, mat1,part1,mat2,part2):
 
+    question = f"Can a {mat1} {product} {part1} be attached to a {mat2} {product} {part2}?"
+
+    prompt = f'''
+            Q: {question}
+            A: Let's think step-by-step. 
+    '''
+
+    response = get_critique(prompt)
+
+    # Sentimental Analysis
+    doc = nlp(response)
+    polarity = doc._.blob.polarity
+
+    return question, response, polarity
+
+def matspec_critique(matspec, material, material_type, product=None):
+
+    if product is None:
+        question = f"Is {material} a suitable {material_type} material that is {matspec}?"
+    else: 
+        question = f"Is {material} a suitable {material_type} material for a {product} that is {matspec}?"
     
+    prompt = f'''
+            Q: {question}
+            A: Let's think step-by-step. 
+    '''
+    
+    response = get_critique(prompt)
+    
+    # Sentimental Analysis
+    doc = nlp(response)
+    polarity = doc._.blob.polarity
+    
+    response = get_critique(prompt)
+
+
+    return question, response, polarity
+
+def environment_critique(target_env, material, material_type, product=None):
+
+    if product is None: 
+        question = f"Is {material} a suitable {material_type} material for {target_env}?"
+    else: 
+        question = f"Is {material} a suitable {material_type} material for a {product} for {target_env}?"
+    
+    prompt = f'''
+        Q: {question}
+        A: Let's think step-by-step. 
+    '''
+
+    response = get_critique(prompt)
+    
+    # Sentimental Analysis
+    doc = nlp(response)
+    polarity = doc._.blob.polarity
+    
+    response = get_critique(prompt)
+
+    return question, response, polarity
+
+def get_critique(prompt):
+
+    global nlp 
+    response = BLOOM_API.iterative_query(prompt) # Send prompt to BLOOM API here. Get their response.
+
+    filtered_response = response.replace(prompt,"")
+
+    return filtered_response
 
 selected_gen_texture = None 
 texture_part_dict = {}
@@ -225,15 +297,16 @@ curr_part_matname_txtboxes = [] #List of all current parts
 interface = gr.Blocks()
 
 with interface:
-    with gr.Row() as design_specs_row:
-        with gr.Column():
-            target_place = gr.Textbox(label="Target Place", interactive=True)
-            target_market = gr.Textbox(label="Target Market", interactive=True)
-            set_targets_button = gr.Button(label="Set targets",value="Set targets")
-        with gr.Column():
-            gr.Markdown("Material Specifications for AI")
-            descriptors = gr.Textbox(label="The materials should be... (separate each descriptor with a \";\") ", interactive=True)
-            set_descriptors_button = gr.Button(value="Set descriptors")
+    with gr.Accordion(label="Design Specifications",open=False) as design_specs:
+        with gr.Row() as design_specs_row:
+            with gr.Column():
+                target_place = gr.Textbox(label="Target Place", interactive=True)
+                target_market = gr.Textbox(label="Target Market", interactive=True)
+                set_targets_button = gr.Button(label="Set targets",value="Set targets")
+            with gr.Column():
+                gr.Markdown("Material Specifications for AI")
+                descriptors = gr.Textbox(label="The materials should be... (separate each descriptor with a \";\") ", interactive=True)
+                set_descriptors_button = gr.Button(value="Set descriptors")
     
     with gr.Row() as main_row:
         with gr.Column() as materials_generator_column:
@@ -290,7 +363,7 @@ with interface:
                 save_rendering_button = gr.Button("Save to gallery")
                 saved_scenes = gr.Gallery(value=saved_renderings_list,label="Saved renderings").style(grid=5,height="auto")
         
-        with gr.Tab(label="Suggest") as ai_suggest_tab:
+        with gr.Tab(label="Request suggestion") as ai_suggest_tab:
             with gr.Column():
                 with gr.Row():
                     gr.Markdown("Suggest ")
@@ -315,7 +388,33 @@ with interface:
                     ai_suggestion = gr.Textbox("(Currently no response)", label="BLOOM AI says...")
                     extracted_words = gr.Textbox("(Currently no suggested inputs)", label="Suggested inputs")
         
-        # with gr.Tab(label="Evaluate") as ai_evaluate_tab:
+        with gr.Tab(label="Request evaluation") as ai_evaluate_tab:
+
+            pass
+        
+        with gr.Tab(label="View critiques") as ai_critiques_tab:
+            materials = []
+            for object in list(current_texture_parts.keys()):
+                object_dict = current_texture_parts[object]
+                for part in list(object_dict.keys()):
+                    part_dict = object_dict[part]
+                    materials.append(part_dict['mat_name'])
+            unique_materials = [*set(materials)]
+            
+            with gr.Tab(label="Target Environment"):
+               
+                pass 
+
+            with gr.Tab(label="Material Specs"):
+              
+                pass 
+            
+            with gr.Tab(label="Assembly"):
+                # For each object, make a tab. Each tab contains a list of its parts.
+                pass 
+
+            pass
+
 
     generate_button.click(fn=generate_material_textures, inputs=[input_material],outputs=[gen_material_options,*gen_material_images], scroll_to_output=True)
     transfer_button.click(fn=transfer_material_texture, inputs=[gen_material_options, *part_inputs], outputs=[current_rendering, *curr_part_matname_txtboxes],scroll_to_output=True)
@@ -328,8 +427,4 @@ with interface:
 
 interface.launch(debug=True)
 
-def main():
-    interface = gr.Interface(fn=transfer_texture, inputs = ['text','text','text','text','text','text'], outputs = ['image'])
-    interface.launch(share=True)
-    return 
 

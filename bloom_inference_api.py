@@ -14,12 +14,14 @@ def iterative_query(prompt, n_tokens=4000,n_tokens_per_query=250):
 	for i in range(0,n_tokens,n_tokens_per_query):
 		input_dict = {
 			"inputs": prompt,
-			"max_new_tokens": f"{n_tokens_per_query}"
+			"max_new_tokens": f"{n_tokens_per_query}",
+			"do_sample": False 
 		}
 		response = get_response(input_dict)[0]
 
 		if 'generated_text' in list(response.keys()):
 			prompt=response['generated_text']
+			print()
 	
 	if 'generated_text' in list(response.keys()):
 		response = response['generated_text']
