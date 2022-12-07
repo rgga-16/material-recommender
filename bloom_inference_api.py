@@ -1,6 +1,9 @@
 
 '''
 Watch tutorial: https://www.youtube.com/watch?v=5ef83Wljm-M
+
+also look at dis 
+https://github.com/Sentdex/BLOOM_Examples/blob/main/BLOOM_api_example.ipynb
 '''
 
 import requests,copy
