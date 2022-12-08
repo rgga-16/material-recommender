@@ -37,17 +37,15 @@ def subtree_matcher(doc):
 
     return x, y
 
-question = "Can a steel table leg be attached to a wooden table top?"
+question = "Is oak wood a suitable material for a nightstand base in hotel rooms?"
 
 text = '''
-Would you like to strengthen the table top? If the answer is yes, then it could be done. 
-You would want to drill a hole through the table top and table leg using a larger drill bit than you will use. 
-In the hole, slip a bolt that is longer than the leg. Fit the bolt into the leg and bolt the leg into the top.
-Hold the leg in position and drill the hole, and then it is time to use the large bit. 
-You can sand the bottom of the table top as well to conceal the hardware.
-We hope you enjoy these tips and that you found these answers helpful. 
-There are many more tips in the book, "Wood Working Ideas". 
-Check out the book and share your comments with us.
+ You obviously mean oak wood and not veneer - which is usually no. Oak, even if treated, will not survive the abuse caused by the frequent opening and closing of the drawers and doors. As a matter of fact, it's actually not advisable to do it yourself either - in case you don't want your bedstand to fall apart in a couple of weeks.
+
+Even pine wood won't be able to cope with the treatment that it will get in hotel rooms - the constant opening of drawers and doors, combined with the temperature fluctuations (hot in the summer, cold in the winter) will not take kindly to this material. The other problem is that any traces of water on pine will cause the wood to swell.
+
+What is usually used for such projects are some types of particle board. These can be easily stained, and depending on their thickness can provide a very solid surface on which to build furniture. But yes, it will not last too long as well, and you will have to regularly sand and stain the surface to keep it looking good.
+
 '''
 
 nlp = spacy.load('en_core_web_md')
@@ -70,6 +68,9 @@ for i in sentences_found:
 print('\n')
 
 print(f'Polarity {textdoc._.blob.polarity}')
+print(f'Assessments: {textdoc._.blob.sentiment_assessments.assessments}')
+print()
+print()
 # doc._.blob.polarity                            # Polarity: -0.125
 # doc._.blob.subjectivity                        # Subjectivity: 0.9
 # doc._.blob.sentiment_assessments.assessments   # Assessments: [(['really', 'horrible'], -1.0, 1.0, None), (['worst', '!'], -1.0, 1.0, None), (['really', 'good'], 0.7, 0.6000000000000001, None), (['happy'], 0.8, 1.0, None)]

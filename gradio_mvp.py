@@ -6,6 +6,7 @@ from PIL import Image
 import bloom_inference_api as BLOOM_API
 import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
+from utils import css 
 
 from spacy import displacy
 from spacy.matcher import Matcher
@@ -44,7 +45,7 @@ init_texture_parts_path = os.path.join(renderings_dir, str(curr_render_id),"obje
 f=open(init_texture_parts_path)
 init_texture_parts = json.load(f)
 current_texture_parts = copy.deepcopy(init_texture_parts)
-
+current_material_specs = []
 init_rendering_outdir = os.path.join(renderings_dir,str(curr_render_id))
 
 command_str = f'blender --background --python render_obj_and_textures.py -- --out_dir {init_rendering_outdir} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path}'
@@ -159,8 +160,11 @@ def get_parts_from_object(object):
     selected_parts.insert(0,"No specific part")
     return gr.Dropdown.update(choices=selected_parts,value=selected_parts[0])
 
-def set_descriptors(descriptor_str):
-    descriptor_list = descriptor_str.split(";")
+def set_material_specs(descriptor_str):
+    global current_material_specs
+    
+    descriptor_list = descriptor_str.split(";"); descriptor_list = filter(lambda x: x != "", descriptor_list)
+    current_material_specs = descriptor_list
     descriptor_list.insert(0,"No descriptor")
     return gr.Dropdown.update(choices=descriptor_list,value=descriptor_list[0])
 
@@ -231,28 +235,36 @@ def parts_assembling_critique(product, mat1,part1,mat2,part2):
 
     return question, response, polarity
 
-def matspec_critique(matspec, material, material_type, product=None):
+def matspec_critique(matspec, material, product=None):
 
     if product is None:
-        question = f"Is {material} a suitable {material_type} material that is {matspec}?"
+        question = f"Is {material} a suitable material that is {matspec}?"
     else: 
-        question = f"Is {material} a suitable {material_type} material for a {product} that is {matspec}?"
+        question = f"Is {material} a suitable material for a {product} that is {matspec}?"
     
     prompt = f'''
             Q: {question}
             A: Let's think step-by-step. 
     '''
-    
+
     response = get_critique(prompt)
-    
+
     # Sentimental Analysis
     doc = nlp(response)
     polarity = doc._.blob.polarity
-    
+
     response = get_critique(prompt)
-
-
     return question, response, polarity
+
+# def critique_mats_by_spec(materials, specifications, matspecs_critique_tab:gr.layouts.TabItem):
+
+#     matspec_critiques_tab.children=[]
+#     return matspec_critiques_tab
+
+def critique_mats_by_spec(matspecs_critique_tab:gr.layouts.TabItem):
+
+    matspec_critiques_tab.children=[]
+    return matspec_critiques_tab
 
 def environment_critique(target_env, material, material_type, product=None):
 
@@ -294,7 +306,7 @@ gen_material_images = []
 curr_obj_part_matname_txtboxes = {} 
 
 curr_part_matname_txtboxes = [] #List of all current parts
-interface = gr.Blocks()
+interface = gr.Blocks(css=css)
 
 with interface:
     with gr.Accordion(label="Design Specifications",open=False) as design_specs:
@@ -309,11 +321,12 @@ with interface:
                 set_descriptors_button = gr.Button(value="Set descriptors")
     
     with gr.Row() as main_row:
-        with gr.Column() as materials_generator_column:
+        
+        with gr.Column(variant="panel") as materials_generator_column:
             ####################################################################################
             # Left section. Section for generating material texture and transferring onto parts.
             ####################################################################################
-            with gr.Row() as material_inputs:
+            with gr.Column() as material_inputs:
                 with gr.Column():
                     input_material = gr.Textbox(label="Input material texture")
                     generate_button = gr.Button("Generate")
@@ -344,7 +357,7 @@ with interface:
         ####################################################################################
         # Middle section. Section for generating material texture and transferring onto parts.
         ####################################################################################
-        with gr.Column() as middle_section:
+        with gr.Column(variant="panel") as middle_section:
             with gr.Accordion(label="Current materials",open=False) as display_material_names_column: 
                 # Iterate over current materials
                 for object in list(current_texture_parts.keys()):
@@ -362,6 +375,10 @@ with interface:
                 current_rendering = gr.Image(value=init_rendering, interactive=False, label="Current rendering")
                 save_rendering_button = gr.Button("Save to gallery")
                 saved_scenes = gr.Gallery(value=saved_renderings_list,label="Saved renderings").style(grid=5,height="auto")
+        
+        ##########################################################################################
+        # Right section. Section for requesting suggestions and critiques, and receiving critiques
+        ##########################################################################################
         
         with gr.Tab(label="Request suggestion") as ai_suggest_tab:
             with gr.Column():
@@ -392,7 +409,7 @@ with interface:
 
             pass
         
-        with gr.Tab(label="View critiques") as ai_critiques_tab:
+        with gr.Tab(label="View critiques", id="ai_critiques_tab") as ai_critiques_tab:
             materials = []
             for object in list(current_texture_parts.keys()):
                 object_dict = current_texture_parts[object]
@@ -401,27 +418,37 @@ with interface:
                     materials.append(part_dict['mat_name'])
             unique_materials = [*set(materials)]
             
+            targetenv_sentanalyses = []
             with gr.Tab(label="Target Environment"):
-               
-                pass 
-
-            with gr.Tab(label="Material Specs"):
-              
+                with gr.Row():
+                    for mat in unique_materials:
+                        with gr.Row():
+                            gr.Markdown(f"{mat}")
+                            gr.Markdown(f"No eval")
+                            gr.Button(f"View critique")
                 pass 
             
-            with gr.Tab(label="Assembly"):
+            matspec_sentanalyses = []
+            with gr.Tab(label="Material Specs") as matspec_critiques_tab:
+                # empty_specs = gr.Markdown("No material specifications set. Please set them first.")
+                pass
+            
+            with gr.Tab(label="Assembly") as assembly_critiques_tab:
                 # For each object, make a tab. Each tab contains a list of its parts.
+                for object in list(current_texture_parts.keys()):
+                    gr.Tab(label=f"{object}")
+                    object_dict = current_texture_parts[object]
+                    for part in list(object_dict.keys()):
+                        part_dict = object_dict[part]
+                        materials.append(part_dict['mat_name'])
                 pass 
-
-            pass
-
 
     generate_button.click(fn=generate_material_textures, inputs=[input_material],outputs=[gen_material_options,*gen_material_images], scroll_to_output=True)
     transfer_button.click(fn=transfer_material_texture, inputs=[gen_material_options, *part_inputs], outputs=[current_rendering, *curr_part_matname_txtboxes],scroll_to_output=True)
     save_rendering_button.click(fn=save_rendering, inputs=[current_rendering], outputs=[saved_scenes])
     suggest_select_product.click(fn=get_parts_from_object,inputs=[suggest_product_dropdown],outputs=[suggest_part_dropdown])
     set_targets_button.click(fn=set_targets, inputs=[target_place, target_market], outputs=[suggest_target_dropdown])
-    set_descriptors_button.click(fn=set_descriptors, inputs=[descriptors], outputs=[suggest_descriptor_dropdown])
+    set_descriptors_button.click(fn=set_material_specs, inputs=[descriptors], outputs=[suggest_descriptor_dropdown])
     preview_prompt_button.click(fn=make_suggest_prompt, inputs = [suggest_material_dropdown,suggest_descriptor_dropdown,suggest_product_dropdown,suggest_part_dropdown,suggest_target_dropdown],outputs=[preview_prompt,suggest_button])
     suggest_button.click(fn=get_suggestion, inputs=[preview_prompt, suggest_material_dropdown],outputs=[ai_suggestion, extracted_words])
 
