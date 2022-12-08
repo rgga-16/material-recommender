@@ -3,6 +3,15 @@ import numpy as np
 from PIL import Image
 import torch 
 
+
+css= '''
+.gradio-container #materials_generator {
+    background-color: red;
+}
+
+'''
+
+
 def show2images(leftpic,rightpic):
     f = plt.figure()
     f.add_subplot(1,2, 1)
