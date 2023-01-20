@@ -163,7 +163,9 @@ def get_parts_from_object(object):
 def set_material_specs(descriptor_str):
     global current_material_specs
     
-    descriptor_list = descriptor_str.split(";"); descriptor_list = filter(lambda x: x != "", descriptor_list)
+    descriptor_list = descriptor_str.split(";"); 
+    # descriptor_list = filter(lambda x: x != "", descriptor_list)
+    descriptor_list = [d for d in descriptor_list if d.strip()]
     current_material_specs = descriptor_list
     descriptor_list.insert(0,"No descriptor")
     return gr.Dropdown.update(choices=descriptor_list,value=descriptor_list[0])
