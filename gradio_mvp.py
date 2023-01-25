@@ -6,7 +6,7 @@ from PIL import Image
 import bloom_inference_api as BLOOM_API
 import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
-from utils import css 
+from utils.image import css 
 
 from spacy import displacy
 from spacy.matcher import Matcher
@@ -49,6 +49,7 @@ current_material_specs = []
 init_rendering_outdir = os.path.join(renderings_dir,str(curr_render_id))
 
 command_str = f'blender --background --python render_obj_and_textures.py -- --out_dir {init_rendering_outdir} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path}'
+# command_str = f'blender --python render_obj_and_textures.py -- --out_dir {init_rendering_outdir} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path}'
 os.system(command_str)
 
 init_rendering = Image.open(os.path.join(init_rendering_outdir,"rendering.png"))
