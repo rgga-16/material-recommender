@@ -1,13 +1,97 @@
 # from rendering import blender
 import numpy as np
 import argparse, sys, json, os
-
+from pathlib import Path
 import bpy, sys, os
 import numpy as np
 import argparse
 # sys.path.append("C:/Users/r-gal/OneDrive/Documents/Generative-AI-Projects/Libraries/BlenderToolbox")
 # import BlenderToolBox as bt 
 import logging, math
+
+marble_glossy = {
+    'Subsurface':0.01,
+    # 'Subsurface IOR':1.470,
+    # 'Subsurface Anistropy':0.2,
+    'Specular':1.0,
+    'Roughness':0.05,
+    'Sheen Tint':0.5,
+    'Clearcoat':1.0,
+    'Clearcoat Roughness':0.05,
+    'IOR':1.47,
+}
+
+marble_matte = {
+
+}
+
+ceramic_glossy = {
+    'Subsurface':0.01,
+    # 'Subsurface IOR':1.470,
+    # 'Subsurface Anistropy':0.2,
+    'Specular':1.0,
+    'Roughness':0.05,
+    'Sheen Tint':0.5,
+    'Clearcoat':1.0,
+    'Clearcoat Roughness':0.05,
+    'IOR':1.47,
+}
+
+ceramic_matte = {
+
+}
+
+wood_matte = {
+
+}
+
+wood_glossy = {
+
+}
+
+plastic_matte = {
+
+}
+
+plastic_glossy = {
+
+}
+
+metal_matte = {
+
+}
+
+metal_glossy = {
+
+}
+
+
+
+materials_settings = {
+    'marble': marble_glossy,
+    'ceramic': ceramic_glossy,
+    'wood': wood_glossy,
+    'plastic': plastic_glossy,
+    'metal': metal_glossy,
+}
+
+def set_material_settings(principled_node: bpy.types.Node, material_type:str):
+    material_type=material_type.lower()
+
+    for k in materials_settings.keys():
+        k = k.lower()
+        if k in material_type:
+            print("material detected. adjusting corresponding material settings")
+            ms = materials_settings[k]
+            for k2 in ms.keys():
+                principled_node.inputs[k2].default_value = ms[k2]
+            break 
+    
+    # if k not in material_type:
+    #     raise Exception("Material name not found in materials settings")
+
+    return 
+
 
 
 def unwrap_method(method:str):
@@ -34,18 +118,21 @@ def unwrap_method(method:str):
 
 class Renderer():
     def __init__(self,cam_info, light_info):
-        self.set_gpu()
+        self.set_gpu("BLENDER_EEVEE")
         self.setup_scene()
         self.setup_camera(cam_info['loc'],cam_info['rot'],cam_info['scale'])
         self.setup_light(light_info['loc'],light_info['rot'],light_info['scale'])
         self.objects = []
     
-    def set_gpu(self):
-        bpy.context.scene.render.engine = 'CYCLES'
-        bpy.context.preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
-        bpy.context.preferences.addons['cycles'].preferences.get_devices()
-        bpy.context.preferences.addons['cycles'].preferences.devices[0].use= True
-        bpy.context.scene.cycles.device = 'GPU'
+    def set_gpu(self, rendering_engine):
+        assert rendering_engine in ['CYCLES', 'BLENDER_EEVEE']
+        bpy.context.scene.render.engine = rendering_engine
+
+        if rendering_engine=='CYCLES':
+            bpy.context.preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
+            bpy.context.preferences.addons['cycles'].preferences.get_devices()
+            bpy.context.preferences.addons['cycles'].preferences.devices[0].use= True
+            bpy.context.scene.cycles.device = 'GPU'
     
     def delete_object(self,obj):
         # bpy.ops.object.select_all(action='DESELECT')
@@ -133,7 +220,8 @@ class Renderer():
         bpy.ops.object.editmode_toggle()
         return
     
-    def bake_texture(self,obj,unwrap_method_,texture):
+    def bake_texture(self,obj,unwrap_method_,texture_path,texture_name):
+        self.set_gpu("CYCLES")
         bpy.context.scene.cycles.device = 'GPU'
         obj.select_set(True)
         bpy.context.view_layer.objects.active=obj
@@ -143,16 +231,20 @@ class Renderer():
         obj.select_set(True)
         unwrap_method(unwrap_method_)
 
+        # Load texture image
+        image = bpy.data.images.load(texture_path,check_existing=True)
         # Load object material's Principal BSDF node
         mat = bpy.data.materials.new(name='Material')
         mat.use_nodes=True     
         bsdf = mat.node_tree.nodes["Principled BSDF"]
-        bsdf.inputs['Roughness'].default_value = 1.0
-        bsdf.inputs['Sheen Tint'].default_value = 0
+
+        set_material_settings(bsdf,texture_name)
+
+        # bsdf.inputs['Roughness'].default_value = 1.0
+        # bsdf.inputs['Sheen Tint'].default_value = 0
 
         # Link texture_image's node Color to BSDF node BaseColor
         texture_image = mat.node_tree.nodes.new('ShaderNodeTexImage')
-        image = bpy.data.images.load(texture,check_existing=True)
         texture_image.image = image 
 
         mat.node_tree.links.new(bsdf.inputs['Base Color'],texture_image.outputs['Color'])
@@ -165,9 +257,10 @@ class Renderer():
         # Bake
         bpy.ops.object.bake(type='DIFFUSE',pass_filter={'COLOR'},margin=32)
         texture_image.select=False
-        obj.select_set(False ) 
+        obj.select_set(False) 
         bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.select_all(action='DESELECT')
+        self.set_gpu("BLENDER_EEVEE")
         return 
 
     def setup_objects(self):
@@ -205,7 +298,7 @@ class Renderer():
     def render(self, out_dir = './tmp'):
         bpy.context.scene.render.filepath = os.path.join(out_dir, f'rendering.png')
         bpy.ops.render.render(write_still=True)
-        sys.exit()
+        # sys.exit()
 
 def extract_args(input_argv=None):
         """
@@ -253,10 +346,12 @@ def main2():
         parts_info = model_info['parts']
         for part in parts_info['names']:
             part_material_path = texture_object_parts[model_key][part]["mat_image_texture"]
+            part_material_name = texture_object_parts[model_key][part]["mat_name"]
+            # part_material_finish
             part_path = os.path.join(models_dir,model_key, f'{part}.obj')
             obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
             renderer.recalculate_normals(obj)
-            renderer.bake_texture(obj,unwrap_method_,part_material_path)
+            renderer.bake_texture(obj,unwrap_method_,part_material_path,part_material_name)
     renderer.render(out_dir=args.out_dir)
 
 def main1():
