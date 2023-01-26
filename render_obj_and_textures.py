@@ -5,14 +5,88 @@ from pathlib import Path
 import bpy, sys, os
 import numpy as np
 import argparse
+
 # sys.path.append("C:/Users/r-gal/OneDrive/Documents/Generative-AI-Projects/Libraries/BlenderToolbox")
 # import BlenderToolBox as bt 
 import logging, math
 
-marble_glossy = {
-    'Subsurface':0.01,
-    # 'Subsurface IOR':1.470,
-    # 'Subsurface Anistropy':0.2,
+working_dir_path = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(working_dir_path)
+
+metals = ['metal','aluminum','aluminium','steel','cobalt', 'iron', 'magnesium', 'nickel', 'titanium', 'zinc', 'chromium', 'chrome']
+ceramics = ['ceramic', 'marble', 'granite', 'porcelain']
+woods = ['wood', 'mahogany', 'teak', 'oak']
+plastics = []
+fabrics = ['cotton', 'wool', 'silk','linen', 'cashmere', 'mohair', 'alpaca', 'angora', 'viscose', 'polyester', 'nylon', 'acrylic', 'spandex', 'rayon', 'leather', 'suede','fur', 'denim', 'canvas', 'lace', 'tulle', 'velour', 'chiffon', 'organza', 'satin', 'taffeta', 'tweed']
+
+
+
+# ceramic_glossy = {
+#     'Specular':1.0,
+#     'Roughness':0.05,
+#     'Sheen Tint':0.5,
+#     'Clearcoat':1.0,
+#     'Clearcoat Roughness':0.05,
+#     'IOR':1.47,
+# }
+
+# ceramic_matte = {
+#     'Subsurface':0.0,
+#     'Specular':0.5,
+#     'Roughness':0.5,
+#     'Sheen Tint':0.5,
+#     'Clearcoat':0.0,
+#     'IOR':1.47,
+# }
+
+# wood_matte = {
+#     'Subsurface':0.0,
+#     'Specular':0.5,
+#     'Roughness':0.5,
+#     'Sheen Tint':0.5,
+#     'Clearcoat':0.0,
+#     'IOR':1.47,
+# }
+
+# wood_glossy = {
+#     'Subsurface':0.0,
+#     'Specular':1.0,
+#     'Roughness':0.05,
+#     'Sheen Tint':0.5,
+#     'Clearcoat':1.0,
+#     'Clearcoat Roughness':0.05,
+#     'IOR':1.47,
+# }
+
+# plastic_matte = {
+
+# }
+
+# plastic_glossy = {
+
+# }
+
+# metal_matte = {
+#     'Subsurface':0.0,
+#     'Specular':0.5,
+#     'Roughness':0.5,
+#     'Sheen Tint':0.5,
+#     'Clearcoat':0.0,
+#     'IOR':1.47,
+# }
+
+# metal_glossy = {
+#     'Subsurface':0.0,
+#     'Specular':1.0,
+#     'Roughness':0.115,
+#     'Sheen Tint':0.5,
+#     'Clearcoat':1.0,
+#     'Clearcoat Roughness':0.132,
+#     'IOR':1.47,
+# }
+
+glossy = {
+    'Subsurface':0.0,
     'Specular':1.0,
     'Roughness':0.05,
     'Sheen Tint':0.5,
@@ -21,77 +95,111 @@ marble_glossy = {
     'IOR':1.47,
 }
 
-marble_matte = {
-
-}
-
-ceramic_glossy = {
-    'Subsurface':0.01,
-    # 'Subsurface IOR':1.470,
-    # 'Subsurface Anistropy':0.2,
-    'Specular':1.0,
-    'Roughness':0.05,
+matte = {
+    'Subsurface':0.0,
+    'Specular':0.5,
+    'Roughness':0.5,
     'Sheen Tint':0.5,
-    'Clearcoat':1.0,
-    'Clearcoat Roughness':0.05,
+    'Clearcoat':0.0,
     'IOR':1.47,
 }
 
-ceramic_matte = {
-
+mat_finish_settings = {
+    'glossy': glossy,
+    'matte': matte,
 }
 
-wood_matte = {
+def setup_fabric(principled_node: bpy.types.Node, mat_node_tree, image_texture_node: bpy.types.Node):
+    bump_node = mat_node_tree.nodes.new('ShaderNodeBump')
+    bump_node.inputs['Strength'].default_value=0.1
 
-}
+    mapping_node = mat_node_tree.nodes.new('ShaderNodeMapping')
+    texture_coord_node = mat_node_tree.nodes.new('ShaderNodeTexCoord')
 
-wood_glossy = {
+    mat_node_tree.links.new(texture_coord_node.outputs['UV'], mapping_node.inputs['Vector'])
+    mat_node_tree.links.new(mapping_node.outputs['Vector'], image_texture_node.inputs['Vector'])
+    mat_node_tree.links.new(image_texture_node.outputs['Color'], bump_node.inputs['Height'])
+    mat_node_tree.links.new(bump_node.outputs['Normal'], principled_node.inputs['Normal'])
 
-}
+    principled_node.inputs['Sheen'].default_value=1.0
+    principled_node.inputs['Specular'].default_value=0.0
+    principled_node.inputs['Clearcoat'].default_value=0.0
+    principled_node.inputs['Metallic'].default_value=0.0
+    return 
 
-plastic_matte = {
+def setup_plastic(principled_node: bpy.types.Node, mat_node_tree):
+    return 
 
-}
+def setup_metal(principled_node: bpy.types.Node, mat_node_tree):
+    noise_node = mat_node_tree.nodes.new('ShaderNodeTexNoise')
+    noise_node.inputs['Scale'].default_value=500
+    noise_node.inputs['Roughness'].default_value=1.0
+    
+    bump_node = mat_node_tree.nodes.new('ShaderNodeBump')
+    bump_node.inputs['Strength'].default_value=0.1
 
-plastic_glossy = {
+    mat_node_tree.links.new(noise_node.outputs['Fac'], bump_node.inputs['Height'])
+    mat_node_tree.links.new(bump_node.outputs['Normal'], principled_node.inputs['Normal'])
+    principled_node.inputs['Metallic'].default_value=1.0
+    return 
 
-}
+def setup_wood(principled_node: bpy.types.Node, mat_node_tree, image_texture_node):
+    bump_node = mat_node_tree.nodes.new('ShaderNodeBump')
+    bump_node.inputs['Strength'].default_value=0.1
 
-metal_matte = {
+    mat_node_tree.links.new(image_texture_node.outputs['Color'],bump_node.inputs['Height'])
+    mat_node_tree.links.new(bump_node.outputs['Normal'],principled_node.inputs['Normal'])
+    return
 
-}
+def isin_materials(input_material_type,materials_list):
+    for mat in materials_list:
+        if mat in input_material_type:
+            print(f'Material {input_material_type} detected as {mat}!')
+            return True 
+    return False
 
-metal_glossy = {
-
-}
-
-
-
-materials_settings = {
-    'marble': marble_glossy,
-    'ceramic': ceramic_glossy,
-    'wood': wood_glossy,
-    'plastic': plastic_glossy,
-    'metal': metal_glossy,
-}
-
-def set_material_settings(principled_node: bpy.types.Node, material_type:str):
+def setup_material(principled_node: bpy.types.Node, mat_node_tree, image_texture_node: bpy.types.Node, material_type:str, material_finish:str='glossy' ):
     material_type=material_type.lower()
+    material_finish = material_finish.lower()
 
-    for k in materials_settings.keys():
+    # Do another pass here on the type of finish. For now, default finish is "glossy"
+    set_pbsdf_settings(principled_node,material_finish)
+    
+    if isin_materials(material_type,metals):
+        setup_metal(principled_node,mat_node_tree)
+        pass 
+    elif isin_materials(material_type,woods):
+        setup_wood(principled_node,mat_node_tree,image_texture_node)
+        pass 
+    elif isin_materials(material_type,ceramics):
+        # No need to add additional nodes so leave as is.
+        pass 
+    elif isin_materials(material_type,plastics):
+        # No need to add additional nodes so leave as is.
+        pass
+    elif isin_materials(material_type,fabrics):
+        setup_fabric(principled_node,mat_node_tree,image_texture_node)
+        pass 
+    else:
+        print(f'ERROR: Material type {material_type} unknown')
+    
+    
+
+    return
+
+
+def set_pbsdf_settings(principled_node: bpy.types.Node, material_finish:str = 'glossy'):
+    material_finish=material_finish.lower()
+
+    for k in mat_finish_settings.keys():
         k = k.lower()
-        if k in material_type:
-            print("material detected. adjusting corresponding material settings")
-            ms = materials_settings[k]
+        if k in material_finish:
+            print("material finish detected. adjusting corresponding material settings")
+            ms = mat_finish_settings[k]
             for k2 in ms.keys():
                 principled_node.inputs[k2].default_value = ms[k2]
             break 
-    
-    # if k not in material_type:
-    #     raise Exception("Material name not found in materials settings")
-
     return 
-
 
 
 def unwrap_method(method:str):
@@ -119,7 +227,8 @@ def unwrap_method(method:str):
 class Renderer():
     def __init__(self,cam_info, light_info):
         self.set_gpu("BLENDER_EEVEE")
-        self.setup_scene()
+        self.setup_render()
+        self.setup_background()
         self.setup_camera(cam_info['loc'],cam_info['rot'],cam_info['scale'])
         self.setup_light(light_info['loc'],light_info['rot'],light_info['scale'])
         self.objects = []
@@ -133,7 +242,10 @@ class Renderer():
             bpy.context.preferences.addons['cycles'].preferences.get_devices()
             bpy.context.preferences.addons['cycles'].preferences.devices[0].use= True
             bpy.context.scene.cycles.device = 'GPU'
-    
+            bpy.context.scene.cycles.samples=1024
+        elif rendering_engine=='BLENDER_EEVEE':
+            bpy.context.scene.eevee.taa_render_samples=1024
+
     def delete_object(self,obj):
         # bpy.ops.object.select_all(action='DESELECT')
         # obj.select_set(True)
@@ -144,10 +256,33 @@ class Renderer():
         bpy.ops.object.delete({"selected_objects": self.objects})
         self.objects=[]
 
-    def setup_scene(self):
+    def setup_background(self,hdri_path: str = os.path.join(working_dir_path,'data/hdri/interior.exr') , rotation: float = 0.0) -> None:
+        scene = bpy.data.scenes["Scene"]
+        world = scene.world
+
+        world.use_nodes = True
+        node_tree = world.node_tree
+
+        environment_texture_node = node_tree.nodes.new(type="ShaderNodeTexEnvironment")
+        environment_texture_node.image = bpy.data.images.load(hdri_path)
+
+        mapping_node = node_tree.nodes.new(type="ShaderNodeMapping")
+        if bpy.app.version >= (2, 81, 0):
+            mapping_node.inputs["Rotation"].default_value = (0.0, 0.0, rotation)
+        else:
+            mapping_node.rotation[2] = rotation
+
+        tex_coord_node = node_tree.nodes.new(type="ShaderNodeTexCoord")
+
+        node_tree.links.new(tex_coord_node.outputs["Generated"], mapping_node.inputs["Vector"])
+        node_tree.links.new(mapping_node.outputs["Vector"], environment_texture_node.inputs["Vector"])
+        node_tree.links.new(environment_texture_node.outputs["Color"], node_tree.nodes["Background"].inputs["Color"])
+
+    
+    def setup_render(self):
         self.scene = bpy.context.scene
-        self.scene.render.resolution_x = 512
-        self.scene.render.resolution_y = 512
+        self.scene.render.resolution_x = 1024
+        self.scene.render.resolution_y = 1024
 
         self.scene.render.image_settings.quality = 100
         self.scene.render.image_settings.file_format = 'PNG'
@@ -156,13 +291,15 @@ class Renderer():
         self.scene.render.resolution_percentage = 100
         self.scene.render.use_border = False
 
+        self.scene.render.film_transparent = True
+
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete(use_global=False)
 
     def setup_light(self, loc=(14.188, -13.29, 16.627), rot=(11.7,-54.7,126), scale=(1.0,1.0,1.0)):
         # Create new lamp datablock
         lamp_data = bpy.data.lights.new(name="New Lamp", type='SUN')
-        lamp_data.energy = 7
+        lamp_data.energy = 10
         # Create new object with our lamp datablock
         lamp_object = bpy.data.objects.new(name="New Lamp", object_data=lamp_data)
         # Link lamp object to the scene so it'll appear in this scene
@@ -220,7 +357,7 @@ class Renderer():
         bpy.ops.object.editmode_toggle()
         return
     
-    def bake_texture(self,obj,unwrap_method_,texture_path,texture_name):
+    def apply_texture(self,obj,unwrap_method_,texture_path,texture_name):
         self.set_gpu("CYCLES")
         bpy.context.scene.cycles.device = 'GPU'
         obj.select_set(True)
@@ -238,25 +375,24 @@ class Renderer():
         mat.use_nodes=True     
         bsdf = mat.node_tree.nodes["Principled BSDF"]
 
-        set_material_settings(bsdf,texture_name)
-
-        # bsdf.inputs['Roughness'].default_value = 1.0
-        # bsdf.inputs['Sheen Tint'].default_value = 0
-
         # Link texture_image's node Color to BSDF node BaseColor
-        texture_image = mat.node_tree.nodes.new('ShaderNodeTexImage')
-        texture_image.image = image 
+        image_texture_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
+        image_texture_node.image = image 
 
-        mat.node_tree.links.new(bsdf.inputs['Base Color'],texture_image.outputs['Color'])
-        mat.node_tree.links.new(bsdf.inputs['Alpha'],texture_image.outputs['Alpha'])
+        mat.node_tree.links.new(bsdf.inputs['Base Color'],image_texture_node.outputs['Color'])
+        mat.node_tree.links.new(bsdf.inputs['Alpha'],image_texture_node.outputs['Alpha'])
+
+        setup_material(bsdf,mat.node_tree,image_texture_node,material_type=texture_name)
+        set_pbsdf_settings(bsdf,texture_name)
+
         obj.data.materials.clear()
         obj.data.materials.append(mat)
-        texture_image.select=True 
-        mat.node_tree.nodes.active=texture_image
+        image_texture_node.select=True 
+        mat.node_tree.nodes.active=image_texture_node
 
         # Bake
-        bpy.ops.object.bake(type='DIFFUSE',pass_filter={'COLOR'},margin=32)
-        texture_image.select=False
+        # bpy.ops.object.bake(type='COMBINED',pass_filter={'COLOR'},margin=32)
+        image_texture_node.select=False
         obj.select_set(False) 
         bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.select_all(action='DESELECT')
@@ -298,6 +434,7 @@ class Renderer():
     def render(self, out_dir = './tmp'):
         bpy.context.scene.render.filepath = os.path.join(out_dir, f'rendering.png')
         bpy.ops.render.render(write_still=True)
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(working_dir_path,'temp.blend'))
         # sys.exit()
 
 def extract_args(input_argv=None):
@@ -351,7 +488,7 @@ def main2():
             part_path = os.path.join(models_dir,model_key, f'{part}.obj')
             obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
             renderer.recalculate_normals(obj)
-            renderer.bake_texture(obj,unwrap_method_,part_material_path,part_material_name)
+            renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name)
     renderer.render(out_dir=args.out_dir)
 
 def main1():
