@@ -3,7 +3,7 @@ from texture_transfer_3d import TextureDiffusion
 import os, time, json, copy
 import pathlib as p
 from PIL import Image
-import bloom_inference_api as BLOOM_API
+import models.bloom_inference_api as BLOOM_API
 import spacy
 
 # nlp = spacy.load("en_core_web_trf")
