@@ -5,7 +5,8 @@ import os, time, json, copy
 import pathlib as p
 from PIL import Image
 from models.llm import bloom_inference_api as BLOOM_API
-from models.llm import chatgpt
+# from models.llm import chatgpt
+from chatgpt_wrapper import ChatGPT
 import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
 from utils.image import css 
@@ -29,6 +30,8 @@ saved_texture_parts = []
 current_texture_parts = None 
 curr_render_id = 1
 #############################
+
+bot = ChatGPT()
 
 ################# Load initial 3D model, textures, & rendering ################
 products = [
@@ -200,7 +203,8 @@ def make_suggest_prompt(material,descriptor,product,part,target):
 
 def get_suggestion(prompt, selected_material_type):
     global nlp 
-    response = BLOOM_API.iterative_query(prompt) # Send prompt to BLOOM API here. Get their response.
+    # response = BLOOM_API.iterative_query(prompt) # Send prompt to BLOOM API here. Get their response.
+    response = bot.ask(prompt)
 
     if selected_material_type=="No specific material":
         selected_material_type="material"
@@ -302,8 +306,8 @@ def get_critique(prompt):
 
 selected_gen_texture = None 
 texture_part_dict = {}
-# texture_generator = TextureDiffusion()
-texture_generator = net.Paella()
+texture_generator = TextureDiffusion()
+# texture_generator = net.Paella()
 print('texture generator loaded')
 
 gen_material_images = []
