@@ -433,7 +433,7 @@ class Renderer():
     def render(self, out_dir = './tmp'):
         bpy.context.scene.render.filepath = os.path.join(out_dir, f'rendering.png')
         bpy.ops.render.render(write_still=True)
-        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(working_dir_path,'temp.blend'))
+        # bpy.ops.wm.save_as_mainfile(filepath=os.path.join(working_dir_path,'temp.blend'))
         # sys.exit()
 
 def extract_args(input_argv=None):
