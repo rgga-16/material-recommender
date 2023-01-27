@@ -357,7 +357,7 @@ class Renderer():
         bpy.ops.object.editmode_toggle()
         return
     
-    def apply_texture(self,obj,unwrap_method_,texture_path,texture_name):
+    def apply_texture(self,obj,unwrap_method_,texture_path,texture_name, material_finish):
         self.set_gpu("CYCLES")
         bpy.context.scene.cycles.device = 'GPU'
         obj.select_set(True)
@@ -382,8 +382,7 @@ class Renderer():
         mat.node_tree.links.new(bsdf.inputs['Base Color'],image_texture_node.outputs['Color'])
         mat.node_tree.links.new(bsdf.inputs['Alpha'],image_texture_node.outputs['Alpha'])
 
-        setup_material(bsdf,mat.node_tree,image_texture_node,material_type=texture_name)
-        set_pbsdf_settings(bsdf,texture_name)
+        setup_material(bsdf,mat.node_tree,image_texture_node,material_type=texture_name,material_finish=material_finish)
 
         obj.data.materials.clear()
         obj.data.materials.append(mat)
@@ -484,11 +483,12 @@ def main2():
         for part in parts_info['names']:
             part_material_path = texture_object_parts[model_key][part]["mat_image_texture"]
             part_material_name = texture_object_parts[model_key][part]["mat_name"]
+            part_material_finish = texture_object_parts[model_key][part]["mat_finish"]
             # part_material_finish
             part_path = os.path.join(models_dir,model_key, f'{part}.obj')
             obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
             renderer.recalculate_normals(obj)
-            renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name)
+            renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish)
     renderer.render(out_dir=args.out_dir)
 
 def main1():
