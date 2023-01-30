@@ -6,7 +6,8 @@ import pathlib as p
 from PIL import Image
 from models.llm import bloom_inference_api as BLOOM_API
 # from models.llm import chatgpt
-from chatgpt_wrapper import ChatGPT
+# from chatgpt_wrapper import ChatGPT
+from chatgpt_module import ChatGPT_Bot
 import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
 from utils.image import css 
@@ -31,7 +32,7 @@ current_texture_parts = None
 curr_render_id = 1
 #############################
 
-bot = ChatGPT()
+bot = ChatGPT_Bot()
 
 ################# Load initial 3D model, textures, & rendering ################
 products = [
@@ -393,7 +394,6 @@ with interface:
         ##########################################################################################
         # Right section. Section for requesting suggestions and critiques, and receiving critiques
         ##########################################################################################
-        
         with gr.Tab(label="Request suggestion") as ai_suggest_tab:
             with gr.Column():
                 with gr.Row():
@@ -410,13 +410,14 @@ with interface:
                 with gr.Row():
                     gr.Markdown("for ")
                     suggest_target_dropdown = gr.Dropdown(label="Targets (optional)",value="No targets set",choices=["No targets set"], interactive=True)
+                    suggest_interior_design_style_dropdown = gr.Dropdown(choices = styles,label="Target Interior Design Style", interactive=True)
                 preview_prompt_button = gr.Button("Preview prompt")
                 with gr.Row():
                     preview_prompt = gr.Textbox(label="Prompt preview",value="",interactive=True,visible=False)
                     suggest_button = gr.Button("Suggest to me!",visible=False)
             with gr.Column():
                 with gr.Row():
-                    ai_suggestion = gr.Textbox("(Currently no response)", label="BLOOM AI says...")
+                    ai_suggestion = gr.Textbox("(Currently no response)", label="ChatGPT says...")
                     extracted_words = gr.Textbox("(Currently no suggested inputs)", label="Suggested inputs")
         
         with gr.Tab(label="Request evaluation") as ai_evaluate_tab:
