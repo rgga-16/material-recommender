@@ -13,10 +13,10 @@ import logging, math
 working_dir_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(working_dir_path)
 
-metals = ['metal','aluminum','aluminium','steel','cobalt', 'iron', 'magnesium', 'nickel', 'titanium', 'zinc', 'chromium', 'chrome']
+metals = [    "metal","gold", "silver", "copper", "platinum", "iron", "aluminum", "lead", "nickel", "titanium",    "zinc", "cadmium", "mercury", "chromium", "manganese", "tungsten", "steel", "bronze",    "palladium", "rhodium", "magnesium", "cobalt", "tin", "osmium", "ruthenium", "iridium",    "stainless steel", "brass", "bismuth", "invar", "monel", "gunmetal", "electrum",    "pewter", "alnico", "duralumin", "silicon", "germanium", "gallium arsenide", "indium antimonide",    "aluminum gallium arsenide", "silicon carbide", "tungsten carbide", "boron carbide", "diamond",    "nickel-chromium", "cobalt-chromium", "aluminum-silicon"]
 ceramics = ['ceramic', 'marble', 'granite', 'porcelain']
-woods = ['wood', 'mahogany', 'teak', 'oak']
-plastics = []
+woods = [    "wood","birch", "cherry", "maple", "oak", "walnut", "ash", "pine", "redwood", "cedar",    "mahogany", "teak", "ebony", "rosewood", "ipe", "padauk", "purpleheart",    "jatoba", "larch", "spruce", "fir", "hemlock", "Douglas fir", "balsa",    "poplar", "sycamore", "butternut", "hickory", "beech", "elm", "aspen"]
+plastics = [    "plastic","polyethylene", "polypropylene", "polyvinyl chloride", "polystyrene", "acrylonitrile butadiene styrene",    "polycarbonate", "polyethylene terephthalate", "polyurethane", "polyamides", "polyimides",    "polyvinylidene fluoride", "polyacetal", "polymethyl methacrylate", "polybutylene terephthalate",    "polyphenylene oxide", "polyphenylene sulfide", "polyetheretherketone", "polyvinyl acetate",    "polylactic acid", "polybutene", "polyvinyl butyral", "polyvinyl alcohol"]
 fabrics = ['cotton', 'wool', 'silk','linen', 'cashmere', 'mohair', 'alpaca', 'angora', 'viscose', 'polyester', 'nylon', 'acrylic', 'spandex', 'rayon', 'leather', 'suede','fur', 'denim', 'canvas', 'lace', 'tulle', 'velour', 'chiffon', 'organza', 'satin', 'taffeta', 'tweed']
 
 
