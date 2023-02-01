@@ -178,10 +178,33 @@ def set_targets(target_place, target_market):
     targets = [target_place,target_market]
     return gr.Dropdown.update(choices=targets,value=targets[0])
 
+def suggest_colors(design_style,n_themes=1):
+    gen_color_themes = []
+    prompt=f'''What are colors that are of {design_style} interior design style? Return {n_themes} hex color themes.
+    
+    Don't say anything else apart from the hex codes and theme name.
+    '''
+    # response = bot.ask(prompt)
+
+    response = "Earthy Tones: #C9A67E, #B87A58, #A2613D, #8E5430, #6E3C24."
+    color_themes = response.split(".")
+
+    for theme in color_themes:
+        if theme=="": continue
+        theme = theme.split(":")
+        theme_name = theme[0]
+        hex_codes = theme[1].split(",")
+        for code in hex_codes:
+            gen_color_themes.append(gr.ColorPicker.update(value=code.replace(" ",""),label=theme_name))
+            # gen_color_themes.append(gr.ColorPicker.update(value=code,label=theme_name,visible=True,interactive=True))
+    # gen_mats.append(gr.Image.update(value=mat_texture,label=mat_option))
+
+    return "yay",*gen_color_themes
+
 def make_suggest_prompt(material,design_style,descriptor,product,part,target):
     if part=="No specific part":
         part=""
-    if material=="All materials":
+    if material=="All types":
         material=""
     if target=="No targets set":
         target=""
@@ -190,7 +213,7 @@ def make_suggest_prompt(material,design_style,descriptor,product,part,target):
     
     prompt = f"Examples of {material} materials"
 
-    prompt = f"{prompt} that are of {design_style} "
+    prompt = f"{prompt} that are of {design_style} interior design style"
 
     if descriptor!="":
         prompt = f"{prompt} and are {descriptor}"
@@ -383,10 +406,10 @@ with interface:
         ##########################################################################################
         # Right section. Section for requesting suggestions and critiques, and receiving critiques
         ##########################################################################################
-        with gr.Tab(label="Request suggestion") as ai_suggest_tab:
+        with gr.Tab(label="Suggest materials") as suggest_materials_tab:
             with gr.Column():
                 suggest_material_type = ["All types","wood","metal","fabric","ceramic"]
-                suggest_material_dropdown = gr.Dropdown(label="Material Type",choices=suggest_material_type,value=suggest_material_type[1],interactive=True)
+                suggest_material_dropdown = gr.Dropdown(label="Material Type",choices=suggest_material_type,value=suggest_material_type[0],interactive=True)
                 suggest_interior_design_style_dropdown = gr.Dropdown(value=styles[0],choices = styles,label="Interior Design Style", interactive=True)
                 with gr.Row():
                     suggest_products = list(object_inputs.keys()); 
@@ -404,6 +427,24 @@ with interface:
                 with gr.Row():
                     ai_suggestion = gr.Textbox("(Currently no response)", label="ChatGPT says...")
                     extracted_words = gr.Textbox("(Currently no suggested materials)", label="Suggested materials")
+        
+        with gr.Tab(label="Suggest colors") as suggest_colors_tab:
+            with gr.Column():
+                suggest_interior_design_style_dropdown_color = gr.Dropdown(value=styles[0],choices = styles,label="Interior Design Style", interactive=True)
+                suggest_colors_button = gr.Button(value="Suggest color themes")
+                with gr.Row():
+                    color_textbox = gr.Textbox("No value", interactive=False)
+                with gr.Row():
+                    n_color_themes=1
+                    color_theme = []
+                    for i in range(n_color_themes):
+                        color_picker = gr.ColorPicker(interactive=True)
+                        color_picker2 = gr.ColorPicker(interactive=True)
+                        color_picker3 = gr.ColorPicker(interactive=True)
+                        color_picker4 = gr.ColorPicker(interactive=True)
+                        color_picker5 = gr.ColorPicker(interactive=True)
+                        color_theme = [color_picker,color_picker2,color_picker3,color_picker4,color_picker5]
+                
         
         with gr.Tab(label="View feedback", id="ai_critiques_tab") as ai_critiques_tab:  
             materials = []
@@ -442,8 +483,7 @@ with interface:
             with gr.Tab(label="Material Specs") as matspec_critiques_tab:
                 # empty_specs = gr.Markdown("No material specifications set. Please set them first.")
                 pass
-            
-            
+
 
     generate_button.click(fn=generate_material_textures, inputs=[input_material],outputs=[gen_material_options,*gen_material_images], scroll_to_output=True)
     transfer_button.click(fn=transfer_material_texture, inputs=[gen_material_options, material_finish_options, *part_inputs], outputs=[current_rendering, *curr_part_matname_txtboxes],scroll_to_output=True)
@@ -453,6 +493,7 @@ with interface:
     set_descriptors_button.click(fn=set_material_specs, inputs=[descriptors], outputs=[suggest_descriptor_dropdown])
     preview_prompt_button.click(fn=make_suggest_prompt, inputs = [suggest_material_dropdown,suggest_interior_design_style_dropdown,suggest_descriptor_dropdown,suggest_product_dropdown,suggest_part_dropdown,suggest_target_dropdown],outputs=[preview_prompt,suggest_button])
     suggest_button.click(fn=get_suggestion, inputs=[preview_prompt, suggest_material_dropdown],outputs=[ai_suggestion, extracted_words])
+    suggest_colors_button.click(fn=suggest_colors, inputs=[suggest_interior_design_style_dropdown_color], outputs=[color_textbox,*color_theme])
 
 interface.launch(debug=True)
 
