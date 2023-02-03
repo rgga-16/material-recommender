@@ -2,6 +2,10 @@ from flask import Flask, send_from_directory
 import random, requests, json
 
 import os 
+'''
+Tutorial on how to use Svelte to fetch APIs 
+https://sveltesociety.dev/recipes/component-recipes/using-fetch-to-consume-apis
+'''
 
 
 products = [
