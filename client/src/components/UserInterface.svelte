@@ -6,7 +6,6 @@
   
     function switchTab(tab) {
         activeTab = tab;
-        console.log(activeTab);
     }
 
     
