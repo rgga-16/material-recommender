@@ -20,71 +20,6 @@ plastics = [    "plastic","polyethylene", "polypropylene", "polyvinyl chloride",
 fabrics = ['cotton', 'wool', 'silk','linen', 'cashmere', 'mohair', 'alpaca', 'angora', 'viscose', 'polyester', 'nylon', 'acrylic', 'spandex', 'rayon', 'leather', 'suede','fur', 'denim', 'canvas', 'lace', 'tulle', 'velour', 'chiffon', 'organza', 'satin', 'taffeta', 'tweed']
 
 
-
-# ceramic_glossy = {
-#     'Specular':1.0,
-#     'Roughness':0.05,
-#     'Sheen Tint':0.5,
-#     'Clearcoat':1.0,
-#     'Clearcoat Roughness':0.05,
-#     'IOR':1.47,
-# }
-
-# ceramic_matte = {
-#     'Subsurface':0.0,
-#     'Specular':0.5,
-#     'Roughness':0.5,
-#     'Sheen Tint':0.5,
-#     'Clearcoat':0.0,
-#     'IOR':1.47,
-# }
-
-# wood_matte = {
-#     'Subsurface':0.0,
-#     'Specular':0.5,
-#     'Roughness':0.5,
-#     'Sheen Tint':0.5,
-#     'Clearcoat':0.0,
-#     'IOR':1.47,
-# }
-
-# wood_glossy = {
-#     'Subsurface':0.0,
-#     'Specular':1.0,
-#     'Roughness':0.05,
-#     'Sheen Tint':0.5,
-#     'Clearcoat':1.0,
-#     'Clearcoat Roughness':0.05,
-#     'IOR':1.47,
-# }
-
-# plastic_matte = {
-
-# }
-
-# plastic_glossy = {
-
-# }
-
-# metal_matte = {
-#     'Subsurface':0.0,
-#     'Specular':0.5,
-#     'Roughness':0.5,
-#     'Sheen Tint':0.5,
-#     'Clearcoat':0.0,
-#     'IOR':1.47,
-# }
-
-# metal_glossy = {
-#     'Subsurface':0.0,
-#     'Specular':1.0,
-#     'Roughness':0.115,
-#     'Sheen Tint':0.5,
-#     'Clearcoat':1.0,
-#     'Clearcoat Roughness':0.132,
-#     'IOR':1.47,
-# }
-
 glossy = {
     'Subsurface':0.0,
     'Specular':1.0,
@@ -182,9 +117,6 @@ def setup_material(principled_node: bpy.types.Node, mat_node_tree, image_texture
         pass 
     else:
         print(f'ERROR: Material type {material_type} unknown')
-    
-    
-
     return
 
 
@@ -430,8 +362,8 @@ class Renderer():
             print(output_argv)
         return output_argv
 
-    def render(self, out_dir = './tmp'):
-        bpy.context.scene.render.filepath = os.path.join(out_dir, f'rendering.png')
+    def render(self, out_path):
+        bpy.context.scene.render.filepath = out_path
         bpy.ops.render.render(write_still=True)
         # bpy.ops.wm.save_as_mainfile(filepath=os.path.join(working_dir_path,'temp.blend'))
         # sys.exit()
@@ -457,7 +389,7 @@ def get_args():
         ap = argparse.ArgumentParser()
         ap.add_argument("--rendering_setup_json", type = str, default='./nightstand.json', help = "Path to .json file containing filenames of 3D parts and their placements, lighting, & camera configs in Blender.")
         ap.add_argument("--texture_object_parts_json", type = str, help = "Path to .json file containing 3D parts and their corresponding textures.")
-        ap.add_argument("--out_dir", type = str, help = "Directory to save the rendering.")
+        ap.add_argument("--out_path", type = str, help = "File path to save the rendering.")
         args = ap.parse_args(extract_args())
         return args
 
@@ -484,12 +416,12 @@ def main2():
             part_material_path = texture_object_parts[model_key][part]["mat_image_texture"]
             part_material_name = texture_object_parts[model_key][part]["mat_name"]
             part_material_finish = texture_object_parts[model_key][part]["mat_finish"]
-            # part_material_finish
+            
             part_path = os.path.join(models_dir,model_key, f'{part}.obj')
             obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
             renderer.recalculate_normals(obj)
             renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish)
-    renderer.render(out_dir=args.out_dir)
+    renderer.render(out_path=args.out_path)
 
 def main1():
     args = get_args()
