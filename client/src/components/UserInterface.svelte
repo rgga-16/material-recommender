@@ -11,8 +11,6 @@
     
 </script>
 
-
-    <h2>watda</h2>
     <div class="tab-group">
       <button class={activeTab==='tab1-content' ? 'tab-btn active':'tab-btn'} on:click={()=>switchTab('tab1-content')} id="tab1-btn">Generate</button>
       <button class={activeTab==='tab2-content' ? 'tab-btn active':'tab-btn'} on:click={()=>switchTab('tab2-content')} id="tab2-btn">Suggest</button>
@@ -40,7 +38,7 @@
 	.tab-group {
 		width: 100%;
 		margin: 0 auto;
-  	}
+  }
   
 	.tab-btn {
 		background-color: rgb(148, 148, 148);

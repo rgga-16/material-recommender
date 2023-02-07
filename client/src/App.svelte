@@ -1,5 +1,6 @@
 <script>
 import UserInterface from "./components/UserInterface.svelte";
+import RenderingDisplay from "./components/RenderingDisplay.svelte";
 
 </script>
 
@@ -24,12 +25,12 @@ import UserInterface from "./components/UserInterface.svelte";
 	}
 
 	.user-interface {
-	  	width: 30%;
+	  	width: 40%;
 	  	background-color: lightgray;
 	}
 	
 	.rendering-display {
-	  	width: 70%;
+	  	width: 60%;
 	  	background-color: lightblue;
 	}
 
