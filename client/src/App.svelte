@@ -1,6 +1,16 @@
 <script>
-import UserInterface from "./components/UserInterface.svelte";
-import RenderingDisplay from "./components/RenderingDisplay.svelte";
+	import UserInterface from "./components/UserInterface.svelte";
+	import RenderingDisplay from "./components/RenderingDisplay.svelte";
+
+
+	// I think you should call the initial rendering here.
+	let data; 
+	// https://codesource.io/how-to-fetch-json-in-svelte-example/
+	onMount( async() => {
+		const response = await fetch('/get_initial_rendering');
+		data = await response.json();
+		current_rendering_path = data["rendering_path"];
+	});
 
 </script>
 
@@ -12,7 +22,8 @@ import RenderingDisplay from "./components/RenderingDisplay.svelte";
 		</div>
 
 		<div class="rendering-display">
-			<h2>First Div</h2>
+			<h2>Current Rendering {}</h2>
+			<RenderingDisplay />
 		</div>
 
 	</div>
@@ -21,16 +32,16 @@ import RenderingDisplay from "./components/RenderingDisplay.svelte";
 <style>
 	.container {
 		display: flex;
-	  	height: 100vh;
+	  	/* height: 100vh; */
 	}
 
 	.user-interface {
-	  	width: 40%;
+	  	width: 30%;
 	  	background-color: lightgray;
 	}
 	
 	.rendering-display {
-	  	width: 60%;
+	  	width: 70%;
 	  	background-color: lightblue;
 	}
 
