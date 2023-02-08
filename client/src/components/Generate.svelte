@@ -7,16 +7,10 @@
 
     const objs_and_parts = fetch('./get_objects_and_parts').then((x)=>x.json());
 
-    // let gen_texture_paths = [];
-    // let rendering_paths = [];
     let rendering_texture_pairs = [];
 
-    function handleCheckboxChange(event) {
-        const checkbox = event.target; 
-        checkbox.checked = event.target.checked;
-    }
-
     async function gen_and_apply_textures(texture_str) {
+        rendering_texture_pairs=[];
 
         let selected_op_dict = {};
 
@@ -47,36 +41,6 @@
         const results_json = await results_response.json();
         rendering_texture_pairs = results_json["results"];
     }
-    
-    // async function generate_textures(texture_str) {
-    //     // Do something with input_material
-    //     const gen_textures_response = await fetch("/generate_textures", {
-    //         method: "POST",
-    //         headers: {"Content-Type": "application/json"},
-    //         body: JSON.stringify({
-    //             "texture_string": texture_str,
-    //             "n":4,
-    //             "imsize":256
-    //         }),
-    //     });
-    //     const gen_textures_json = await gen_textures_response.json();
-    //     gen_texture_paths = gen_textures_json["generated_textures"]
-    // }
-
-    // async function apply_textures(texture_str, selected_obj_parts, texture_paths) {
-    //     request_json = {
-    //         "texture_string": texture_str,
-    //         "obj_parts_dict": selected_obj_parts,
-    //         "texture_paths": texture_paths,
-    //     }
-        
-    //     const renderings_response = await fetch("/transfer_textures", {
-    //         method: "POST",
-    //         headers: {"Content-Type": "application/json"},
-    //         body: JSON.stringify(request_json),
-    //     });
-    //     const renderings_json = await renderings_response.json();
-    // }
 
 </script>
 
@@ -87,7 +51,6 @@
         <input name="material_name" type="text" bind:value={input_material} required/>
         <br/>
         <div class="tab-group">
-            <!-- WIP: Block for getting tabs of checkbox groups -->
             {#await objs_and_parts}
                 <pre>Loading object names and their part names</pre>
             {:then data} 
@@ -95,10 +58,12 @@
                     <div class="tab">
                         <input type="radio" name="css-tabs" id="tab-{obj_name}" checked="checked" class="tab-switch">
                         <label for="tab-{obj_name}" class="tab-label">{obj_name}</label>
-                        <div class="tab-content">
+                        <div class="checkbox-group">
                             {#each attribs.parts.names as part_name}
-                                <input type="checkbox" bind:group={selected_object_parts} id="checkbox-{obj_name}-{part_name}" name="checkbox-group-{obj_name}" value="{obj_name}-{part_name}" >
-                                <label for="checkbox-{part_name}"> {part_name} </label>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" bind:group={selected_object_parts} id="checkbox-{obj_name}-{part_name}" name="checkbox-group-{obj_name}" value="{obj_name}-{part_name}" >
+                                    <label for="checkbox-{part_name}"> {part_name} </label>
+                                </div>
                             {/each}
                         </div>
                     </div>
@@ -110,16 +75,11 @@
     </form>
     {#if rendering_texture_pairs}
         <form>
-            <GeneratedTextures rendering_texture_pairs= {rendering_texture_pairs} />
+            <GeneratedTextures pairs= {rendering_texture_pairs} />
         </form>
     {/if}
     
-        <!-- This form shows a preview of up to 4 generated textures applied to the parts of the 3D models -->
-    
-
 </div>
-
-
 
 <style>
     .tab-group {
@@ -141,11 +101,26 @@
     input[type="radio"]:checked + label {
         background-color: white;
     }
-    .tab-content {
-        border: 1px solid gray;
-        border-top: none;
+    .checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-column-gap: 1rem;
+        grid-row-gap: 1rem;
+    }
+    .checkbox-item {
+        display:flex; 
+        flex-direction: column;
+        justify-content: space-around;
+        padding:1rem; 
     }
 
 
 
 </style>
+
+
+
+
+
+
+    
