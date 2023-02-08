@@ -22,7 +22,7 @@ products = [
 
 data_dir = os.path.join(os.getcwd(),"data","3d_models",products[0])
 renderings_dir = os.path.join(data_dir,"renderings")
-
+init_texture_parts_path = os.path.join(renderings_dir, str(CURR_RENDER_ID),"object_part_material.json")
 rendering_setup_path = os.path.join(data_dir,"rendering_setup.json")
 
 init_texture_parts = json.load(open(os.path.join(renderings_dir, str(CURR_RENDER_ID),"object_part_material.json")))
@@ -96,15 +96,13 @@ def generate_and_transfer_textures():
             json.dump(new_texture_parts,tmpfile)
 
         rendering_savepath = os.path.join(SERVER_IMDIR,"renderings",f"rendering_{i}.png")
-
         rendering_loadpath = os.path.join(CLIENT_IMDIR,"renderings",f"rendering_{i}.png")
 
-        # rendering_loadpaths.append(rendering_loadpath)
         command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath}'
         os.system(command_str)
 
         rendering_texture_pairs.append(
-            {'rendering':rendering_loadpath, 'texture':texture_loadpath}
+            {'rendering':rendering_loadpath, 'texture':texture_loadpath, 'info':new_texture_parts}
         )
 
     return {"results": rendering_texture_pairs}
@@ -116,14 +114,19 @@ def generate_textures(texture_string, n, imsize):
 
     for i in range(len(generated_textures)):
         texture_filenames.append(f"{texture_string}_{i}.png")
-        
-        # server_texture_path = os.path.join(SERVER_IMDIR,f"{texture_string}_{i}.png")
-        # generated_textures[i].save(server_texture_path)
-        # client_texture_path = os.path.join(CLIENT_IMDIR,f"{texture_string}_{i}.png")
-        # client_texture_paths.append(texture_loadpath)
-
     return generated_textures, texture_filenames
 
+@app.route("/get_current_rendering")
+def get_rendering():
+    current_texture_parts = copy.deepcopy(init_texture_parts)
+
+@app.route("/get_initial_rendering")
+def get_initial_rendering():
+    rendering_savepath = os.path.join(SERVER_IMDIR,"renderings",f"init_rendering.png")
+    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path}'
+    os.system(command_str)
+    rendering_loadpath = os.path.join(CLIENT_IMDIR,"renderings",f"init_rendering.png")
+    return {"rendering_path":rendering_loadpath}
 
 @app.route("/get_objects_and_parts")
 def load_object_data():
