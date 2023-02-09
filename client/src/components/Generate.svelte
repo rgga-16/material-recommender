@@ -1,13 +1,17 @@
 <script>
     import {onMount} from 'svelte';
     import GeneratedTextures from './GeneratedTextures.svelte';
+    import {curr_rendering_path} from '../stores.js';
+    
 
     let input_material='';
     let selected_object_parts=[]; 
 
     const objs_and_parts = fetch('./get_objects_and_parts').then((x)=>x.json());
 
-    let rendering_texture_pairs = [];
+    let rendering_texture_pairs=[];
+
+    let selected_index;
 
     async function gen_and_apply_textures(texture_str) {
         rendering_texture_pairs=[];
@@ -34,7 +38,7 @@
             body: JSON.stringify({
                 "texture_string": texture_str,
                 "n":4,
-                "imsize":256,
+                "imsize":512,
                 "obj_parts_dict": selected_op_dict,
             }),
         });
@@ -42,11 +46,30 @@
         rendering_texture_pairs = results_json["results"];
     }
 
+    function apply_to_curr_rendering(index) {
+
+        if(index==undefined) {
+            alert("Please select one of the options"); 
+            return;
+        }
+        let selected_render_texture_pair = rendering_texture_pairs[index];
+
+        let selected_rendering_path = selected_render_texture_pair.rendering; 
+        // console.log(selected_rendering_path);
+        let selected_texture_path = selected_render_texture_pair.texture; 
+        let selected_rendering_info = selected_render_texture_pair.info; 
+
+        curr_rendering_path.set(selected_rendering_path);
+
+    }
+
+    // console.log(curr_rendering_path);
+
 </script>
 
 <div class="material_generator">
     <h2> Material Generator </h2>
-    <!-- <form on:submit|preventDefault={generate_textures(input_material)}> -->
+
     <form on:submit|preventDefault={gen_and_apply_textures(input_material)}>
         <input name="material_name" type="text" bind:value={input_material} required/>
         <br/>
@@ -73,9 +96,11 @@
         <br/>
         <button> Generate & Transfer Material </button>
     </form>
-    {#if rendering_texture_pairs}
-        <form>
-            <GeneratedTextures pairs= {rendering_texture_pairs} />
+    {#if rendering_texture_pairs.length > 0}
+        <form on:submit|preventDefault={apply_to_curr_rendering(selected_index)} >
+            <GeneratedTextures pairs= {rendering_texture_pairs} bind:selected_index={selected_index} />
+            <p> {selected_index}</p>
+            <button> Apply </button>
         </form>
     {/if}
     

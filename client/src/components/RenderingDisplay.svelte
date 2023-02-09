@@ -1,10 +1,6 @@
 <script>
-    import { onMount } from "svelte";
-
 
     export let current_rendering_path;
-
-    
 
 </script>
 

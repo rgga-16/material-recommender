@@ -6,12 +6,14 @@ import bpy, sys, os
 import numpy as np
 import argparse
 
-# sys.path.append("C:/Users/r-gal/OneDrive/Documents/Generative-AI-Projects/Libraries/BlenderToolbox")
+
+CWD = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(CWD)
 # import BlenderToolBox as bt 
 import logging, math
 
-working_dir_path = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(working_dir_path)
+working_dir_path = CWD
+
 
 metals = [    "metal","gold", "silver", "copper", "platinum", "iron", "aluminum", "lead", "nickel", "titanium",    "zinc", "cadmium", "mercury", "chromium", "manganese", "tungsten", "steel", "bronze",    "palladium", "rhodium", "magnesium", "cobalt", "tin", "osmium", "ruthenium", "iridium",    "stainless steel", "brass", "bismuth", "invar", "monel", "gunmetal", "electrum",    "pewter", "alnico", "duralumin", "silicon", "germanium", "gallium arsenide", "indium antimonide",    "aluminum gallium arsenide", "silicon carbide", "tungsten carbide", "boron carbide", "diamond",    "nickel-chromium", "cobalt-chromium", "aluminum-silicon"]
 ceramics = ['ceramic', 'marble', 'granite', 'porcelain']
@@ -179,8 +181,6 @@ class Renderer():
             bpy.context.scene.eevee.taa_render_samples=1024
 
     def delete_object(self,obj):
-        # bpy.ops.object.select_all(action='DESELECT')
-        # obj.select_set(True)
         objs = [obj]
         bpy.ops.object.delete({"selected_objects": objs})
     
@@ -188,7 +188,7 @@ class Renderer():
         bpy.ops.object.delete({"selected_objects": self.objects})
         self.objects=[]
 
-    def setup_background(self,hdri_path: str = os.path.join(working_dir_path,'data/hdri/interior.exr') , rotation: float = 0.0) -> None:
+    def setup_background(self,hdri_path: str = os.path.join(working_dir_path, 'data', 'hdri', 'interior.exr') , rotation: float = 0.0) -> None:
         scene = bpy.data.scenes["Scene"]
         world = scene.world
 
@@ -331,7 +331,6 @@ class Renderer():
         return 
 
     def setup_objects(self):
-        # mesh_path = getattr(self.args, 'mesh')
         mesh_folder = getattr(self.args, 'mesh_folder')
         texture_path = getattr(self.args, 'texture')
         unwrap_method='smart_project'
@@ -387,13 +386,13 @@ def extract_args(input_argv=None):
 
 def get_args():
         ap = argparse.ArgumentParser()
-        ap.add_argument("--rendering_setup_json", type = str, default='./nightstand.json', help = "Path to .json file containing filenames of 3D parts and their placements, lighting, & camera configs in Blender.")
+        ap.add_argument("--rendering_setup_json", type = str, help = "Path to .json file containing filenames of 3D parts and their placements, lighting, & camera configs in Blender.")
         ap.add_argument("--texture_object_parts_json", type = str, help = "Path to .json file containing 3D parts and their corresponding textures.")
         ap.add_argument("--out_path", type = str, help = "File path to save the rendering.")
         args = ap.parse_args(extract_args())
         return args
 
-def main2(): 
+def main(): 
     args = get_args()
     unwrap_method_='CUBE_PROJECT'
     with open(args.rendering_setup_json) as json_file:
@@ -413,7 +412,7 @@ def main2():
         print(model_info)
         parts_info = model_info['parts']
         for part in parts_info['names']:
-            part_material_path = texture_object_parts[model_key][part]["mat_image_texture"]
+            part_material_path = os.path.join(CWD,texture_object_parts[model_key][part]["mat_image_texture"])
             part_material_name = texture_object_parts[model_key][part]["mat_name"]
             part_material_finish = texture_object_parts[model_key][part]["mat_finish"]
             
@@ -422,30 +421,6 @@ def main2():
             renderer.recalculate_normals(obj)
             renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish)
     renderer.render(out_path=args.out_path)
-
-def main1():
-    args = get_args()
-    unwrap_method_='smart_project'
-    with open(args.rendering_setup_json) as json_file:
-        model_info = json.load(json_file)
-        model_dir = model_info['dir']
-        parts_info = model_info['parts']
-        cam_info = model_info['camera']
-        light_info = model_info['light']
-    
-    renderer = Renderer(cam_info=cam_info,light_info=light_info)
-    with open(args.texture_parts_json) as json_file:
-        texture_parts = json.load(json_file)
-    
-    for part in parts_info['names']:
-        part_path = os.path.join(model_dir,f'{part}.obj')
-        texture_path = texture_parts[part]
-        obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
-        renderer.recalculate_normals(obj)
-        renderer.bake_texture(obj,unwrap_method_,texture_path)
-    renderer.render()
-
     
 if __name__=="__main__":
-    # main1()
-    main2()
+    main()
