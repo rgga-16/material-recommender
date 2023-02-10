@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np 
 from PIL import Image
 import torch 
+import os 
 
 
 css= '''
@@ -11,6 +12,11 @@ css= '''
 
 '''
 
+def makedir(dir_path):
+    try:
+        os.makedirs(dir_path)
+    except FileExistsError:
+        pass
 
 def show2images(leftpic,rightpic):
     f = plt.figure()

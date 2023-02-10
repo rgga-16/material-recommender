@@ -1,35 +1,16 @@
 from flask import Flask, send_from_directory, request, jsonify
-import random, requests, json, copy 
+import random, requests, json, copy, shutil 
 from PIL import Image
 
 from texture_transfer_3d import TextureDiffusion
 from configs import *
 import os 
+from utils.image import makedir
 
-'''
-Tutorial on how to use Svelte to fetch APIs 
-https://sveltesociety.dev/recipes/component-recipes/using-fetch-to-consume-apis
-'''
-
-SERVER_IMDIR = os.path.join(CWD,"client","public","gen_images")
-CLIENT_IMDIR = os.path.join("gen_images")
-CURR_RENDER_ID = 1
-
-products = [
-    "nightstand_family",
-]
-
-data_dir = os.path.join(os.getcwd(),"data","3d_models",products[0])
-renderings_dir = os.path.join(data_dir,"renderings")
-init_texture_parts_path = os.path.join(renderings_dir, str(CURR_RENDER_ID),"object_part_material.json")
-rendering_setup_path = os.path.join(data_dir,"rendering_setup.json")
-
-init_texture_parts = json.load(open(os.path.join(renderings_dir, str(CURR_RENDER_ID),"object_part_material.json")))
-current_texture_parts = copy.deepcopy(init_texture_parts)
 
 app = Flask(__name__, static_folder="./client/public")
 
-@app.route("/generate_and_transfer_textures", methods= ['POST'])
+@app.route("/generate_and_transfer_textures", methods=['POST'])
 def generate_and_transfer_textures():
     form_data = request.get_json()
 
@@ -39,11 +20,9 @@ def generate_and_transfer_textures():
     obj_part_dict = form_data["obj_parts_dict"]
 
     #################### Generating the textures ################
-
     textures, filenames = generate_textures(texture_string, n, imsize)
 
     #################### Transferring the textures ##############
-
     rendering_texture_pairs = []
 
     for i in range(len(textures)):
@@ -70,13 +49,12 @@ def generate_and_transfer_textures():
         os.system(command_str)
 
         rendering_texture_pairs.append(
-            {'rendering':rendering_loadpath, 'texture':texture_loadpath, 'info':new_texture_parts}
+            {'rendering':rendering_loadpath, 'texture':texture_loadpath, 'info':new_texture_parts, 'info_path':tmp_texture_parts_savepath}
         )
 
     return {"results": rendering_texture_pairs}
 
 def generate_textures(texture_string, n, imsize):
-
     generated_textures = texture_generator.text2texture(texture_string, n=n, gen_imsize=imsize)
     texture_filenames = []
 
@@ -84,14 +62,59 @@ def generate_textures(texture_string, n, imsize):
         texture_filenames.append(f"{texture_string}_{i}.png")
     return generated_textures, texture_filenames
 
-@app.route("/get_current_rendering")
-def get_rendering():
-    current_texture_parts = copy.deepcopy(init_texture_parts)
 
-@app.route("/get_initial_rendering")
-def get_initial_rendering():
-    rendering_loadpath = os.path.join(CLIENT_IMDIR,"renderings",f"init_rendering.png")
-    return {"rendering_path":rendering_loadpath}
+def apply_to_current_rendering(renderpath, texture_parts_path):
+    global current_texture_parts
+    curr_render_savedir = os.path.join(SERVER_IMDIR,'renderings','current')
+    if(not os.path.isdir(curr_render_savedir)):
+        makedir(curr_render_savedir)
+    
+    curr_render_path = os.path.join(curr_render_savedir,"rendering.png")
+    curr_textureparts_path = os.path.join(curr_render_savedir,"texture_parts.json")
+
+    texture_parts = json.load(open(texture_parts_path))
+
+    texture_filenames = []
+    for obj in list(texture_parts.keys()):
+        for part in list(texture_parts[obj].keys()):
+            texture_path = texture_parts[obj][part]["mat_image_texture"]
+            texture_filename = os.path.basename(texture_path)
+            curr_texture_path = os.path.join(curr_render_savedir,texture_filename)
+            img = Image.open(texture_path)
+            img.save(curr_texture_path)
+            texture_parts[obj][part]["mat_image_texture"] = curr_texture_path
+
+    current_texture_parts = copy.deepcopy(texture_parts)
+    with open(curr_textureparts_path,"w") as f:
+        json.dump(texture_parts,f)
+
+    shutil.copy(renderpath, curr_render_path) #BUG: No such file or dir: 'gen_images\\renderings\\rendering.png'
+    return curr_render_path, curr_textureparts_path
+
+@app.route("/apply_to_current_rendering", methods= ['POST'])
+def set_current_rendering():
+    form_data = request.get_json()
+
+    rendering_path = os.path.join(CWD,"client","public", form_data["rendering_path"])
+    texture_parts = form_data["texture_parts"]
+    textureparts_path = form_data["textureparts_path"]
+
+    curr_renderpath, curr_textureparts_path = apply_to_current_rendering(rendering_path,textureparts_path)
+
+    return get_current_rendering()
+
+
+
+@app.route("/get_current_rendering")
+def get_current_rendering():
+    curr_render_loaddir = os.path.join(CLIENT_IMDIR,'renderings','current')
+
+    current_textureparts_path = os.path.join(SERVER_IMDIR,'renderings','current',"texture_parts.json")
+    texture_parts = json.load(open(current_textureparts_path))
+
+    current_render_path = os.path.join(curr_render_loaddir,"rendering.png")
+    
+    return {"rendering_path":current_render_path, "texture_parts":texture_parts}
 
 @app.route("/get_objects_and_parts")
 def load_object_data():
@@ -110,6 +133,29 @@ def home(path):
     return send_from_directory('./client/public', path)
 
 if __name__ == "__main__":
+
+    SERVER_IMDIR = os.path.join(CWD,"client","public","gen_images")
+    CLIENT_IMDIR = os.path.join("gen_images")
+    CURR_RENDER_ID = 1
+
+    products = [
+        "nightstand_family",
+    ]
+
+    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[0])
+    RENDER_DIR = os.path.join(DATA_DIR,"renderings")
+
+    init_texture_parts_path = os.path.join(RENDER_DIR, str(CURR_RENDER_ID),"object_part_material.json")
+    init_render_path = os.path.join(RENDER_DIR,str(CURR_RENDER_ID),"rendering.png")
+
+    init_texture_parts = json.load(open(os.path.join(RENDER_DIR, str(CURR_RENDER_ID),"object_part_material.json")))
+    current_texture_parts = copy.deepcopy(init_texture_parts)
+
+    rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
+
+    apply_to_current_rendering(init_render_path,init_texture_parts_path)
+
+
     texture_generator = TextureDiffusion()
     app.run(debug=True)
 

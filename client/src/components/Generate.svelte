@@ -46,7 +46,7 @@
         rendering_texture_pairs = results_json["results"];
     }
 
-    function apply_to_curr_rendering(index) {
+    async function apply_to_curr_rendering(index) {
 
         if(index==undefined) {
             alert("Please select one of the options"); 
@@ -55,15 +55,26 @@
         let selected_render_texture_pair = rendering_texture_pairs[index];
 
         let selected_rendering_path = selected_render_texture_pair.rendering; 
-        // console.log(selected_rendering_path);
         let selected_texture_path = selected_render_texture_pair.texture; 
         let selected_rendering_info = selected_render_texture_pair.info; 
+        let selected_info_path = selected_render_texture_pair.info_path;
 
-        curr_rendering_path.set(selected_rendering_path);
+        // Do API CALL HERE
+        const response = await fetch("/apply_to_current_rendering", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                "rendering_path": selected_rendering_path,
+                "texture_parts":selected_rendering_info,
+                "textureparts_path": selected_info_path
+            }),
+        });
+
+        const json = await response.json();
+
+        curr_rendering_path.set(json["rendering_path"]);
 
     }
-
-    // console.log(curr_rendering_path);
 
 </script>
 
