@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from "svelte";
+	
 	import UserInterface from "./components/UserInterface.svelte";
 	import RenderingDisplay from "./components/RenderingDisplay.svelte";
 	import {curr_rendering_path} from './stores.js';
@@ -12,13 +12,12 @@
 	});
 
 	const str = get(curr_rendering_path);
-	console.log(str);
 
 	// I think you should call the initial rendering here.
 	// https://codesource.io/how-to-fetch-json-in-svelte-example/
 
 	async function getInitialRendering() {
-		let response = await fetch('/get_initial_rendering');
+		let response = await fetch('/get_current_rendering');
 		let data = await response.json();
 		current_rendering_path = await data["rendering_path"];
 		return data; 
@@ -44,12 +43,6 @@
 				<RenderingDisplay {current_rendering_path} />
 			{/await}
 		</div>
-
-		<!-- <div class="rendering-display">
-				<h2>Current Rendering</h2>
-				<span> Rendering Path: {current_rendering_path}</span>
-				<RenderingDisplay {current_rendering_path} />
-		</div> -->
 
 	</div>
 </main>
