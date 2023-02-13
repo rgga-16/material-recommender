@@ -59,7 +59,6 @@
         let selected_rendering_info = selected_render_texture_pair.info; 
         let selected_info_path = selected_render_texture_pair.info_path;
 
-        // Do API CALL HERE
         const response = await fetch("/apply_to_current_rendering", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -84,7 +83,7 @@
     <form on:submit|preventDefault={gen_and_apply_textures(input_material)}>
         <input name="material_name" type="text" bind:value={input_material} required/>
         <br/>
-        <div class="tab-group">
+        <!-- <div class="tab-group"> -->
             {#await objs_and_parts}
                 <pre>Loading object names and their part names</pre>
             {:then data} 
@@ -92,18 +91,22 @@
                     <div class="tab">
                         <input type="radio" name="css-tabs" id="tab-{obj_name}" checked="checked" class="tab-switch">
                         <label for="tab-{obj_name}" class="tab-label">{obj_name}</label>
+
                         <div class="checkbox-group">
                             {#each attribs.parts.names as part_name}
                                 <div class="checkbox-item">
-                                    <input type="checkbox" bind:group={selected_object_parts} id="checkbox-{obj_name}-{part_name}" name="checkbox-group-{obj_name}" value="{obj_name}-{part_name}" >
-                                    <label for="checkbox-{part_name}"> {part_name} </label>
+                                    <label for="checkbox-{part_name}"> 
+                                        <input type="checkbox" bind:group={selected_object_parts} id="checkbox-{obj_name}-{part_name}" 
+                                        name="checkbox-group-{obj_name}" value="{obj_name}-{part_name}" >
+                                        {part_name} 
+                                    </label>
                                 </div>
                             {/each}
                         </div>
                     </div>
                 {/each}
             {/await}
-        </div>
+        <!-- </div> -->
         <br/>
         <button> Generate & Transfer Material </button>
     </form>
@@ -118,11 +121,7 @@
 </div>
 
 <style>
-    .tab-group {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
+
     input[type="radio"] {
         display: none;
     }
