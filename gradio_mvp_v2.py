@@ -1,18 +1,18 @@
 import gradio as gr
 from texture_transfer_3d import TextureDiffusion
-from models.text2image.paella import net
+
 import os, time, json, copy
 import pathlib as p
 from PIL import Image
 from models.llm import bloom_inference_api as BLOOM_API
 from models.llm.chatgpt_module import ChatGPT_Bot
 import spacy
-from spacytextblob.spacytextblob import SpacyTextBlob
+
 from utils.image import css 
 
 from spacy import displacy
 from spacy.matcher import Matcher
-from nltk import tokenize
+# from nltk import tokenize
 
 
 nlp = spacy.load("en_core_web_md")
@@ -180,13 +180,13 @@ def set_targets(target_place, target_market):
 
 def suggest_colors(design_style,n_themes=1):
     gen_color_themes = []
-    prompt=f'''What are colors that are of {design_style} interior design style? Return {n_themes} hex color themes.
+    prompt=f'''
+    What are colors that are of {design_style} interior design style? Return {n_themes} hex color themes.
     
     Don't say anything else apart from the hex codes and theme name.
     '''
-    # response = bot.ask(prompt)
-
-    response = "Earthy Tones: #C9A67E, #B87A58, #A2613D, #8E5430, #6E3C24."
+    response = bot.ask(prompt)
+    # response = "Earthy Tones: #C9A67E, #B87A58, #A2613D, #8E5430, #6E3C24."
     color_themes = response.split(".")
 
     for theme in color_themes:
@@ -466,10 +466,10 @@ with interface:
                         parents = part_dict['parents']
                         for parent in parents:
                             parent_mat = object_dict[parent]['mat_name']
-                            # recommendation = parts_assembling_critique(object, part_mat, part, parent_mat,parent,n=3)
-                            # with gr.Row():
-                            #     gr.Markdown(value=f"{part_mat} {str(part)} ==> {parent_mat} {str(parent)}")
-                            #     gr.Textbox(value=f"Recommendation: {recommendation}", interactive=False)
+                            recommendation = parts_assembling_critique(object, part_mat, part, parent_mat,parent,n=3)
+                            with gr.Row():
+                                gr.Markdown(value=f"{part_mat} {str(part)} ==> {parent_mat} {str(parent)}")
+                                gr.Textbox(value=f"Recommendation: {recommendation}", interactive=False)
 
             targetenv_sentanalyses = []
             with gr.Tab(label="Target Environment"):

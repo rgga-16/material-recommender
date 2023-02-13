@@ -1,5 +1,5 @@
 <script>
-	
+	import {onMount} from "svelte";
 	import UserInterface from "./components/UserInterface.svelte";
 	import RenderingDisplay from "./components/RenderingDisplay.svelte";
 	import {curr_rendering_path} from './stores.js';
@@ -24,6 +24,37 @@
 	}
 
 	const promise = getInitialRendering();
+
+	onMount(async function () {
+		const response = await fetch("/conversation", {
+			method: "POST",
+			headers: {"Content-Type": "application/json"},
+			body: JSON.stringify({
+				"message": "Hello, how are you today?",
+			}),
+		});
+		const data = await response.json();
+		console.log(data);
+
+
+	});
+
+
+	// let chatgpt_response = async () => {
+	// 	const response = await fetch("/conversation", {
+	// 		method: "POST",
+	// 		headers: {"Content-Type": "application/json"},
+	// 		body: JSON.stringify({
+	// 			"message": "Hello, how are you today?",
+	// 		}),
+	// 	});
+
+	// 	return await response.json();
+	// }
+
+	// console.log(chatgpt_response);
+
+	
 
 </script>
 
