@@ -1,10 +1,14 @@
 import torch
 from torch import autocast
+torch.cuda.empty_cache()
 from diffusers import StableDiffusionPipeline, LMSDiscreteScheduler
 # StableDiffusionImg2ImgPipeline
 import time, os
 import pathlib as p
 
+# class StableDiffusionAPI():
+#     def __init__(self) -> None:
+#         pass
 
 class TextureDiffusion():
     def __init__(self, model_id="CompVis/stable-diffusion-v1-4"):
@@ -25,9 +29,17 @@ class TextureDiffusion():
         images = []
         for _ in range(n):
             with autocast("cuda"):
-                output_dict = self.diffusion_model(prompt, width=gen_imsize,height=gen_imsize,guidance_scale=7.5,num_inference_steps=50)
+                output_dict = self.diffusion_model(prompt, width=gen_imsize,height=gen_imsize,guidance_scale=7.5,num_inference_steps=200)
                 image = output_dict["images"][0]
                 images.append(image)
+        return images
+
+    def text2texture_(self, texture_str,n=4, gen_imsize=512):
+        prompt = f'{texture_str} texture map, 4k'
+        images = []
+        with autocast("cuda"):
+            output_dict = self.diffusion_model(prompt, width=gen_imsize,height=gen_imsize,guidance_scale=7.5,num_inference_steps=50)
+            image = output_dict["images"][0]
         return images
 
 

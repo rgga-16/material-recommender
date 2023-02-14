@@ -156,7 +156,7 @@ if __name__ == "__main__":
     apply_to_current_rendering(init_render_path,init_texture_parts_path)
 
 
-    texture_generator = TextureDiffusion()
+    texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
     app.run(debug=True)
 
 

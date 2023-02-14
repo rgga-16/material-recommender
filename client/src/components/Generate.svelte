@@ -38,7 +38,7 @@
             body: JSON.stringify({
                 "texture_string": texture_str,
                 "n":4,
-                "imsize":512,
+                "imsize":448,
                 "obj_parts_dict": selected_op_dict,
             }),
         });

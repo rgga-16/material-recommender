@@ -25,36 +25,23 @@
 
 	const promise = getInitialRendering();
 
-	onMount(async function () {
-		const response = await fetch("/conversation", {
-			method: "POST",
-			headers: {"Content-Type": "application/json"},
-			body: JSON.stringify({
-				"message": "Hello, how are you today?",
-			}),
-		});
-		const data = await response.json();
-		console.log(data);
-
-
-	});
-
-
-	// let chatgpt_response = async () => {
-	// 	const response = await fetch("/conversation", {
-	// 		method: "POST",
-	// 		headers: {"Content-Type": "application/json"},
-	// 		body: JSON.stringify({
-	// 			"message": "Hello, how are you today?",
-	// 		}),
+	// async function getChatGPTThing() {
+	// 	const results_response = await fetch("https://chatgpt.pawan.krd/ask", {
+    //         method: "POST",
+    //         headers: {"Content-Type": "application/json"},
+    //         body: JSON.stringify({
+    //             "key": "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",
+    //             "prompt": "who are you?",
+    //             "id": "default"
+    //         }), 
 	// 	});
 
-	// 	return await response.json();
+	// 	const results_json = await results_response.json();
+	// 	console.log(results_json);
 	// }
 
-	// console.log(chatgpt_response);
+	// const thing = getChatGPTThing();
 
-	
 
 </script>
 
