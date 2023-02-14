@@ -2,7 +2,9 @@
 
     const material_types = ["All types","wood","metal","fabric","ceramic"]
     const interior_design_styles = ['Modern', 'Traditional', 'Contemporary', 'Industrial', 'Transitional', 'Rustic', 'Bohemian', 'Minimalist', 'Hollywood Regency', 'Scandinavian']
+    const suggestion_choices = ["Materials", "Colors"];
 
+    let selected_choices = [];
     let selected_material_type;
     let selected_style;
 
@@ -25,6 +27,19 @@
                 <option value={style}> {style} </option>
             {/each}
         </select>
+
+        <div class="checkbox-group">
+            {#each suggestion_choices as choice}  
+                <label> 
+                    <input type=checkbox bind:group={selected_choices} value={choice}>
+                    {choice}
+                </label>
+            {/each}
+        </div>
+
+        <button> Suggest </button>
+
+
     </form>
 
 

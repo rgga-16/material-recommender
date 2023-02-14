@@ -1,8 +1,8 @@
 <script>
     export let texture;
     export let rendering; 
-    export let info; 
-    export let index;
+    // export let info; 
+    // export let index;
 
     let currentImage=0;
     let viewString="View texture";
