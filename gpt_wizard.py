@@ -1,4 +1,22 @@
 
+
+
+def suggest_materials_of_type(material_type,style):
+
+    match material_type.lower():
+        case 'all materials':
+            return 
+        case 'wood':
+            return 
+        case 'metal':
+            return
+        case 'fabric':
+            return
+        case 'ceramic':
+            return
+    return 
+
+
 def suggest_materials_by_style(style,material_type,n_materials=5, object=None, part=None):
 
     prompt=f'''
@@ -6,6 +24,169 @@ def suggest_materials_by_style(style,material_type,n_materials=5, object=None, p
 
     Return as a Python list.
     '''
+
+    response = ''
+    materials= []
+
+    # For now, we make pre-generated responses.
+    match style.lower():
+        case 'traditional':
+            match material_type.lower():
+                case 'all materials':
+                    return ['Wood', 'Natural stone', 'Wrought iron', 'Brass', 'Copper', 'Linen', 'Silk', 'Velvet', 'Wool']
+                case 'wood':
+                    return ['Oak', 'Mahogany', 'Cherry', 'Walnut', 'Pine', 'Maple']
+                case 'metal':
+                    return ['Wrought iron', 'Brass', 'Copper', 'Bronze', 'Pewter', 'Steel']
+                case 'fabric':
+                    return ['Silk', 'Velvet', 'Damask', 'Brocade', 'Chintz', 'Toile', 'Tapestry', 'Lace']
+                case 'ceramic':
+                    return ["terra cotta", "porcelain", "earthenware", "stoneware", "majolica", "delftware"]
+            return 
+        
+        case 'modern':
+            match material_type.lower():
+                case 'all materials':
+                    return ['Concrete', 'Glass', 'Stainless steel', 'Aluminum', 'Plywood', 'Acrylic', 'Vinyl', 'Synthetic fabrics', 'Leather', 'Polished stone']
+                case 'wood':
+                    return ['Birch','Maple','Oak','Walnut','Cherry','Teak','Rosewood','Ebony']
+                case 'metal':
+                    return ['Stainless steel', 'Aluminum', 'Chrome', 'Nickel', 'Copper', 'Bronze', 'Brass']
+                case 'fabric':
+                    return ['Linen', 'Wool', 'Silk', 'Velvet', 'Cotton', 'Leather']
+                case 'ceramic':
+                    return ['Porcelain', 'Terracotta', 'Ceramic tiles', 'Stoneware', 'Earthenware','Bone china','Vitreous china','Clay']
+            
+            return 
+        
+        case 'contemporary':
+            match material_type.lower():
+                case 'all materials':
+                    return ['Concrete', 'Glass', 'Metal', 'Stone', 'Wood', 'Leather', 'Textured fabrics', 'High-tech materials', 'Polished finishes', 'Reflective surfaces']
+                case 'wood':
+                    return ['Walnut','Oak','Birch','Maple','Cherry','Teak','Mahogany','Rosewood']
+                case 'metal':
+                    return ['Stainless steel','Aluminum','Brass','Copper','Iron','Zinc']
+                case 'fabric':
+                    return ['Linen','Wool','Silk','Cotton','Leather','Microfiber','Polyester','Velvet']
+                case 'ceramic':
+                    return ['Porcelain','Ceramic tiles','Terracotta','Stoneware','Earthenware']
+            
+            return 
+        
+        case 'industrial':
+            match material_type.lower():
+                case 'all materials':
+                    return ['Reclaimed wood', 'Exposed brick', 'Concrete', 'Metal', 'Leather', 'Copper', 'Glass', 'Rustic finishes']
+                case 'wood':
+                    return ['Reclaimed wood','Plywood','Barnwood','Oak','Walnut','Maple','Rough-sawn wood','Teak','Mahogany','Pine']
+                case 'metal':
+                    return ['Steel','Iron','Aluminum','Copper','Galvanized metal', 'Brushed nickel','Aged brass','Bronze','Zinc']
+                case 'fabric':
+                    return ['Canvas','Burlap','Denim','Leather','Wool felt','Jute']
+                case 'ceramic':
+                    return ['Concrete-look tiles', 'Subway tiles', 'Brick tiles', 'Terracotta tiles', 'Porcelain tiles with a textured or matte finish']
+            return 
+
+        case 'transitional':
+            match material_type.lower():
+                case 'all materials':
+                    return ['Chenille','Velvet','Rattan','Jute','Distressed wood','Reclaimed wood','Smooth, polished stone','Leather','Faux leather']
+                case 'wood':
+                    return ['Walnut','Cherry','Oak','Mahogany','Maple','Birch','Pine','Cedar']
+                case 'metal':
+                    return ['Brushed nickel','Bronze','Copper','Wrought iron','Polished chrome']
+                case 'fabric':
+                    return ['Linen', 'Cotton', 'Silk', 'Wool', 'Tweed', 'Velvet', 'Faux fur', 'Leather']
+                case 'ceramic':
+                    return ['Subway tiles','Terracotta tiles','Porcelain tiles','Ceramic mosaic tiles','Glazed ceramic tiles']
+            return 
+        
+        case 'rustic':
+            match material_type.lower():
+                case 'all materials':
+                    return ['Wood', 'Stone', 'Brick', 'Metal', 'Leather', 'Linen', 'burlap', 'Wool', 'fur', 'Earthenware', 'stoneware', 'Cowhide','sheepskin']
+                case 'wood':
+                    return ['Reclaimed wood', 'Knotty pine', 'Cedar', 'Oak', 'Hickory', 'Walnut']
+                case 'metal':
+                    return ['Wrought iron', 'Galvanized metal', 'Aged brass','aged bronze', 'Copper', 'Rusty steel', 'patinated steel']
+                case 'fabric':
+                    return ['Burlap', 'Wool', 'Linen', 'Cotton', 'Leather']
+                case 'ceramic':
+                    return ['Terracotta', 'Earthenware', 'Porcelain with a distressed or matte finish', 'Handmade pottery', 'Stone-like ceramic tiles']
+            
+            return 
+        
+        case 'bohemian':
+            match material_type.lower():
+                case 'all materials':
+                    return ['Wicker', 'Rattan', 'Leather', 'Macrame', 'Silk', 'Linen', 'Cotton', 'Wool', 'Velvet', 'Jute']
+                case 'wood':
+                    return ['Reclaimed wood', 'Distressed wood', 'Carved wood', 'Unfinished wood', 'Bamboo', 'Rattan', 'Wicker', 'Driftwood']
+                case 'metal':
+                    return ['aged brass', 'copper', 'wrought iron', 'pewter']
+                case 'fabric':
+                    return [
+                                'Kilim rugs',
+                                'Moroccan textiles',
+                                'Indian silk',
+                                'Turkish throws',
+                                'Handwoven tapestries',
+                                'Batik prints',
+                                'Crochet or macrame fabrics',
+                                'Embroidered fabrics with bright colors and bold patterns',
+                                'Sheer or gauzy fabrics with a flowy appearance',
+                                'Linen or cotton fabrics with a relaxed or lived-in feel'
+                            ]
+                case 'ceramic':
+                    return [
+                                "Handmade pottery with colorful and intricate patterns",
+                                "Glazed ceramic tiles in warm, earthy tones",
+                                "Mosaic ceramic pieces in bold, geometric shapes and bright colors",
+                                "Textured, unglazed ceramic vases and bowls in natural, organic shapes",
+                                "Hand-painted ceramic plates, bowls, and cups with floral or abstract designs"
+                            ]
+
+            return 
+        
+        case 'minimalist':
+            match material_type.lower():
+                case 'all materials':
+                    return ['Concrete', 'Steel', 'Glass', 'Plywood', 'Maple', 'Oak', 'Ash', 'Blackened steel', 'Cotton', 'Linen', 'Wool', 'Leather']
+                case 'wood':
+                    return ['birch', 'beech', 'ash', 'walnut', 'teak', 'plywood']
+                case 'metal':
+                    return ['Stainless steel', 'Brushed nickel', 'Aluminum', 'Chrome', 'Copper']
+                case 'fabric':
+                    return ['cotton', 'linen', 'wool', 'canvas', 'hemp', 'muslin', 'silk']
+                case 'ceramic':
+                    return ['matte ceramics', 'textured ceramics', 'neutral-colored ceramics', 'concrete-look ceramics', 'delicate ceramic vases', 'ceramic sculptures']
+
+        
+        case 'hollywood regency':
+            match material_type.lower():
+                case 'all materials':
+                    return ['velvet', 'satin', 'brass', 'gold', 'silver', 'mirrored surfaces', 'lacquered finishes', 'glossy tiles', 'patterned tiles', 'high-gloss rugs', 'high-pile rugs', 'ebony', 'mahogany']
+                case 'wood':
+                    return ['Ebony', 'Mahogany', 'Rosewood', 'Zebrawood', 'Burlwood']
+                case 'metal':
+                    return ['Brass', 'Gold', 'Chrome', 'Stainless steel', 'Mirrored finishes']
+                case 'fabric':
+                    return ['Velvet', 'Satin', 'Silk', 'Faux Fur', 'Shag Carpet', 'Jacquard']
+                case 'ceramic':
+                    return ['Ceramic materials are not typically associated with Hollywood Regency style, as this design style tends to focus more on metallic accents and glossy surfaces.']
+        case 'scandinavian':
+            match material_type.lower():
+                case 'all materials':
+                    return ['beech', 'birch', 'ash', 'pine', 'leather', 'wool', 'cotton', 'stainless steel', 'copper', 'glass', 'plastic', 'granite', 'slate']
+                case 'wood':
+                    return ["ash", "beech", "birch", "pine", "plywood", "laminated wood", "wool", "sheepskin"]
+                case 'metal':
+                    return ["stainless steel", "aluminum", "copper", "brass"]
+                case 'fabric':
+                    return ['Linen', 'Wool', 'Cotton', 'Leather']
+                case 'ceramic':
+                    return ['Porcelain', 'Stoneware', 'Terracotta', 'Matte finishes', 'Simple, organic shapes', 'Minimalist designs']
 
     return 
 
@@ -83,11 +264,11 @@ def suggest_color_by_style(style,n_themes=5):
             return color_palettes
         case 'Minimalist':
             color_palettes = {
-                "Jewel Tones": ["#732C7B", "#BFDBE2", "#9D9E92", "#B2B09B"],
-                "Earthy Hues": ["#8C6954", "#E1AFAF", "#D6C8B6", "#D6B08A"],
-                "Bright and Bold": ["#FF6138", "#FFFF9D", "#BEEB9F", "#79BD8F"],
-                "Pastel Paradise": ["#BF5FFF", "#EFD3D7", "#D3F5F7", "#A4F4F9"],
-                "Global Textiles": ["#4E4D4A", "#9B8D72", "#A69E80", "#C7B49B"]
+                'Pure White': ['#FFFFFF'],
+                'Black and White': ['#000000', '#FFFFFF'],
+                'Earthy Neutrals': ['#D4C5A5', '#E0C8A8', '#C5B298', '#B2A58D', '#9C8E7D'],
+                'Soft Pastels': ['#E8B8A7', '#D7D7B1', '#9CD9C6', '#89A7C0', '#C39BCA'],
+                'Cool Grays': ['#E3E3E3', '#C8C8C8', '#AFAFAF', '#969696', '#7F7F7F']
             }
             return color_palettes
         case 'Hollywood Regency':

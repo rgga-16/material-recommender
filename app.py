@@ -7,8 +7,40 @@ from configs import *
 import os 
 from utils.image import makedir
 
+import gpt_wizard
+
 
 app = Flask(__name__, static_folder="./client/public")
+
+@app.route("/suggest_colors_by_style", methods=['POST'])
+def suggest_colors_by_style():
+
+    form_data = request.get_json()
+    style = form_data["style"]
+    # material_type = form_data["material_type"]
+
+    color_palettes = gpt_wizard.suggest_color_by_style(style=style)
+
+    return {"suggested_color_palettes":color_palettes}
+
+@app.route("/suggest_materials_by_style", methods=['POST'])
+def suggest_materials_by_style():
+
+    form_data = request.get_json()
+    style = form_data["style"]
+    material_type = form_data["material_type"]
+
+    materials = gpt_wizard.suggest_materials_by_style(style=style,material_type=material_type)
+
+    return {"suggested_materials":materials}
+
+@app.route("/suggest_by_style", methods=['POST'])
+def suggest_by_style():
+
+    form_data = request.get_json()
+
+    return 
+
 
 @app.route("/generate_and_transfer_textures", methods=['POST'])
 def generate_and_transfer_textures():
