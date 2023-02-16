@@ -1,5 +1,4 @@
 <script>
-	import {onMount} from "svelte";
 	import UserInterface from "./components/UserInterface.svelte";
 	import RenderingDisplay from "./components/RenderingDisplay.svelte";
 	import {curr_rendering_path} from './stores.js';
@@ -10,8 +9,6 @@
 	curr_rendering_path.subscribe(value => {
 		current_rendering_path = get(curr_rendering_path);
 	});
-
-	const str = get(curr_rendering_path);
 
 	// I think you should call the initial rendering here.
 	// https://codesource.io/how-to-fetch-json-in-svelte-example/
@@ -25,22 +22,17 @@
 
 	const promise = getInitialRendering();
 
-	// async function getChatGPTThing() {
-	// 	const results_response = await fetch("https://chatgpt.pawan.krd/ask", {
-    //         method: "POST",
-    //         headers: {"Content-Type": "application/json"},
-    //         body: JSON.stringify({
-    //             "key": "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",
-    //             "prompt": "who are you?",
-    //             "id": "default"
-    //         }), 
-	// 	});
+	let ui_collapsed = false;
 
-	// 	const results_json = await results_response.json();
-	// 	console.log(results_json);
-	// }
-
-	// const thing = getChatGPTThing();
+	function collapseDiv(is_collapsed) {
+		console.log("before: " + is_collapsed);
+		if (is_collapsed===true) {
+			is_collapsed=false;
+		} else {
+			is_collapsed=true;
+		}
+		console.log("after: " + is_collapsed);
+	}
 
 
 </script>
@@ -48,8 +40,10 @@
 <main>
 
 	<div class="container">
-		<div class="user-interface">
+
+		<div class="user-interface" class:collapsed={ui_collapsed}>
 			<UserInterface />
+			<button on:click={()=>collapseDiv(ui_collapsed)}> Hide </button>
 		</div>
 
 		<div class="rendering-display">
@@ -57,7 +51,7 @@
 				<pre> Loading rendering. Please wait. </pre>
 			{:then data} 
 				<h2>Current Rendering</h2>
-				<span> Rendering Path: {current_rendering_path}</span>
+				<!-- <span> Rendering Path: {current_rendering_path}</span> -->
 				<RenderingDisplay {current_rendering_path} />
 			{/await}
 		</div>
@@ -68,15 +62,30 @@
 <style>
 	.container {
 		display: flex;
+		flex-direction: row;
+	}
+
+	.user-interface button {
+		position:relative;
+		right:0;
+		width:2rem;
+		writing-mode: vertical-lr;
+		text-orientation: upright;
 	}
 
 	.user-interface {
-	  	width: 30%;
+		display:flex;
+		flex-direction:row;
+	  	width: 25%;
 	  	background-color: lightgray;
+	}
+
+	.user-interface.collapsed {
+		display:none;
 	}
 	
 	.rendering-display {
-	  	width: 70%;
+	  	width: 75%;
 	  	background-color: lightblue;
 	}
   </style>

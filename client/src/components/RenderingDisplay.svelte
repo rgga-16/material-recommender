@@ -11,7 +11,7 @@
 
 <style>
     img{
-        width:70%;
+        width:50%;
         height: auto;
         object-fit: cover;
     }
