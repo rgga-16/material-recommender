@@ -83,7 +83,7 @@
     <form on:submit|preventDefault={gen_and_apply_textures(input_material)}>
         <input name="material_name" type="text" bind:value={input_material} required/>
         <br/>
-        <!-- <div class="tab-group"> -->
+
             {#await objs_and_parts}
                 <pre>Loading object names and their part names</pre>
             {:then data} 
@@ -106,21 +106,46 @@
                     </div>
                 {/each}
             {/await}
-        <!-- </div> -->
+
         <br/>
-        <button> Generate & Transfer Material </button>
+        <button> Generate Material </button>
     </form>
     {#if rendering_texture_pairs.length > 0}
+        <!-- <div class='carousel'>
+            <div class="carousel-item">
+
+            </div>
+
+        </div> -->
         <form on:submit|preventDefault={apply_to_curr_rendering(selected_index)} >
             <GeneratedTextures pairs= {rendering_texture_pairs} bind:selected_index={selected_index} />
             <p> {selected_index}</p>
-            <button> Apply </button>
+            <button> Apply to rendering </button>
         </form>
     {/if}
     
 </div>
 
 <style>
+    /* .carousel {
+        display:flex;
+        flex-wrap:nowrap;
+        overflow-x:hidden;
+    }
+
+    .carousel-item{
+        min-width:100%;
+        flex:0 0 auto; 
+        margin-right:1rem; 
+    } */
+
+
+
+    .material_generator {
+        display: flex;
+        flex-direction: column;
+        width:100%;
+    }
 
     input[type="radio"] {
         display: none;

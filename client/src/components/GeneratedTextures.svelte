@@ -18,8 +18,6 @@
 
 
 <style>
-
-
     .image-grid input[type="radio"] {
         opacity: 0;
         position: fixed;

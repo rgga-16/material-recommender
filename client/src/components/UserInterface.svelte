@@ -3,7 +3,6 @@
     import Suggest from "./Suggest.svelte";
     
     let activeTab = 'tab1-content';
-    const active_string = ' active';
   
     function switchTab(tab) {
         activeTab = tab;
@@ -12,7 +11,7 @@
     
 </script>
 
-    
+    <div class="user-interface">
       <div class="w3-bar w3-grey">
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='tab1-content'} on:click={()=>switchTab('tab1-content')} id="tab1-btn">Generate</button>
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='tab2-content'} on:click={()=>switchTab('tab2-content')} id="tab2-btn">Suggest</button>
@@ -31,9 +30,14 @@
         <h2>Tab 3 Content</h2>
         <p>Sed facilisis mi at est commodo, in fringilla metus egestas.</p>
       </div> 
-
-
+    </div>
+      
   <style>
+  
+  .user-interface{
+    display:flex;
+    flex-direction: column;
+  }
 
   .tab-btn {
     height:100%;
