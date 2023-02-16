@@ -19,9 +19,17 @@ def suggest_colors_by_style():
     style = form_data["style"]
     # material_type = form_data["material_type"]
 
-    color_palettes = gpt_wizard.suggest_color_by_style(style=style)
+    suggested_color_palettes = []
 
-    return {"suggested_color_palettes":color_palettes}
+    color_palettes_dict = gpt_wizard.suggest_color_by_style(style=style)
+
+    for key in color_palettes_dict.keys():
+        suggested_color_palettes.append({
+            "name":key,
+            "palette":color_palettes_dict[key]
+        })
+
+    return suggested_color_palettes
 
 @app.route("/suggest_materials_by_style", methods=['POST'])
 def suggest_materials_by_style():
@@ -30,9 +38,23 @@ def suggest_materials_by_style():
     style = form_data["style"]
     material_type = form_data["material_type"]
 
-    materials = gpt_wizard.suggest_materials_by_style(style=style,material_type=material_type)
+    materials = gpt_wizard.suggest_materials_by_style2(style=style,material_type=material_type)
 
-    return {"suggested_materials":materials}
+    suggested_materials = []
+    for m in materials:
+        reason=m["reason"] ; m = m["name"];
+        prompt = m if material_type.lower()=='all types' else f"{m} {material_type}"
+        image, filename = generate_textures(prompt,n=1,imsize=448); image=image[0]; filename=filename[0]
+        image.save(os.path.join(SERVER_IMDIR,"suggested",filename))
+        loadpath = os.path.join(CLIENT_IMDIR,"suggested",filename)
+        suggested_materials.append({
+            "name":m,
+            # "texture":image,
+            "reason":reason,
+            "filepath":loadpath
+        })
+    
+    return suggested_materials
 
 @app.route("/suggest_by_style", methods=['POST'])
 def suggest_by_style():
@@ -120,7 +142,7 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
     with open(curr_textureparts_path,"w") as f:
         json.dump(texture_parts,f)
 
-    shutil.copy(renderpath, curr_render_path) #BUG: No such file or dir: 'gen_images\\renderings\\rendering.png'
+    shutil.copy(renderpath, curr_render_path) 
     return curr_render_path, curr_textureparts_path
 
 @app.route("/apply_to_current_rendering", methods= ['POST'])
