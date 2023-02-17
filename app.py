@@ -7,7 +7,7 @@ from configs import *
 import os 
 from utils.image import makedir
 
-import gpt_wizard
+import models.llm.gpt_wizard as gpt_wizard
 
 
 app = Flask(__name__, static_folder="./client/public")
@@ -38,7 +38,9 @@ def suggest_materials_by_style():
     style = form_data["style"]
     material_type = form_data["material_type"]
 
-    materials = gpt_wizard.suggest_materials_by_style2(style=style,material_type=material_type)
+    # materials = gpt_wizard.suggest_materials_by_style2(style=style,material_type=material_type)
+    materials = gpt_wizard.suggest_materials_by_style_debug(style=style,material_type=material_type)
+    
 
     suggested_materials = []
     for m in materials:
@@ -55,14 +57,6 @@ def suggest_materials_by_style():
         })
     
     return suggested_materials
-
-@app.route("/suggest_by_style", methods=['POST'])
-def suggest_by_style():
-
-    form_data = request.get_json()
-
-    return 
-
 
 @app.route("/generate_and_transfer_textures", methods=['POST'])
 def generate_and_transfer_textures():
@@ -110,12 +104,12 @@ def generate_and_transfer_textures():
 
 def generate_textures(texture_string, n, imsize):
     generated_textures = texture_generator.text2texture(texture_string, n=n, gen_imsize=imsize)
+    # generated_textures = texture_generator.text2texture_(texture_string, n=n, gen_imsize=imsize)
     texture_filenames = []
 
     for i in range(len(generated_textures)):
         texture_filenames.append(f"{texture_string}_{i}.png")
     return generated_textures, texture_filenames
-
 
 def apply_to_current_rendering(renderpath, texture_parts_path):
     global current_texture_parts
@@ -124,7 +118,7 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
         makedir(curr_render_savedir)
     
     curr_render_path = os.path.join(curr_render_savedir,"rendering.png")
-    curr_textureparts_path = os.path.join(curr_render_savedir,"texture_parts.json")
+    curr_textureparts_path = os.path.join(curr_render_savedir,"object_part_material.json")
 
     texture_parts = json.load(open(texture_parts_path))
 
@@ -157,13 +151,62 @@ def set_current_rendering():
 
     return get_current_rendering()
 
+def add_to_saved_renderings(renderpath, texture_parts_path):
+    global LATEST_RENDER_ID
 
+    save_render_dir = os.path.join(SERVER_IMDIR,'renderings','saved',str(LATEST_RENDER_ID))
+    save_render_path = os.path.join(save_render_dir,"rendering.png")
+    save_textureparts_path = os.path.join(save_render_dir,"object_part_material.json")
+    
+    if(not os.path.isdir(save_render_dir)):
+        makedir(save_render_dir)
+    
+    texture_parts = json.load(open(texture_parts_path))
+    for obj in list(texture_parts.keys()):
+        for part in list(texture_parts[obj].keys()):
+            texture_path = texture_parts[obj][part]["mat_image_texture"]
+            texture_filename = os.path.basename(texture_path)
+            save_texture_path = os.path.join(save_render_dir,texture_filename)
+            img = Image.open(texture_path)
+            img.save(save_texture_path)
+            texture_parts[obj][part]["mat_image_texture"] = save_texture_path
+    
+    with open(save_textureparts_path,"w") as f:
+        json.dump(texture_parts,f)
+    shutil.copy(renderpath, save_render_path)
+    LATEST_RENDER_ID+=1
+    return save_render_path,save_textureparts_path
+
+@app.route("/save_rendering")
+def save_rendering():
+
+    return 
+
+@app.route("/get_saved_renderings")
+def get_saved_renderings():
+    saved_renderings = []
+    saved_renderings_loaddir_client = os.path.join(CLIENT_IMDIR,'renderings','saved')
+    saved_renderings_loaddir_server = os.path.join(SERVER_IMDIR,'renderings','saved')
+
+    dir_names = [f for f in os.listdir(saved_renderings_loaddir_server) if os.path.isdir(os.path.join(saved_renderings_loaddir_server, f))]
+    dir_names.reverse()
+
+    for d in dir_names:
+        saved_rendering_loaddir = os.path.join(saved_renderings_loaddir_client,d)
+        texture_parts = json.load(open(os.path.join(saved_renderings_loaddir_server,d,"object_part_material.json")))
+        render_path = os.path.join(saved_rendering_loaddir,"rendering.png")
+        saved_renderings.append({
+            "rendering_path":render_path,
+            "texture_parts":texture_parts
+        })
+
+    return {"saved_renderings":saved_renderings}
 
 @app.route("/get_current_rendering")
 def get_current_rendering():
     curr_render_loaddir = os.path.join(CLIENT_IMDIR,'renderings','current')
 
-    current_textureparts_path = os.path.join(SERVER_IMDIR,'renderings','current',"texture_parts.json")
+    current_textureparts_path = os.path.join(SERVER_IMDIR,'renderings','current',"object_part_material.json")
     texture_parts = json.load(open(current_textureparts_path))
 
     current_render_path = os.path.join(curr_render_loaddir,"rendering.png")
@@ -188,9 +231,11 @@ def home(path):
 
 if __name__ == "__main__":
 
-    SERVER_IMDIR = os.path.join(CWD,"client","public","gen_images")
+    # Here, you should make the necessary dirs under client/public.
+
+    SERVER_IMDIR = os.path.join(CWD,"client","public","gen_images") 
     CLIENT_IMDIR = os.path.join("gen_images")
-    CURR_RENDER_ID = 1
+    LATEST_RENDER_ID=0
 
     products = [
         "nightstand_family",
@@ -198,17 +243,25 @@ if __name__ == "__main__":
 
     DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[0])
     RENDER_DIR = os.path.join(DATA_DIR,"renderings")
-
-    init_texture_parts_path = os.path.join(RENDER_DIR, str(CURR_RENDER_ID),"object_part_material.json")
-    init_render_path = os.path.join(RENDER_DIR,str(CURR_RENDER_ID),"rendering.png")
-
-    init_texture_parts = json.load(open(os.path.join(RENDER_DIR, str(CURR_RENDER_ID),"object_part_material.json")))
-    current_texture_parts = copy.deepcopy(init_texture_parts)
-
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 
+    # Code to load current rendering into frontend (client folder).
+    init_texture_parts_path = os.path.join(RENDER_DIR, "current","object_part_material.json")
+    init_render_path = os.path.join(RENDER_DIR,"current","rendering.png")
+    init_texture_parts = json.load(open(os.path.join(RENDER_DIR, "current","object_part_material.json")))
+    current_texture_parts = copy.deepcopy(init_texture_parts)
     apply_to_current_rendering(init_render_path,init_texture_parts_path)
 
+    init_saved_renderings_dir = os.path.join(RENDER_DIR,"saved")
+    dir_names = list(map(int,[f for f in os.listdir(init_saved_renderings_dir) if os.path.isdir(os.path.join(init_saved_renderings_dir, f))]))
+
+    # Code to load the saved renderings into frontend (client folder)
+    for d in dir_names:
+        dir_path = os.path.join(init_saved_renderings_dir,str(d))
+        render_path = os.path.join(dir_path,"rendering.png")
+        textureparts_path = os.path.join(dir_path,"object_part_material.json")
+        # texture_parts = json.load(open(textureparts_path))
+        add_to_saved_renderings(render_path,textureparts_path)
 
     texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
     app.run(debug=True)
