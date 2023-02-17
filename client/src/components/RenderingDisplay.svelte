@@ -6,6 +6,7 @@
 
 
 {#if current_rendering_path}
+    <h3>Current Rendering</h3>
     <img src={current_rendering_path} alt="Current rendering"/> 
 {/if}
 
