@@ -1,9 +1,12 @@
 
 import os 
 import openai
-openai.api_key=os.getenv("OPENAI_API_KEY")
-
+openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set your env variable, OPENAI_API_KEY to your API key from OPENAI
 import re 
+import yake 
+
+kw_extractor = yake.KeywordExtractor(lan='en',n=3,top=20,dedupLim=0.9)
+
 
 def parse_into_list(string):
     items = []
@@ -29,6 +32,9 @@ def suggest_materials_of_type(material_type,style):
             return
     return 
 
+def extract_keywords(text):
+    return kw_extractor.extract_keywords(text)
+
 def suggest_materials_by_style2(style,material_type,n_materials=5,object=None,part=None):
     openai.api_key=os.getenv("OPENAI_API_KEY")
     prompt=f'''
@@ -50,8 +56,29 @@ def suggest_materials_by_style2(style,material_type,n_materials=5,object=None,pa
     for item in items:
         name = item.split("|")[0].strip()
         reason = item.split("|")[1].strip()
-        materials.append({"name":name,"reason":reason})
+        keywords = extract_keywords(reason)
+        materials.append({"name":name,"reason":reason, "keywords":keywords})
 
+    return materials
+
+def suggest_materials_by_style_debug(style,material_type,n_materials=5,object=None,part=None):
+    openai.api_key=os.getenv("OPENAI_API_KEY")
+    prompt=f'''
+    What examples of {material_type} materials are of {style} interior design style?
+
+    For each example, give your reason. Separate the example and reason by a | . Return in bullet points.
+    '''
+
+    response = '\n- Oak | Durable, warm, and timeless wood with a classic look \n- Cherry | Elegant wood with a subtle grain pattern and reddish hue \n- Walnut | Rich dark wood with a classic feel \n- Mahogany | Deep red-brown wood with a classic look \n- Pine | Light wood with a rustic feel \n- Maple | Light wood with a subtle grain pattern and a classic look'
+
+    items = parse_into_list(response)
+
+    materials = []
+    for item in items:
+        name = item.split("|")[0].strip()
+        reason = item.split("|")[1].strip()
+        keywords = extract_keywords(reason)
+        materials.append({"name":name,"reason":reason, "keywords":keywords})
 
     return materials
 
