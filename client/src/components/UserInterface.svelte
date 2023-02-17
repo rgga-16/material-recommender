@@ -12,7 +12,7 @@
 </script>
 
     <div class="user-interface">
-      <div class="w3-bar w3-grey">
+      <div class="w3-bar w3-grey tabs">
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='tab1-content'} on:click={()=>switchTab('tab1-content')} id="tab1-btn">Generate</button>
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='tab2-content'} on:click={()=>switchTab('tab2-content')} id="tab2-btn">Suggest</button>
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='tab3-content'} on:click={()=>switchTab('tab3-content')} id="tab3-btn">Feedback</button>
@@ -33,6 +33,11 @@
     </div>
       
   <style>
+  
+  /* .tabs {
+    display: flex;
+    
+  } */
   
   .user-interface{
     display:flex;

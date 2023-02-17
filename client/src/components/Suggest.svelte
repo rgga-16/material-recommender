@@ -107,7 +107,7 @@
                     {#each suggested_materials as m, i}
                         <label class="material-card" class:selected={selected_material_index===i}>
                             <input type=radio bind:group={selected_material_index} name="option" value={i} >
-                            <MaterialCard material_name={m["name"]} material_path={m["filepath"]} index={i}/>
+                            <MaterialCard material_name={m["name"]} material_path={m["filepath"]} material_info={m["reason"]} index={i}/>
                             <!-- <button> Proceed to generate </button> -->
                         </label>
                     {/each}
