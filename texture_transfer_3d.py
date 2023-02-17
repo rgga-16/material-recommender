@@ -23,7 +23,8 @@ class TextureDiffusion():
         )
 
         self.diffusion_model = StableDiffusionPipeline.from_pretrained(model_id,scheduler=self.lms, use_auth_token=True, torch_dtype=torch.float16).to(self.device)
-    
+        self.diffusion_model.enable_attention_slicing()
+
     def text2texture(self, texture_str,n=4, gen_imsize=512):
         prompt = f'{texture_str} texture map, 4k'
         images = []
@@ -39,7 +40,7 @@ class TextureDiffusion():
         images = []
         with autocast("cuda"):
             output_dict = self.diffusion_model(prompt, width=gen_imsize,height=gen_imsize,guidance_scale=7.5,num_inference_steps=50)
-            image = output_dict["images"][0]
+            images.append(output_dict["images"][0])
         return images
 
 
