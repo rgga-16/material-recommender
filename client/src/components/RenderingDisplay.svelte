@@ -16,5 +16,4 @@
         height: auto;
         object-fit: cover;
     }
-
 </style>
