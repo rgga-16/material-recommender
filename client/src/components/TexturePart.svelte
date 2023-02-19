@@ -1,0 +1,46 @@
+<script>
+    export let part_name;
+    export let part_info;
+
+    let material_name = part_info["mat_name"];
+    let material_finish = part_info["mat_finish"];
+    let material_url = part_info["mat_image_texture"];
+</script>
+
+<div class="card">
+    <img class="texture-image" src={material_url} alt={material_name} />
+    <div class="texture-details">
+        <div>
+            <div class="texture-name">{material_name}</div>
+            <div>{material_finish}</div>
+        </div>
+        <div>{part_name}</div>
+    </div>
+</div>
+
+<style>
+    .card {
+      display: flex;
+      flex-direction: column;
+      margin: 1rem;
+      max-width: 300px;
+    }
+    
+    .texture-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    
+    .texture-details {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+    }
+    
+    .texture-name {
+      font-weight: bold;
+    }
+  </style>

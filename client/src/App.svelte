@@ -1,6 +1,7 @@
 <script>
 	import UserInterface from "./components/UserInterface.svelte";
 	import RenderingDisplay from "./components/RenderingDisplay.svelte";
+	import Information from "./components/Information.svelte";
 	import {curr_rendering_path} from './stores.js';
 	import {curr_texture_parts} from './stores.js';
 	import {curr_textureparts_path} from './stores.js';
@@ -130,11 +131,12 @@
 		</div>
 
 		<div class="information-panel">
-			<div class="w3-bar w3-grey tabs">
-				<button class='w3-bar-item w3-button tab-btn' id="tab1-btn">Generate</button>
-				<button class='w3-bar-item w3-button tab-btn'  id="tab2-btn">Suggest</button>
-				<button class='w3-bar-item w3-button tab-btn'  id="tab3-btn">Feedback</button>
-			</div>
+			{#await promise}
+				<pre> Loading rendering information. Please wait. </pre>
+			{:then data} 
+				<Information {current_texture_parts} />
+			{/await}
+			
 		</div>
 		
 
