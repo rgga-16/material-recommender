@@ -177,10 +177,16 @@ def add_to_saved_renderings(renderpath, texture_parts_path):
     LATEST_RENDER_ID+=1
     return save_render_path,save_textureparts_path
 
-@app.route("/save_rendering")
+@app.route("/save_rendering", methods=['POST'])
 def save_rendering():
+    form_data = request.get_json()
+    rendering_path =  os.path.join(CWD,"client","public",form_data["rendering_path"])
+    texture_parts = form_data["texture_parts"]
+    textureparts_path = form_data["textureparts_path"]
 
-    return 
+    # Add to saved renderings
+    add_to_saved_renderings(rendering_path,textureparts_path)
+    return  get_saved_renderings()
 
 @app.route("/get_saved_renderings")
 def get_saved_renderings():
@@ -193,11 +199,13 @@ def get_saved_renderings():
 
     for d in dir_names:
         saved_rendering_loaddir = os.path.join(saved_renderings_loaddir_client,d)
-        texture_parts = json.load(open(os.path.join(saved_renderings_loaddir_server,d,"object_part_material.json")))
+        textureparts_path = os.path.join(saved_renderings_loaddir_server,d,"object_part_material.json")
+        texture_parts = json.load(open(textureparts_path))
         render_path = os.path.join(saved_rendering_loaddir,"rendering.png")
         saved_renderings.append({
             "rendering_path":render_path,
-            "texture_parts":texture_parts
+            "texture_parts":texture_parts,
+            "textureparts_path":textureparts_path
         })
 
     return {"saved_renderings":saved_renderings}
@@ -211,7 +219,7 @@ def get_current_rendering():
 
     current_render_path = os.path.join(curr_render_loaddir,"rendering.png")
     
-    return {"rendering_path":current_render_path, "texture_parts":texture_parts}
+    return {"rendering_path":current_render_path, "texture_parts":texture_parts, "textureparts_path":current_textureparts_path}
 
 @app.route("/get_objects_and_parts")
 def load_object_data():
