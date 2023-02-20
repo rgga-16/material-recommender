@@ -1,6 +1,8 @@
 <script>
+    import {get} from 'svelte/store';
     import {curr_texture_parts} from '../stores.js';
     import TexturePart from './TexturePart.svelte';
+    import PartPairs from './PartPairs.svelte';
     
     export let current_texture_parts;
     let activeTab = 'tab1-content';
@@ -19,6 +21,8 @@
         selected_obj_info = current_texture_parts[obj];
         selected_parts = Object.keys(selected_obj_info);
     }
+
+    
 </script>
 
 <div class="information-panel">
@@ -44,11 +48,26 @@
             {/each}
         </div>
 
-
-        
     </div> 
 
-    <div class='tab-content' class:active={activeTab==='tab2-content'} id="tab2-content">
+    <div class='tab-content' class:active={activeTab==='tab2-content'} id="tab2-content">   
+        <h3> Feedback </h3>
+
+        <select bind:value={selected_obj} on:change={() => loadParts(selected_obj)}>
+            {#each objects as obj}
+                <option value={obj}>
+                    {obj}
+                </option>
+            {/each}
+        </select>
+
+        <div class="image-grid">
+            {#each selected_parts as child_part}
+                {#each selected_obj_info[child_part]["parents"] as parent_part}
+                    <PartPairs obj={selected_obj} object_info={selected_obj_info} child_part={child_part} parent_part={parent_part} />
+                {/each}
+            {/each}
+        </div>
 
     </div>
 

@@ -14,7 +14,7 @@
             <div class="texture-name">{material_name}</div>
             <div>{material_finish}</div>
         </div>
-        <div>{part_name}</div>
+        <div><b>{part_name}</b></div>
     </div>
 </div>
 
@@ -24,6 +24,8 @@
       flex-direction: column;
       margin: 1rem;
       max-width: 300px;
+      border: 1px solid black;
+      padding: 5px; 
     }
     
     .texture-image {

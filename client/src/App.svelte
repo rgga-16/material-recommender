@@ -6,6 +6,13 @@
 	import {curr_texture_parts} from './stores.js';
 	import {curr_textureparts_path} from './stores.js';
 	import {get} from 'svelte/store';
+	import {onMount} from "svelte";	
+
+	onMount(async function () {
+		const response = await fetch("/get_static_dir");
+		const data = await response.text();
+		console.log(data);
+	});
 
 	let current_rendering_path;
 	let current_texture_parts;
@@ -40,6 +47,11 @@
 		current_rendering_path = await data["rendering_path"];
 		current_texture_parts = await data ["texture_parts"];
 		current_textureparts_path = await data["textureparts_path"];
+
+		curr_rendering_path.set(current_rendering_path);
+		curr_texture_parts.set(current_texture_parts);
+		curr_textureparts_path.set(current_textureparts_path);
+		
 		return data; 
 	}
 	const promise = getInitialRendering();
@@ -86,8 +98,16 @@
             }),
         });
 
-        const json = await response.json();
-        curr_rendering_path.set(json["rendering_path"]);
+        const data = await response.json();
+		current_rendering_path = await data["rendering_path"];
+		current_texture_parts = await data["texture_parts"];
+		current_textureparts_path = await data["textureparts_path"];
+
+		curr_rendering_path.set(current_rendering_path);
+		curr_texture_parts.set(current_texture_parts);
+		curr_textureparts_path.set(current_textureparts_path);
+
+		console.log(get(curr_texture_parts));
 	}
 
 
@@ -107,6 +127,7 @@
 				{#await promise}
 					<pre> Loading rendering. Please wait. </pre>
 				{:then data} 
+					{current_rendering_path}
 					<RenderingDisplay {current_rendering_path} />
 					<button on:click|preventDefault={saveRendering}> Save rendering </button>
 				{/await}
@@ -116,16 +137,19 @@
 				{#await saved_renderings_promise}
 					<pre> Loading saved renderings. Please wait. </pre>
 				{:then data} 
-					<h3>Saved Renderings</h3>
-					<div class="saved-renderings-list">
-						{#each saved_renderings as saved_renderings,i}
-							<label class = "saved-rendering" class:selected={selected_saved_rendering_idx===i}>
-								<input type=radio bind:group={selected_saved_rendering_idx} name="option-{i}" value={i} />
-								<img src={saved_renderings["rendering_path"]} alt="saved rendering {i}" />
-							</label>
-						{/each}
-					</div>
-					<button style:opacity={selected_saved_rendering_idx!=undefined ? 1:0} on:click={() => loadRendering(selected_saved_rendering_idx)}> Load rendering </button>
+					<form on:submit|preventDefault={loadRendering(selected_saved_rendering_idx)}>
+						<h3>Saved Renderings</h3>
+						<div class="saved-renderings-list">
+							{#each saved_renderings as saved_renderings,i}
+								<label class = "saved-rendering" class:selected={selected_saved_rendering_idx===i}>
+									<input type=radio bind:group={selected_saved_rendering_idx} name="option-{i}" value={i} />
+									<img src={saved_renderings["rendering_path"]} alt="saved rendering {i}" />
+								</label>
+							{/each}
+						</div>
+						<button style:opacity={selected_saved_rendering_idx!=undefined ? 1:0}> Load rendering </button>
+					</form>
+					
 				{/await}
 			</div>
 		</div>
