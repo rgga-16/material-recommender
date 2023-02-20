@@ -7,7 +7,6 @@
     let is_selected=false;
 
     function copyText(text) {
-        console.log(text);
         navigator.clipboard.writeText(text);
     }
 
