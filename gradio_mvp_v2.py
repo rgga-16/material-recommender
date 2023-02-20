@@ -4,19 +4,16 @@ from texture_transfer_3d import TextureDiffusion
 import os, time, json, copy
 import pathlib as p
 from PIL import Image
-from models.llm import bloom_inference_api as BLOOM_API
-from models.llm.chatgpt_module import ChatGPT_Bot
-import spacy
+from models.llm import bloom as BLOOM_API
+
 
 from utils.image import css 
 
-from spacy import displacy
-from spacy.matcher import Matcher
 # from nltk import tokenize
 
 
-nlp = spacy.load("en_core_web_md")
-nlp.add_pipe('spacytextblob')
+# nlp = spacy.load("en_core_web_md")
+# nlp.add_pipe('spacytextblob')
 
 #############################
 # Set variables here
@@ -29,8 +26,6 @@ saved_texture_parts = []
 current_texture_parts = None 
 curr_render_id = 1
 #############################
-
-bot = ChatGPT_Bot()
 
 ################# Load initial 3D model, textures, & rendering ################
 products = [
@@ -45,12 +40,12 @@ objects_data = json.load(f)
 
 n_objects = objects_data["objects"]
 renderings_dir = os.path.join(data_dir,"renderings")
-init_texture_parts_path = os.path.join(renderings_dir, str(curr_render_id),"object_part_material.json")
+init_texture_parts_path = os.path.join(renderings_dir, "saved",str(curr_render_id),"object_part_material.json")
 f=open(init_texture_parts_path)
 init_texture_parts = json.load(f)
 current_texture_parts = copy.deepcopy(init_texture_parts)
 current_material_specs = []
-init_rendering_outdir = os.path.join(renderings_dir,str(curr_render_id))
+init_rendering_outdir = os.path.join(renderings_dir,"saved",str(curr_render_id))
 
 command_str = f'blender --background --python render_obj_and_textures.py -- --out_dir {init_rendering_outdir} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path}'
 # command_str = f'blender --python render_obj_and_textures.py -- --out_dir {init_rendering_outdir} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path}'
@@ -228,7 +223,8 @@ def make_suggest_prompt(material,design_style,descriptor,product,part,target):
 def get_suggestion(prompt, selected_material_type):
     global nlp 
     # response = BLOOM_API.iterative_query(prompt) # Send prompt to BLOOM API here. Get their response.
-    response = bot.ask(prompt)
+    # response = bot.ask(prompt)
+    response="yes"
 
     if selected_material_type=="No specific material":
         selected_material_type="material"
@@ -312,7 +308,8 @@ def environment_critique(target_env, material, material_type, product=None):
 
 def get_critique(prompt):
     global nlp 
-    response = bot.ask(prompt)
+    # response = bot.ask(prompt)
+    response=""
     # response = BLOOM_API.iterative_query(prompt) # Send prompt to BLOOM API here. Get their response.
     filtered_response = response.replace(prompt,"")
     return filtered_response
