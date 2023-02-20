@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np 
 from PIL import Image
 import torch 
-import os 
+import os, shutil 
 
 
 css= '''
@@ -11,6 +11,20 @@ css= '''
 }
 
 '''
+
+def emptydir(dir):
+    # loop through all the files and subdirectories in the directory
+    for filename in os.listdir(dir):
+        file_path = os.path.join(dir, filename)
+        try:
+            if os.path.isfile(file_path):
+                # remove the file
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                # remove the subdirectory and its contents
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print(f'Failed to delete {file_path}. Reason: {e}')
 
 def makedir(dir_path):
     try:
