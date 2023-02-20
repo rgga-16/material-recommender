@@ -5,12 +5,33 @@ from PIL import Image
 from texture_transfer_3d import TextureDiffusion
 from configs import *
 import os 
-from utils.image import makedir
+from utils.image import makedir, emptydir
 
-import models.llm.gpt_wizard as gpt_wizard
+import models.llm.gpt3 as gpt3
+
+STATIC_IMDIR = os.path.join(CWD,"client","public")
+SERVER_IMDIR = os.path.join(STATIC_IMDIR,"gen_images") 
+CLIENT_IMDIR = os.path.join("gen_images")
+LATEST_RENDER_ID=0
 
 
 app = Flask(__name__, static_folder="./client/public")
+
+@app.route("/get_static_dir")
+def get_static_dir():
+    return STATIC_IMDIR
+
+@app.route("/get_feedback_on_assembly", methods=['POST'])
+def feedback_on_assembly():
+    form_data = request.get_json()
+
+    object = form_data["object"]
+    child_part = form_data["child_part"]; child_material = form_data["child_material"]
+    parent_part = form_data["parent_part"]; parent_material = form_data["parent_material"]
+
+    response = gpt3.feedback_on_assembly(object,child_part,child_material,parent_part,parent_material)
+    
+    return 
 
 @app.route("/suggest_colors_by_style", methods=['POST'])
 def suggest_colors_by_style():
@@ -21,7 +42,7 @@ def suggest_colors_by_style():
 
     suggested_color_palettes = []
 
-    color_palettes_dict = gpt_wizard.suggest_color_by_style(style=style)
+    color_palettes_dict = gpt3.suggest_color_by_style(style=style)
 
     for key in color_palettes_dict.keys():
         suggested_color_palettes.append({
@@ -38,8 +59,8 @@ def suggest_materials_by_style():
     style = form_data["style"]
     material_type = form_data["material_type"]
 
-    # materials = gpt_wizard.suggest_materials_by_style2(style=style,material_type=material_type)
-    materials = gpt_wizard.suggest_materials_by_style_debug(style=style,material_type=material_type)
+    materials = gpt3.suggest_materials_by_style2(style=style,material_type=material_type)
+    # materials = gpt_wizard.suggest_materials_by_style_debug(style=style,material_type=material_type)
     
 
     suggested_materials = []
@@ -83,8 +104,9 @@ def generate_and_transfer_textures():
             for part in obj_part_dict[obj]:
                 new_texture_parts[obj][part]["mat_name"]=texture_string
                 new_texture_parts[obj][part]["mat_finish"]="glossy"
+                # new_texture_parts[obj][part]["mat_image_texture"]=os.path.join(SERVER_IMDIR,filenames[i]).replace(STATIC_IMDIR,"")
                 new_texture_parts[obj][part]["mat_image_texture"]=os.path.join(SERVER_IMDIR,filenames[i])
-                
+
         tmp_texture_parts_savepath = os.path.join(SERVER_IMDIR,"renderings",f"texture_parts_{i}.json")
         
         with open(tmp_texture_parts_savepath,"w") as tmpfile:
@@ -116,6 +138,7 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
     curr_render_savedir = os.path.join(SERVER_IMDIR,'renderings','current')
     if(not os.path.isdir(curr_render_savedir)):
         makedir(curr_render_savedir)
+    emptydir(curr_render_savedir)
     
     curr_render_path = os.path.join(curr_render_savedir,"rendering.png")
     curr_textureparts_path = os.path.join(curr_render_savedir,"object_part_material.json")
@@ -128,8 +151,9 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
             texture_path = texture_parts[obj][part]["mat_image_texture"]
             texture_filename = os.path.basename(texture_path)
             curr_texture_path = os.path.join(curr_render_savedir,texture_filename)
-            img = Image.open(texture_path)
-            img.save(curr_texture_path)
+            # Image.open(os.path.join(src_dir,texture_path)).save(curr_texture_path)
+            Image.open(texture_path).save(curr_texture_path)
+            # texture_parts[obj][part]["mat_image_texture"] = curr_texture_path.replace(STATIC_IMDIR,"")
             texture_parts[obj][part]["mat_image_texture"] = curr_texture_path
 
     current_texture_parts = copy.deepcopy(texture_parts)
@@ -167,8 +191,8 @@ def add_to_saved_renderings(renderpath, texture_parts_path):
             texture_path = texture_parts[obj][part]["mat_image_texture"]
             texture_filename = os.path.basename(texture_path)
             save_texture_path = os.path.join(save_render_dir,texture_filename)
-            img = Image.open(texture_path)
-            img.save(save_texture_path)
+            Image.open(texture_path).save(save_texture_path)
+            # texture_parts[obj][part]["mat_image_texture"] = save_texture_path.replace(STATIC_IMDIR,"")
             texture_parts[obj][part]["mat_image_texture"] = save_texture_path
     
     with open(save_textureparts_path,"w") as f:
@@ -217,6 +241,14 @@ def get_current_rendering():
     current_textureparts_path = os.path.join(SERVER_IMDIR,'renderings','current',"object_part_material.json")
     texture_parts = json.load(open(current_textureparts_path))
 
+    thing = STATIC_IMDIR
+    for obj in list(texture_parts.keys()):
+        for part in list(texture_parts[obj].keys()):
+            # 'C:\\Users\\r-gal\\OneDrive\\Documents\\Academics\\PhD\\exploring-textures-with-stablediffusion\\client\\public\\gen_images\\renderings\\current\\blue marble.png'
+            texture_path = texture_parts[obj][part]["mat_image_texture"]
+            # Output should be gen_images\\renderings\\current\\blue marble.png'
+            texture_parts[obj][part]["mat_image_texture"] = texture_path.replace(STATIC_IMDIR,"")
+
     current_render_path = os.path.join(curr_render_loaddir,"rendering.png")
     
     return {"rendering_path":current_render_path, "texture_parts":texture_parts, "textureparts_path":current_textureparts_path}
@@ -240,10 +272,7 @@ def home(path):
 if __name__ == "__main__":
 
     # Here, you should make the necessary dirs under client/public.
-
-    SERVER_IMDIR = os.path.join(CWD,"client","public","gen_images") 
-    CLIENT_IMDIR = os.path.join("gen_images")
-    LATEST_RENDER_ID=0
+    
 
     products = [
         "nightstand_family",
