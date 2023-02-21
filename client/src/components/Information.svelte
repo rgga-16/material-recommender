@@ -63,9 +63,11 @@
 
         <div class="image-grid">
             {#each selected_parts as child_part}
-                {#each selected_obj_info[child_part]["parents"] as parent_part}
-                    <PartPairs obj={selected_obj} object_info={selected_obj_info} child_part={child_part} parent_part={parent_part} />
-                {/each}
+                {#if selected_obj_info[child_part]["parents"].length > 0}
+                    {#each selected_obj_info[child_part]["parents"] as parent_part}
+                        <PartPairs obj={selected_obj} object_info={selected_obj_info} child_part={child_part} parent_part={parent_part} />
+                    {/each}
+                {/if}
             {/each}
         </div>
 
@@ -91,4 +93,11 @@
         padding: 1rem;
         background-color: lightgray;
 	}
+
+    .image-grid {
+        display:flex; 
+        flex-direction: column;
+        overflow-y: scroll;
+        padding: 5px;
+    }
 </style>

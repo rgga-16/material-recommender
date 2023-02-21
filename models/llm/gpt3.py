@@ -29,7 +29,17 @@ def feedback_on_assembly(object, child_part, child_material, parent_part, parent
         temperature=0.7,
     )
 
-    return response 
+    items = parse_into_list(response["choices"][0]["text"])
+
+    attachments = []
+    for item in items:
+        name = item.split("|")[0].strip()
+        reason = item.split("|")[1].strip()
+        keywords = extract_keywords(reason)
+        attachments.append({"name":name,"reason":reason, "keywords":keywords})
+
+
+    return attachments
 
 
 
