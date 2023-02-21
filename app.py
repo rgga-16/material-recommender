@@ -29,9 +29,9 @@ def feedback_on_assembly():
     child_part = form_data["child_part"]; child_material = form_data["child_material"]
     parent_part = form_data["parent_part"]; parent_material = form_data["parent_material"]
 
-    response = gpt3.feedback_on_assembly(object,child_part,child_material,parent_part,parent_material)
+    recommended_attachments = gpt3.feedback_on_assembly(object,child_part,child_material,parent_part,parent_material)
     
-    return 
+    return recommended_attachments
 
 @app.route("/suggest_colors_by_style", methods=['POST'])
 def suggest_colors_by_style():
@@ -126,7 +126,6 @@ def generate_and_transfer_textures():
 
 def generate_textures(texture_string, n, imsize):
     generated_textures = texture_generator.text2texture(texture_string, n=n, gen_imsize=imsize)
-    # generated_textures = texture_generator.text2texture_(texture_string, n=n, gen_imsize=imsize)
     texture_filenames = []
 
     for i in range(len(generated_textures)):
@@ -138,7 +137,7 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
     curr_render_savedir = os.path.join(SERVER_IMDIR,'renderings','current')
     if(not os.path.isdir(curr_render_savedir)):
         makedir(curr_render_savedir)
-    emptydir(curr_render_savedir)
+    # emptydir(curr_render_savedir)
     
     curr_render_path = os.path.join(curr_render_savedir,"rendering.png")
     curr_textureparts_path = os.path.join(curr_render_savedir,"object_part_material.json")
@@ -151,7 +150,6 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
             texture_path = texture_parts[obj][part]["mat_image_texture"]
             texture_filename = os.path.basename(texture_path)
             curr_texture_path = os.path.join(curr_render_savedir,texture_filename)
-            # Image.open(os.path.join(src_dir,texture_path)).save(curr_texture_path)
             Image.open(texture_path).save(curr_texture_path)
             # texture_parts[obj][part]["mat_image_texture"] = curr_texture_path.replace(STATIC_IMDIR,"")
             texture_parts[obj][part]["mat_image_texture"] = curr_texture_path
@@ -241,7 +239,6 @@ def get_current_rendering():
     current_textureparts_path = os.path.join(SERVER_IMDIR,'renderings','current',"object_part_material.json")
     texture_parts = json.load(open(current_textureparts_path))
 
-    thing = STATIC_IMDIR
     for obj in list(texture_parts.keys()):
         for part in list(texture_parts[obj].keys()):
             # 'C:\\Users\\r-gal\\OneDrive\\Documents\\Academics\\PhD\\exploring-textures-with-stablediffusion\\client\\public\\gen_images\\renderings\\current\\blue marble.png'
