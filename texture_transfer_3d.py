@@ -35,14 +35,6 @@ class TextureDiffusion():
                 images.append(image)
         return images
 
-    def text2texture_(self, texture_str,n=4, gen_imsize=512):
-        prompt = f'{texture_str} texture map, 4k'
-        images = []
-        with autocast("cuda"):
-            output_dict = self.diffusion_model(prompt, width=gen_imsize,height=gen_imsize,guidance_scale=7.5,num_inference_steps=50)
-            images.append(output_dict["images"][0])
-        return images
-
 
 
 if __name__=="__main__":
