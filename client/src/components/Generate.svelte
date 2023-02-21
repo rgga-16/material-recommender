@@ -81,7 +81,8 @@
     <h2> Material Generator </h2>
 
     <form on:submit|preventDefault={gen_and_apply_textures(input_material)}>
-        <input name="material_name" type="text" bind:value={input_material} required/>
+        <input name="material_name" type="text" bind:value={input_material} placeholder="Type in a material texture..." required/>
+        <button> Generate Material </button>
         <br/>
 
             {#await objs_and_parts}
@@ -104,11 +105,12 @@
                             {/each}
                         </div>
                     </div>
+                    
                 {/each}
             {/await}
 
         <br/>
-        <button> Generate Material </button>
+        
     </form>
     {#if rendering_texture_pairs.length > 0}
         <!-- <div class='carousel'>
@@ -119,7 +121,6 @@
         </div> -->
         <form on:submit|preventDefault={apply_to_curr_rendering(selected_index)} >
             <GeneratedTextures pairs= {rendering_texture_pairs} bind:selected_index={selected_index} />
-            <p> {selected_index}</p>
             <button> Apply to rendering </button>
         </form>
     {/if}
@@ -139,7 +140,9 @@
         margin-right:1rem; 
     } */
 
-
+    .tab {
+        border: 1px solid gray;
+    }
 
     .material_generator {
         display: flex;
@@ -150,28 +153,35 @@
     input[type="radio"] {
         display: none;
     }
+    
     label {
-        padding: 10px 20px;
-        border: 1px solid gray;
+        padding: 5px;
+        /* border: 1px solid gray;
         border-radius: 5px 5px 0 0;
-        cursor: pointer;
         margin-bottom: -1px;
-        background-color: lightgray;
+        background-color: lightgray; */
     }
     input[type="radio"]:checked + label {
         background-color: white;
     }
     .checkbox-group {
-        display: grid;
+        /* display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        grid-column-gap: 1rem;
-        grid-row-gap: 1rem;
+        grid-column-gap: 5px;
+        grid-row-gap: 5px; */
+        width:100%;
+        max-width:900px;
+        margin:0 auto;
+        text-align:left;
     }
     .checkbox-item {
-        display:flex; 
-        flex-direction: column;
-        justify-content: space-around;
-        padding:1rem; 
+        /* padding:5px; 
+        max-width: 50%; */
+        display: inline-block;
+        /* height: 170px;
+        width: 170px; */
+        margin:5px;
+        background-color:lightblue;
     }
 
 
