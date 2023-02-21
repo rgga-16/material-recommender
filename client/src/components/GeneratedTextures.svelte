@@ -25,25 +25,35 @@
     } 
 
     .image-grid {
-        display: grid;
+        /* display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         grid-column-gap: 1rem;
-        grid-row-gap: 1rem;
+        grid-row-gap: 1rem; */
+        width:100%;
+        max-width:900px;
+        margin:0 auto;
+        text-align:left;
     }
 
     .preview-card {
-        display:flex; 
-        flex-direction: column;
-        justify-content: space-around;
-        border: 1px solid transparent;
+        /* display:flex;  */
+        flex-direction: row;
+        border: 1px solid grey;
+        /* padding:5px; 
+        max-width: 50%; */
+        display: inline-block;
+        /* height: 170px;
+        width: 170px; */
+        margin:5px;
+        background-color:lightblue;
     }
 
     .preview-card:hover {
-        border: 1px solid grey;
+        border: 2px solid grey;
     }
 
     .selected {
-        border: 1px solid blue;
+        border: 2px solid blue;
     }
 
     

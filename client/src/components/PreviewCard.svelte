@@ -19,16 +19,24 @@
     }
 </script>
 
-{#if currentImage===0}
-    <img src ={rendering} alt = "Rendering" />
-{:else} 
-    <img src ={texture} alt = "Texture" />
-{/if}
-<button on:click|preventDefault={switchImage}> {viewString} </button>
+<div class="card">
+    {#if currentImage===0}
+        <img src ={rendering} alt = "Rendering" />
+    {:else} 
+        <img src ={texture} alt = "Texture" />
+    {/if}
+    <button on:click|preventDefault={switchImage}> {viewString} </button>
+
+</div>
 
 <style>
+    .card {
+        display:flex; 
+        flex-direction: column;
+    }
     img{
         width:100%;
+        max-width: 200px;
         object-fit: cover;
     }
 </style>

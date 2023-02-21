@@ -11,7 +11,7 @@
 	onMount(async function () {
 		const response = await fetch("/get_static_dir");
 		const data = await response.text();
-		console.log(data);
+		// console.log(data);
 	});
 
 	let current_rendering_path;
@@ -106,8 +106,6 @@
 		curr_rendering_path.set(current_rendering_path);
 		curr_texture_parts.set(current_texture_parts);
 		curr_textureparts_path.set(current_textureparts_path);
-
-		console.log(get(curr_texture_parts));
 	}
 
 
@@ -127,7 +125,7 @@
 				{#await promise}
 					<pre> Loading rendering. Please wait. </pre>
 				{:then data} 
-					{current_rendering_path}
+					<!-- {current_rendering_path} -->
 					<RenderingDisplay {current_rendering_path} />
 					<button on:click|preventDefault={saveRendering}> Save rendering </button>
 				{/await}
@@ -149,7 +147,6 @@
 						</div>
 						<button style:opacity={selected_saved_rendering_idx!=undefined ? 1:0}> Load rendering </button>
 					</form>
-					
 				{/await}
 			</div>
 		</div>
@@ -178,17 +175,17 @@
 	.user-interface {
 		/* display:flex;
 		flex-direction:row; */
-	  	width: 20%;
+	  	width: 25%;
 	  	background-color: lightgray;
 	}
 
 	.renderings {
-		width: 60%;
+		width: 50%;
 		padding: 0.5rem;
 	}
 
 	.information-panel {
-		width: 20%; 
+		width: 25%; 
 	}
 
 	.rendering-display {
