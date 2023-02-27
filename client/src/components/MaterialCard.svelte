@@ -22,7 +22,7 @@
             <p>{material_info}</p>
         </div>
     </div>
-    <button on:click={copyText}>Copy to clipboard</button>
+    <!-- <button on:click={copyText}>Copy to clipboard</button> -->
 </div>
 
 <style>
