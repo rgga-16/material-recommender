@@ -10,7 +10,7 @@
     let selected_material_type;
     let selected_style;
 
-    let do_suggest_materials=false;
+    let do_suggest_materials=true;
     let do_suggest_colors=false; 
 
     let suggested_materials=[];
@@ -66,7 +66,8 @@
     }
 
 </script>
-    <h2>Material & Color Suggestion</h2>
+    <!-- <h2>Material & Color Suggestion</h2> -->
+    <h2>Material Suggestion</h2>
 
     <form on:submit|preventDefault={suggest_by_style(selected_material_type,selected_style,do_suggest_materials,do_suggest_colors)}>
         <select bind:value={selected_material_type}>
@@ -81,7 +82,7 @@
             {/each}
         </select>
 
-        <div class="checkbox-group">
+        <!-- <div class="checkbox-group">
             <label> 
                 <input type=checkbox bind:checked={do_suggest_materials} value="Materials">
                 Materials
@@ -90,9 +91,9 @@
             <label> 
                 <input type=checkbox bind:checked={do_suggest_colors} value="Colors">
                 Colors
-            </label>
+            </label> 
 
-        </div>
+        </div>-->
 
         <button> Suggest </button>
 
