@@ -1,4 +1,6 @@
 <script>
+    import { onMount } from "svelte";
+    
     export let obj; 
     export let object_info; 
 
@@ -41,6 +43,8 @@
         }
     }
 
+    // onMount(get_assembly_feedback());
+
 
 </script>
 
@@ -76,7 +80,8 @@
                 </div>
             {/await}
         {/if}
-        <button> Suggest attachments </button>{#if assembly_feedback.length>0}<button on:click|preventDefault={switchImage}> {viewString}</button>{/if}
+        <button> Suggest attachments </button>
+        {#if assembly_feedback.length>0}<button on:click|preventDefault={switchImage}> {viewString}</button>{/if}
         
     </div>
 
