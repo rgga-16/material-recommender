@@ -20,12 +20,17 @@
 </script>
 
 <div class="card">
-    {#if currentImage===0}
-        <img src ={rendering} alt = "Rendering" />
-    {:else} 
+    {#if rendering}
+        {#if currentImage===0}
+            <img src ={rendering} alt = "Rendering" />
+        {:else} 
+            <img src ={texture} alt = "Texture" />
+        {/if}
+        <button on:click|preventDefault={switchImage}> {viewString} </button>
+    {:else}
         <img src ={texture} alt = "Texture" />
     {/if}
-    <button on:click|preventDefault={switchImage}> {viewString} </button>
+    
 
 </div>
 
