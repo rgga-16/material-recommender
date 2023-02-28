@@ -124,6 +124,97 @@ def generate_and_transfer_textures():
 
     return {"results": rendering_texture_pairs}
 
+@app.route("/generate_textures", methods=['POST'])
+def generate_textures_():
+    form_data = request.get_json()
+
+    texture_string = form_data["texture_string"]
+    n = form_data["n"]
+    imsize = form_data["imsize"]
+
+    #################### Generating the textures ################
+    textures, filenames = generate_textures(texture_string, n, imsize)
+
+
+    texture_loadpaths = []
+    for i in range(len(textures)):
+        textures[i].save(os.path.join(SERVER_IMDIR,filenames[i]))
+        texture_loadpath = os.path.join(CLIENT_IMDIR,filenames[i])
+        texture_loadpaths.append({
+            'rendering': None,
+            'texture':texture_loadpath
+        })
+
+    return {"results": texture_loadpaths}
+
+@app.route("/apply_textures", methods=['POST'])
+def apply_textures():
+    form_data = request.get_json()
+    obj_part_dict = form_data["obj_parts_dict"]
+    selected_texturepaths = form_data["selected_texturepaths"]
+    texture_string = form_data["texture_string"]
+
+    #################### Transferring the textures ##############
+    rendering_texture_pairs = []
+
+    for i in range(len(selected_texturepaths)):
+        filename = os.path.basename(selected_texturepaths[i])
+        texture_savepath = os.path.join(SERVER_IMDIR,filename)
+        texture_loadpath = os.path.join(CLIENT_IMDIR,filename)
+
+        new_texture_parts = copy.deepcopy(current_texture_parts)
+        for obj in list(obj_part_dict.keys()):
+            for part in obj_part_dict[obj]:
+                new_texture_parts[obj][part]["mat_name"]=texture_string
+                new_texture_parts[obj][part]["mat_finish"]="glossy"
+                new_texture_parts[obj][part]["mat_image_texture"]=texture_savepath
+        
+        tmp_texture_parts_savepath = os.path.join(SERVER_IMDIR,"renderings",f"texture_parts_{i}.json")
+        
+        with open(tmp_texture_parts_savepath,"w") as tmpfile:
+            json.dump(new_texture_parts,tmpfile)
+
+        rendering_savepath = os.path.join(SERVER_IMDIR,"renderings",f"rendering_{i}.png")
+        rendering_loadpath = os.path.join(CLIENT_IMDIR,"renderings",f"rendering_{i}.png")
+        
+        command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath}'
+        os.system(command_str)
+
+        rendering_texture_pairs.append(
+            {'rendering':rendering_loadpath, 'texture':texture_loadpath, 'info':new_texture_parts, 'info_path':tmp_texture_parts_savepath}
+        )
+
+    return {"results": rendering_texture_pairs}
+
+    # for i in range(len(textures)):
+
+    #     textures[i].save(os.path.join(SERVER_IMDIR,filenames[i]))
+    #     texture_loadpath = os.path.join(CLIENT_IMDIR,filenames[i])
+
+    #     new_texture_parts = copy.deepcopy(current_texture_parts)
+    #     for obj in list(obj_part_dict.keys()):
+    #         for part in obj_part_dict[obj]:
+    #             new_texture_parts[obj][part]["mat_name"]=texture_string
+    #             new_texture_parts[obj][part]["mat_finish"]="glossy"
+    #             # new_texture_parts[obj][part]["mat_image_texture"]=os.path.join(SERVER_IMDIR,filenames[i]).replace(STATIC_IMDIR,"")
+    #             new_texture_parts[obj][part]["mat_image_texture"]=os.path.join(SERVER_IMDIR,filenames[i])
+
+    #     tmp_texture_parts_savepath = os.path.join(SERVER_IMDIR,"renderings",f"texture_parts_{i}.json")
+        
+    #     with open(tmp_texture_parts_savepath,"w") as tmpfile:
+    #         json.dump(new_texture_parts,tmpfile)
+
+    #     rendering_savepath = os.path.join(SERVER_IMDIR,"renderings",f"rendering_{i}.png")
+    #     rendering_loadpath = os.path.join(CLIENT_IMDIR,"renderings",f"rendering_{i}.png")
+
+    #     command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath}'
+    #     os.system(command_str)
+
+    #     rendering_texture_pairs.append(
+    #         {'rendering':rendering_loadpath, 'texture':texture_loadpath, 'info':new_texture_parts, 'info_path':tmp_texture_parts_savepath}
+    #     )
+
+
 def generate_textures(texture_string, n, imsize):
     generated_textures = texture_generator.text2texture(texture_string, n=n, gen_imsize=imsize)
     texture_filenames = []

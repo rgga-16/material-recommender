@@ -298,7 +298,7 @@ class Renderer():
         # Get uv map of obj
         bpy.ops.object.mode_set(mode="EDIT")
         obj.select_set(True)
-        unwrap_method(unwrap_method_)
+        # unwrap_method(unwrap_method_)
 
         # Load texture image
         image = bpy.data.images.load(texture_path,check_existing=True)
@@ -364,8 +364,8 @@ class Renderer():
     def render(self, out_path):
         bpy.context.scene.render.filepath = out_path
         bpy.ops.render.render(write_still=True)
-        # bpy.ops.wm.save_as_mainfile(filepath=os.path.join(working_dir_path,'temp.blend'))
-        # sys.exit()
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(working_dir_path,'temp.blend'))
+        sys.exit()
 
 def extract_args(input_argv=None):
         """

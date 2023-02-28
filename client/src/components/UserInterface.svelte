@@ -1,5 +1,5 @@
 <script>
-    import Generate from "./Generate.svelte";
+    import Generate from "./GenerationModule/Generate.svelte";
     import Suggest from "./Suggest.svelte";
     
     let activeTab = 'tab1-content';
