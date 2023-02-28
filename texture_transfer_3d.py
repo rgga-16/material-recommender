@@ -1,7 +1,7 @@
 import torch
 from torch import autocast
 torch.cuda.empty_cache()
-from diffusers import StableDiffusionPipeline, LMSDiscreteScheduler
+from diffusers import StableDiffusionPipeline, LMSDiscreteScheduler, DPMSolverMultistepScheduler
 # StableDiffusionImg2ImgPipeline
 import time, os
 import pathlib as p
@@ -15,22 +15,18 @@ class TextureDiffusion():
 
         print("Initializing diffusion model")
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        
-        self.lms = LMSDiscreteScheduler(
-            beta_start=0.00085, 
-            beta_end=0.012, 
-            beta_schedule="scaled_linear"
-        )
 
-        self.diffusion_model = StableDiffusionPipeline.from_pretrained(model_id,scheduler=self.lms, use_auth_token=True, torch_dtype=torch.float16).to(self.device)
-        self.diffusion_model.enable_attention_slicing()
+        self.pipe = StableDiffusionPipeline.from_pretrained(model_id,use_auth_token=True, torch_dtype=torch.float16).to(self.device)
+        
+        self.pipe.scheduler = DPMSolverMultistepScheduler.from_config(self.pipe.scheduler.config)
+        self.pipe.enable_attention_slicing()
 
     def text2texture(self, texture_str,n=4, gen_imsize=512):
         prompt = f'{texture_str} texture map, 4k'
         images = []
         for _ in range(n):
             with autocast("cuda"):
-                output_dict = self.diffusion_model(prompt, width=gen_imsize,height=gen_imsize,guidance_scale=7.5,num_inference_steps=50)
+                output_dict = self.pipe(prompt, width=gen_imsize,height=gen_imsize,guidance_scale=7.5,num_inference_steps=20)
                 image = output_dict["images"][0]
                 images.append(image)
         return images
