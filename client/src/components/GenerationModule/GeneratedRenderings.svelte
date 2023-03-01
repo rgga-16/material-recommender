@@ -1,6 +1,6 @@
 
 <script>
-  import PreviewCard from "./PreviewCard.svelte";
+    import PreviewCard from "./PreviewCard.svelte";
 
     export let selected_index; 
     export let pairs;
@@ -25,10 +25,6 @@
     } 
 
     .image-grid {
-        /* display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        grid-column-gap: 1rem;
-        grid-row-gap: 1rem; */
         width:100%;
         max-width:900px;
         margin:0 auto;
@@ -36,14 +32,9 @@
     }
 
     .preview-card {
-        /* display:flex;  */
         flex-direction: row;
         border: 1px solid grey;
-        /* padding:5px; 
-        max-width: 50%; */
         display: inline-block;
-        /* height: 170px;
-        width: 170px; */
         margin:5px;
         background-color:lightblue;
     }
