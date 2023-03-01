@@ -1,4 +1,6 @@
 <script>
+    import DynamicImage from "../DynamicImage.svelte";
+
     export let texture;
     export let rendering; 
     // export let info; 
@@ -17,18 +19,20 @@
             viewString = "View texture"
         }
     }
+
 </script>
 
 <div class="card">
     {#if rendering}
         {#if currentImage===0}
-            <img src ={rendering} alt = "Rendering" />
+        <div class="image"> <DynamicImage imagepath={rendering} alt="Rendering"/> </div>
         {:else} 
-            <img src ={texture} alt = "Texture" />
+        <div class="image"> <DynamicImage imagepath={texture} alt="Texture"/> </div>
         {/if}
         <button on:click|preventDefault={switchImage}> {viewString} </button>
     {:else}
-        <img src ={texture} alt = "Texture" />
+        <div class="image"> <DynamicImage imagepath={texture} alt="Texture"/> </div>
+        
     {/if}
     
 
@@ -39,9 +43,10 @@
         display:flex; 
         flex-direction: column;
     }
-    img{
+    .image{
         width:100%;
         max-width: 200px;
         object-fit: cover;
     }
+
 </style>
