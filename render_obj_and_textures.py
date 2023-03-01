@@ -50,11 +50,11 @@ def setup_fabric(principled_node: bpy.types.Node, mat_node_tree, image_texture_n
     bump_node = mat_node_tree.nodes.new('ShaderNodeBump')
     bump_node.inputs['Strength'].default_value=0.1
 
-    mapping_node = mat_node_tree.nodes.new('ShaderNodeMapping')
-    texture_coord_node = mat_node_tree.nodes.new('ShaderNodeTexCoord')
+    # mapping_node = mat_node_tree.nodes.new('ShaderNodeMapping')
+    # texture_coord_node = mat_node_tree.nodes.new('ShaderNodeTexCoord')
 
-    mat_node_tree.links.new(texture_coord_node.outputs['UV'], mapping_node.inputs['Vector'])
-    mat_node_tree.links.new(mapping_node.outputs['Vector'], image_texture_node.inputs['Vector'])
+    # mat_node_tree.links.new(texture_coord_node.outputs['UV'], mapping_node.inputs['Vector'])
+    # mat_node_tree.links.new(mapping_node.outputs['Vector'], image_texture_node.inputs['Vector'])
     mat_node_tree.links.new(image_texture_node.outputs['Color'], bump_node.inputs['Height'])
     mat_node_tree.links.new(bump_node.outputs['Normal'], principled_node.inputs['Normal'])
 
@@ -298,7 +298,7 @@ class Renderer():
         # Get uv map of obj
         bpy.ops.object.mode_set(mode="EDIT")
         obj.select_set(True)
-        # unwrap_method(unwrap_method_)
+        unwrap_method(unwrap_method_)
 
         # Load texture image
         image = bpy.data.images.load(texture_path,check_existing=True)
@@ -310,6 +310,13 @@ class Renderer():
         # Link texture_image's node Color to BSDF node BaseColor
         image_texture_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
         image_texture_node.image = image 
+
+        mapping_node = mat.node_tree.nodes.new('ShaderNodeMapping')
+        texture_coord_node = mat.node_tree.nodes.new('ShaderNodeTexCoord')
+        mat.node_tree.links.new(texture_coord_node.outputs['UV'], mapping_node.inputs['Vector'])
+        mat.node_tree.links.new(mapping_node.outputs['Vector'], image_texture_node.inputs['Vector'])
+
+        # Add some function here to adjust the values of the  mapping node
 
         mat.node_tree.links.new(bsdf.inputs['Base Color'],image_texture_node.outputs['Color'])
         mat.node_tree.links.new(bsdf.inputs['Alpha'],image_texture_node.outputs['Alpha'])
