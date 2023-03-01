@@ -3,13 +3,15 @@
     import { fly } from 'svelte/transition';
     import GeneratedRenderings from './GeneratedRenderings.svelte';
     import GeneratedTextures from './GeneratedTextures.svelte';
+    import RefineTexture from './RefineTexture.svelte';
     import {curr_rendering_path} from '../../stores.js';
     
 
     let input_material='';
-    let selected_object_parts=[]; 
 
-    const objs_and_parts = fetch('./get_objects_and_parts').then((x)=>x.json());
+    let selected_object_parts=[]; 
+    let objs_and_parts = {}
+    let selected_obj_parts_dict = {}
 
     let rendering_texture_pairs=[];
 
@@ -17,6 +19,12 @@
     let selected_textures = [];
 
     let selected_index;
+
+    onMount(async () => {
+        const obj_and_part_resp= await fetch('./get_objects_and_parts');
+        const obj_and_part_json = await obj_and_part_resp.json(); 
+        objs_and_parts = obj_and_part_json;
+    }); 
 
     async function generate_textures(texture_str) {
 
@@ -32,12 +40,12 @@
         });
         const results_json = await results_response.json();
         generated_textures = results_json["results"];
-
+        
     }
 
     async function apply_textures() {
         rendering_texture_pairs=[];
-        let selected_op_dict = {};
+        selected_obj_parts_dict = {};
 
         if (selected_object_parts.length <= 0) { alert("Please select at least 1 object part"); return }
 
@@ -46,10 +54,10 @@
             let splitted = selected_object_parts[i].split("-");
             let obj = splitted[0];
             let part = splitted[1];
-            if(obj in selected_op_dict) {
-                selected_op_dict[obj].push(part);
+            if(obj in selected_obj_parts_dict) {
+                selected_obj_parts_dict[obj].push(part);
             } else {
-                selected_op_dict[obj] = [part]; 
+                selected_obj_parts_dict[obj] = [part]; 
             }
         }
 
@@ -57,7 +65,7 @@
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
-                "obj_parts_dict": selected_op_dict,
+                "obj_parts_dict": selected_obj_parts_dict,
                 "selected_texturepaths":selected_textures,
                 "texture_string":input_material
             }),
@@ -70,7 +78,7 @@
     async function gen_and_apply_textures(texture_str) {
         
         rendering_texture_pairs=[];
-        let selected_op_dict = {};
+        let selected_obj_parts_dict = {};
 
         if (selected_object_parts.length <= 0) { alert("Please select at least 1 object part"); return }
 
@@ -79,10 +87,10 @@
             let splitted = selected_object_parts[i].split("-");
             let obj = splitted[0];
             let part = splitted[1];
-            if(obj in selected_op_dict) {
-                selected_op_dict[obj].push(part);
+            if(obj in selected_obj_parts_dict) {
+                selected_obj_parts_dict[obj].push(part);
             } else {
-                selected_op_dict[obj] = [part]; 
+                selected_obj_parts_dict[obj] = [part]; 
             }
         }
         
@@ -93,7 +101,7 @@
                 "texture_string": texture_str,
                 "n":4,
                 "imsize":448,
-                "obj_parts_dict": selected_op_dict,
+                "obj_parts_dict": selected_obj_parts_dict,
             }),
         });
         const results_json = await results_response.json();
@@ -137,7 +145,6 @@
         if (current_page >= n_pages) {
             current_page=n_pages-1;
         }
-        console.log(current_page);
     }
 
     function prev_page() {
@@ -145,7 +152,6 @@
         if(current_page < 0){
             current_page=0;
         }
-        console.log(current_page);
     }
 
 
@@ -208,16 +214,19 @@
         
         <div class="carousel-nav-btns">
             <button on:click|preventDefault={()=>prev_page()}> Prev </button>
-            {#if selected_index}
+            {#if selected_index!=undefined}
                 <button on:click|preventDefault={()=>next_page()}> Next </button>
             {/if}
         </div>
     </div>
 
     <div class="page" class:hidden={current_page!=2} id="refine_textures">
-        <form>
-            <h4> Apply material finish and rotate textures</h4>
-        </form>
+        {#if selected_index!=undefined && rendering_texture_pairs.length > 0}
+            <RefineTexture bind:selected_index={selected_index} 
+            bind:rendering_texture_pairs={rendering_texture_pairs} 
+            objs_and_parts={objs_and_parts} 
+            bind:selected_objs_and_parts_dict={selected_obj_parts_dict}/>
+        {/if}
         
         <div class="carousel-nav-btns">
             <button on:click|preventDefault={()=>prev_page()}> Previous </button>
