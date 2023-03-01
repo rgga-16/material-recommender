@@ -3,24 +3,33 @@ import numpy as np
 from PIL import Image
 import torch 
 import os, shutil 
-
+import io
+from base64 import encodebytes
 
 css= '''
-.gradio-container #materials_generator {
-    background-color: red;
-}
-
+    .gradio-container #materials_generator {
+        background-color: red;
+    }
 '''
 
-def emptydir(dir):
+# Encodes image into base64. https://stackoverflow.com/questions/64065587/how-to-return-multiple-images-with-flask 
+def encode_image(image_path):
+    pil_img = Image.open(image_path, mode='r') # reads the PIL image
+    byte_arr = io.BytesIO()
+    pil_img.save(byte_arr, format='PNG') # convert the PIL image to byte array
+    encoded_img = encodebytes(byte_arr.getvalue()).decode('ascii') # encode as base64
+    return encoded_img
+
+def emptydir(dir,delete_dirs=False):
     # loop through all the files and subdirectories in the directory
     for filename in os.listdir(dir):
         file_path = os.path.join(dir, filename)
         try:
             if os.path.isfile(file_path):
                 # remove the file
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
+                print(f"{file_path} deleted")
+                os.remove(file_path)
+            elif delete_dirs and os.path.isdir(file_path):
                 # remove the subdirectory and its contents
                 shutil.rmtree(file_path)
         except Exception as e:
