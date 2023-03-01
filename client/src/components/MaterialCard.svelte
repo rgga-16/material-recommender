@@ -1,4 +1,5 @@
 <script>
+    import DynamicImage from "./DynamicImage.svelte";
     export let material_path;
     export let material_name;
     export let material_info; 
@@ -16,6 +17,7 @@
     <h3> {material_name} </h3>
     <div class="card-body">
         <div class="image-container">
+          
             <img src={material_path} alt={material_name} />
         </div>
         <div class="text-container">
