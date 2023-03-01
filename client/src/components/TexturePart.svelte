@@ -1,4 +1,5 @@
 <script>
+    import DynamicImage from "./DynamicImage.svelte";
     export let part_name;
     export let part_info;
 
@@ -8,7 +9,8 @@
 </script>
 
 <div class="card">
-    <img class="texture-image" src={material_url} alt={material_name} />
+    <DynamicImage imagepath={material_url} alt={material_name} />
+    <!-- <img class="texture-image" src={material_url} alt={material_name} /> -->
     <div class="texture-details">
         <div>
             <div class="texture-name">{material_name}</div>

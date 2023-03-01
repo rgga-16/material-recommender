@@ -318,7 +318,8 @@ def get_current_rendering():
             # 'C:\\Users\\r-gal\\OneDrive\\Documents\\Academics\\PhD\\exploring-textures-with-stablediffusion\\client\\public\\gen_images\\renderings\\current\\blue marble.png'
             texture_path = texture_parts[obj][part]["mat_image_texture"]
             # Output should be gen_images\\renderings\\current\\blue marble.png'
-            texture_parts[obj][part]["mat_image_texture"] = texture_path.replace(STATIC_IMDIR,"")
+            # texture_parts[obj][part]["mat_image_texture"] = texture_path.replace(STATIC_IMDIR,"")
+            texture_parts[obj][part]["mat_image_texture"] = texture_path
 
     current_render_path = os.path.join(curr_render_loaddir,"rendering.png")
     
