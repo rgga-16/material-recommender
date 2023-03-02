@@ -3,7 +3,7 @@
 
     export let texture;
     export let rendering; 
-    // export let info; 
+    export let info; 
     // export let index;
 
     let currentImage=0;

@@ -5,7 +5,7 @@ export let imagepath; //Image path that will be passed to the server to get the 
 export let alt; //Alternate text to be displayed
 let imagesource; //Returned image
 
-async function getImage() {
+export async function getImage() {
     await fetch("/get_image", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
