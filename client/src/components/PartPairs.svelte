@@ -1,5 +1,6 @@
 <script>
     import { onMount } from "svelte";
+    import DynamicImage from "./DynamicImage.svelte";
     
     export let obj; 
     export let object_info; 
@@ -54,7 +55,8 @@
             <div class="pairs">
                 <div class="material-card">
                     <p> <b> {child_part} </b></p>
-                    <img src={object_info[child_part]["mat_image_texture"]} alt={object_info[child_part]["mat_name"]} />
+                    <DynamicImage imagepath={object_info[child_part]["mat_image_texture"]} alt={object_info[child_part]["mat_name"]} />
+                    <!-- <img src={object_info[child_part]["mat_image_texture"]} alt={object_info[child_part]["mat_name"]} /> -->
                     <p> Material: {object_info[child_part]["mat_name"]}</p>
                 </div>
         
@@ -64,7 +66,8 @@
                 
                 <div class="material-card">
                     <p> <b> {parent_part} </b></p>
-                    <img src={object_info[parent_part]["mat_image_texture"]} alt={object_info[parent_part]["mat_name"]} />
+                    <DynamicImage imagepath={object_info[parent_part]["mat_image_texture"]} alt={object_info[parent_part]["mat_name"]} />
+                    <!-- <img src={object_info[parent_part]["mat_image_texture"]} alt={object_info[parent_part]["mat_name"]} /> -->
                     <p> Material: {object_info[parent_part]["mat_name"]}</p>
                 </div>
             </div>
