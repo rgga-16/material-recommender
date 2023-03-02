@@ -33,6 +33,34 @@ def feedback_on_assembly():
     
     return recommended_attachments
 
+@app.route("/update_selected_rendering", methods=['POST'])
+def updated_selected_rendering():
+    form_data = request.get_json()
+    texture_parts = form_data["selected_textureparts"]
+    textureparts_path = form_data["selected_textureparts_path"]
+    render_path = form_data["selected_rendering"]
+    obj = form_data["selected_obj"]
+    part = form_data["selected_part"]
+
+    location = tuple(form_data["location"])
+    rotation = tuple(form_data["rotation"])
+    scale = tuple(form_data["scale"])
+
+    texture_parts[obj][part]["mat_transforms"]= {
+        "location": location,
+        "rotation": rotation,
+        "scale": scale
+    }
+
+    with open(textureparts_path,"w") as f:
+        json.dump(texture_parts,f)
+
+    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
+    os.system(command_str)
+
+
+    return {"updated_rendering": render_path, "updated_textureparts": texture_parts,"updated_textureparts_path": textureparts_path,}
+
 @app.route("/suggest_colors_by_style", methods=['POST'])
 def suggest_colors_by_style():
 
@@ -61,7 +89,6 @@ def suggest_materials_by_style():
 
     materials = gpt3.suggest_materials_by_style2(style=style,material_type=material_type)
     # materials = gpt_wizard.suggest_materials_by_style_debug(style=style,material_type=material_type)
-    
 
     suggested_materials = []
     for m in materials:
@@ -164,6 +191,8 @@ def apply_textures():
     selected_texturepaths = form_data["selected_texturepaths"]
     texture_string = form_data["texture_string"]
 
+    emptydir(os.path.join(SERVER_IMDIR,"renderings"),delete_dirs=False)
+
     #################### Transferring the textures ##############
     rendering_texture_pairs = []
 
@@ -189,8 +218,6 @@ def apply_textures():
         
         command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath}'
         os.system(command_str)
-
-        # Modify new texture parts with "texture_parts[obj][part]["mat_image_texture"] = texture_path.replace(STATIC_IMDIR,"")" if you want to display the other textures
 
         rendering_texture_pairs.append(
             {'rendering':rendering_savepath, 'texture':texture_savepath, 'info':new_texture_parts, 'info_path':tmp_texture_parts_savepath}

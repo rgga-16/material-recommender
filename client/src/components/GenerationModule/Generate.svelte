@@ -230,113 +230,13 @@
         
         <div class="carousel-nav-btns">
             <button on:click|preventDefault={()=>prev_page()}> Previous </button>
+            <!-- <button on:click|preventDefault={()=>next_page()}> Next </button> -->
             <button on:click|preventDefault={()=>next_page()}> Next </button>
         </div>
     </div>
 
     
-<!-- 
-    <div class="page" id="apply_textures">
-        <form>
-            {#await objs_and_parts}
-                <pre>Loading object names and their part names</pre>
-            {:then data} 
-                {#each Object.entries(data) as [obj_name,attribs]}
-                    <div class="tab">
-                        <input type="radio" name="css-tabs" id="tab-{obj_name}" checked="checked" class="tab-switch">
-                        <label for="tab-{obj_name}" class="tab-label">{obj_name}</label>
 
-                        <div class="checkbox-group">
-                            {#each attribs.parts.names as part_name}
-                                <div class="checkbox-item">
-                                    <label for="checkbox-{part_name}"> 
-                                        <input type="checkbox" bind:group={selected_object_parts} id="checkbox-{obj_name}-{part_name}" 
-                                        name="checkbox-group-{obj_name}" value="{obj_name}-{part_name}" >
-                                        {part_name} 
-                                    </label>
-                                </div>
-                            {/each}
-                        </div>
-                    </div>
-                    
-                {/each}
-            {/await}
-            <button> Apply textures </button>
-        </form>
-        
-        {#if rendering_texture_pairs.length > 0}
-                <GeneratedRenderings pairs= {rendering_texture_pairs} bind:selected_index={selected_index} />
-        {/if}
-        <div class="carousel-nav-btns">
-            <button class='prev-1 prev'> Previous </button>
-            <button class='next-1 next'> Next </button>
-        </div>
-    </div>
-
-    <div class="page" id="apply_finish">
-        <form>
-            <h3> Apply material finish and rotate textures</h3>
-        </form>
-        
-        <div class="carousel-nav-btns">
-            <button class='prev-2 prev'> Previous </button>
-            <button class='next-2 next'> Next </button>
-        </div>
-    </div>
-
-    <div class="page" id="apply_color">
-        <form>
-            <input name="material_name" type="text" bind:value={input_material} placeholder="Type in a material texture..." required/>
-            <button> Generate Material </button>
-        </form>
-        
-        <div class="carousel-nav-btns">
-            <button class='prev-2 prev'> Previous </button>
-            <button class='next-2 next'> Next </button>
-        </div>
-    </div> -->
-
-    <!-- <form on:submit|preventDefault={gen_and_apply_textures(input_material)}>
-        <input name="material_name" type="text" bind:value={input_material} placeholder="Type in a material texture..." required/>
-        <button> Generate Material </button>
-        
-        
-        <br/>
-
-            {#await objs_and_parts}
-                <pre>Loading object names and their part names</pre>
-            {:then data} 
-                {#each Object.entries(data) as [obj_name,attribs]}
-                    <div class="tab">
-                        <input type="radio" name="css-tabs" id="tab-{obj_name}" checked="checked" class="tab-switch">
-                        <label for="tab-{obj_name}" class="tab-label">{obj_name}</label>
-
-                        <div class="checkbox-group">
-                            {#each attribs.parts.names as part_name}
-                                <div class="checkbox-item">
-                                    <label for="checkbox-{part_name}"> 
-                                        <input type="checkbox" bind:group={selected_object_parts} id="checkbox-{obj_name}-{part_name}" 
-                                        name="checkbox-group-{obj_name}" value="{obj_name}-{part_name}" >
-                                        {part_name} 
-                                    </label>
-                                </div>
-                            {/each}
-                        </div>
-                    </div>
-                    
-                {/each}
-            {/await}
-
-        <br/>
-        
-    </form>
-    {#if rendering_texture_pairs.length > 0}
-        <form on:submit|preventDefault={apply_to_curr_rendering(selected_index)} >
-            <GeneratedRenderings pairs= {rendering_texture_pairs} bind:selected_index={selected_index} />
-            <button> Apply to rendering </button>
-        </form>
-    {/if}
-     -->
 </div>
 
 <style>
@@ -358,7 +258,6 @@
     }
     
     .material_generator .page{
-        transition: margin-left 1.0s ease-in-out;
         text-align: center;
         min-height:800px;
     }   
