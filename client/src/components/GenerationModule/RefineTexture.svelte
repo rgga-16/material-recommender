@@ -1,12 +1,16 @@
 <script>
     import DynamicImage from "../DynamicImage.svelte";
+
     export let selected_index; 
     export let rendering_texture_pairs;
     export let objs_and_parts;
     export let selected_objs_and_parts_dict;
 
+    console.log(objs_and_parts);
+
     let selected_obj=Object.keys(selected_objs_and_parts_dict)[0]; 
     let selected_part=selected_objs_and_parts_dict[selected_obj][0]; 
+    
     let material_finish;
     
     let activeTab = "tab1-content";
@@ -16,9 +20,7 @@
 
     let x_loc = 0;
     let y_loc = 0;
-
     let z_rot = 0;
-
     let x_scale = 1.0;
     let y_scale = 1.0;
 
