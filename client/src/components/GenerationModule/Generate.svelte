@@ -1,11 +1,11 @@
 <script>
     import {onMount} from 'svelte';
-    import { fly } from 'svelte/transition';
+    import { Circle } from 'svelte-loading-spinners';
+
     import GeneratedRenderings from './GeneratedRenderings.svelte';
     import GeneratedTextures from './GeneratedTextures.svelte';
     import RefineTexture from './RefineTexture.svelte';
     import {curr_rendering_path} from '../../stores.js';
-    
 
     let input_material='';
 
@@ -15,6 +15,7 @@
 
     let rendering_texture_pairs=[];
 
+    let is_loading;
     let generated_textures = [];
     let selected_textures = [];
 
@@ -27,7 +28,7 @@
     }); 
 
     async function generate_textures(texture_str) {
-
+        is_loading=true; 
         generated_textures=[];
         const results_response = await fetch("/generate_textures", {
             method: "POST",
@@ -40,16 +41,16 @@
         });
         const results_json = await results_response.json();
         generated_textures = results_json["results"];
-        
+        is_loading=false;
     }
 
     async function apply_textures() {
         rendering_texture_pairs=[];
         selected_obj_parts_dict = {};
+        is_loading=true;
 
         if (selected_object_parts.length <= 0) { alert("Please select at least 1 object part"); return }
 
-        // Insert algo to parse the selected_object_parts
         for (let i = 0; i < selected_object_parts.length; i++) {
             let splitted = selected_object_parts[i].split("-");
             let obj = splitted[0];
@@ -72,44 +73,10 @@
         });
         const results_json = await results_response.json();
         rendering_texture_pairs = results_json["results"];
-
-    }
-
-    async function gen_and_apply_textures(texture_str) {
-        
-        rendering_texture_pairs=[];
-        let selected_obj_parts_dict = {};
-
-        if (selected_object_parts.length <= 0) { alert("Please select at least 1 object part"); return }
-
-        // Insert algo to parse the selected_object_parts
-        for (let i = 0; i < selected_object_parts.length; i++) {
-            let splitted = selected_object_parts[i].split("-");
-            let obj = splitted[0];
-            let part = splitted[1];
-            if(obj in selected_obj_parts_dict) {
-                selected_obj_parts_dict[obj].push(part);
-            } else {
-                selected_obj_parts_dict[obj] = [part]; 
-            }
-        }
-        
-        const results_response = await fetch("/generate_and_transfer_textures", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                "texture_string": texture_str,
-                "n":4,
-                "imsize":448,
-                "obj_parts_dict": selected_obj_parts_dict,
-            }),
-        });
-        const results_json = await results_response.json();
-        rendering_texture_pairs = results_json["results"];
+        is_loading=false;
     }
 
     async function apply_to_curr_rendering(index) {
-
         if(index==undefined) {
             alert("Please select one of the options"); 
             return;
@@ -130,11 +97,8 @@
                 "textureparts_path": selected_info_path
             }),
         });
-
         const json = await response.json();
-
         curr_rendering_path.set(json["rendering_path"]);
-
     }
 
     const n_pages = 4;
@@ -168,6 +132,10 @@
         {#if generated_textures.length > 0}
                 <GeneratedTextures pairs= {generated_textures} bind:selected_texturepaths={selected_textures}/>
                 <p> {selected_textures.length}/4 textures selected. {#if selected_textures.length<=0} Please select at least 1 texture map to proceed.{/if}</p>
+        {:else if is_loading==true}
+            <div class="images-placeholder">
+                <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+            </div>
         {:else}
             <div class="images-placeholder">
                 <pre>No material textures generated yet.</pre>
@@ -210,6 +178,15 @@
         </form>
         {#if rendering_texture_pairs.length > 0}
                 <GeneratedRenderings pairs= {rendering_texture_pairs} bind:selected_index={selected_index} />
+
+        {:else if is_loading==true}
+            <div class="images-placeholder">
+                <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+            </div>
+        {:else}
+            <div class="images-placeholder">
+                <pre>No renderings generated yet.</pre>
+            </div>
         {/if}
         
         <div class="carousel-nav-btns">
@@ -321,7 +298,36 @@
 
 
 
+<!-- async function gen_and_apply_textures(texture_str) {
+        
+    rendering_texture_pairs=[];
+    let selected_obj_parts_dict = {};
 
+    if (selected_object_parts.length <= 0) { alert("Please select at least 1 object part"); return }
+    for (let i = 0; i < selected_object_parts.length; i++) {
+        let splitted = selected_object_parts[i].split("-");
+        let obj = splitted[0];
+        let part = splitted[1];
+        if(obj in selected_obj_parts_dict) {
+            selected_obj_parts_dict[obj].push(part);
+        } else {
+            selected_obj_parts_dict[obj] = [part]; 
+        }
+    }
+    
+    const results_response = await fetch("/generate_and_transfer_textures", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            "texture_string": texture_str,
+            "n":4,
+            "imsize":448,
+            "obj_parts_dict": selected_obj_parts_dict,
+        }),
+    });
+    const results_json = await results_response.json();
+    rendering_texture_pairs = results_json["results"];
+} -->
 
 
     
