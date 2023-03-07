@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np 
 from PIL import Image
 import torch 
-import os, shutil 
+import os, shutil, math
 import io
 from base64 import encodebytes
 
@@ -11,6 +11,9 @@ css= '''
         background-color: red;
     }
 '''
+
+def degrees_to_radians(degree):
+    return math.radians(degree)
 
 # Encodes image into base64. https://stackoverflow.com/questions/64065587/how-to-return-multiple-images-with-flask 
 def encode_image(image_path):
