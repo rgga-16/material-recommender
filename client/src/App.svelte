@@ -125,7 +125,6 @@
 				{#await promise}
 					<pre> Loading rendering. Please wait. </pre>
 				{:then data} 
-					<!-- {current_rendering_path} -->
 					<RenderingDisplay {current_rendering_path} />
 					<button on:click|preventDefault={saveRendering}> Save rendering </button>
 				{/await}

@@ -5,7 +5,7 @@ from PIL import Image
 from texture_transfer_3d import TextureDiffusion
 from configs import *
 import os 
-from utils.image import makedir, emptydir, encode_image
+from utils.image import makedir, emptydir, degrees_to_radians
 
 import models.llm.gpt3 as gpt3
 
@@ -44,8 +44,11 @@ def updated_selected_rendering():
 
     location = tuple(form_data["location"])
     rotation = tuple(form_data["rotation"])
+    rotation = tuple(degrees_to_radians(deg) for deg in rotation)
     scale = tuple(form_data["scale"])
 
+
+    texture_parts[obj][part]["mat_finish"] = form_data["finish"]
     texture_parts[obj][part]["mat_transforms"]= {
         "location": location,
         "rotation": rotation,
@@ -130,7 +133,7 @@ def generate_and_transfer_textures():
         for obj in list(obj_part_dict.keys()):
             for part in obj_part_dict[obj]:
                 new_texture_parts[obj][part]["mat_name"]=texture_string
-                new_texture_parts[obj][part]["mat_finish"]="glossy"
+                # new_texture_parts[obj][part]["mat_finish"]="glossy"
                 # new_texture_parts[obj][part]["mat_image_texture"]=os.path.join(SERVER_IMDIR,filenames[i]).replace(STATIC_IMDIR,"")
                 new_texture_parts[obj][part]["mat_image_texture"]=os.path.join(SERVER_IMDIR,filenames[i])
 
@@ -205,7 +208,7 @@ def apply_textures():
         for obj in list(obj_part_dict.keys()):
             for part in obj_part_dict[obj]:
                 new_texture_parts[obj][part]["mat_name"]=texture_string
-                new_texture_parts[obj][part]["mat_finish"]="glossy"
+                # new_texture_parts[obj][part]["mat_finish"]="glossy"
                 new_texture_parts[obj][part]["mat_image_texture"]=texture_savepath
         
         tmp_texture_parts_savepath = os.path.join(SERVER_IMDIR,"renderings",f"texture_parts_{i}.json")

@@ -98,7 +98,7 @@ def isin_materials(input_material_type,materials_list):
 
 def setup_material(principled_node: bpy.types.Node, mat_node_tree, image_texture_node: bpy.types.Node, material_type:str, material_finish:str='glossy' ):
     material_type=material_type.lower()
-    material_finish = material_finish.lower()
+    
 
     # Do another pass here on the type of finish. For now, default finish is "glossy"
     set_pbsdf_settings(principled_node,material_finish)
@@ -123,17 +123,18 @@ def setup_material(principled_node: bpy.types.Node, mat_node_tree, image_texture
     return
 
 
-def set_pbsdf_settings(principled_node: bpy.types.Node, material_finish:str = 'glossy'):
-    material_finish=material_finish.lower()
+def set_pbsdf_settings(principled_node: bpy.types.Node, material_finish:str):
 
-    for k in mat_finish_settings.keys():
-        k = k.lower()
-        if k in material_finish:
-            print("material finish detected. adjusting corresponding material settings")
-            ms = mat_finish_settings[k]
-            for k2 in ms.keys():
-                principled_node.inputs[k2].default_value = ms[k2]
-            break 
+    if material_finish:
+        material_finish = material_finish.lower()
+        for k in mat_finish_settings.keys():
+            k = k.lower()
+            if k in material_finish:
+                print("material finish detected. adjusting corresponding material settings")
+                ms = mat_finish_settings[k]
+                for k2 in ms.keys():
+                    principled_node.inputs[k2].default_value = ms[k2]
+                break 
     return 
 
 
