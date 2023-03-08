@@ -178,7 +178,11 @@
         </form>
         {#if rendering_texture_pairs.length > 0}
                 <GeneratedRenderings pairs= {rendering_texture_pairs} bind:selected_index={selected_index} />
-
+                {#if selected_index!=undefined}
+                    <p> Rendering #{selected_index} selected. </p>
+                {:else }
+                    <p> Please select a rendering to proceed.</p>
+                {/if}
         {:else if is_loading==true}
             <div class="images-placeholder">
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
@@ -229,6 +233,7 @@
         justify-content:center;
         flex-direction: column;
         width:100%;
+        height: 100%; 
         background: white; 
         overflow: hidden;
         text-align: center;
@@ -237,6 +242,8 @@
     .material_generator .page{
         text-align: center;
         min-height:800px;
+        width:100%;
+        height: 100%; 
     }   
 
     .material_generator .page.hidden{
