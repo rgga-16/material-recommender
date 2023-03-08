@@ -28,12 +28,7 @@
     </div>
       
   <style>
-  
-  /* .tabs {
-    display: flex;
-    
-  } */
-  
+
   .user-interface{
     display:flex;
     flex-direction: column;
@@ -53,6 +48,7 @@
   
 	.tab-content.active {
 		display: block;
-    padding: 1rem;
+    height: 100%;
+    width:100%;
 	}
   </style>
