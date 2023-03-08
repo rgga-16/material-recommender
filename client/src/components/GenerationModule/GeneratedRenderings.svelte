@@ -10,10 +10,9 @@
     {#each pairs as pair, i}
         <label class="preview-card" class:selected={selected_index===i}>
             <input type=radio bind:group={selected_index} name="option" value={i} >
-            <PreviewCard texture={pair.texture} rendering={pair.rendering} info={pair.info} index={i}/>
+            <PreviewCard texture={pair.texture} rendering={pair.rendering} info={pair.info} index={i} size=175/>
         </label>
     {/each} 
-    
 </div>
 
 
