@@ -1,7 +1,7 @@
 # from rendering import blender
 import numpy as np
 import argparse, sys, json, os
-from mathutils import Euler
+from mathutils import Euler, Color
 from pathlib import Path
 import bpy, sys, os
 import numpy as np
@@ -160,8 +160,13 @@ def unwrap_method(method:str):
         else: 
             logging.exception('ERROR: Invalid unwrapping method.')
 
+
+def add_color_finish(rgb_node, hex_code:str):
+    rgb = tuple(int(hex_code.lstrip("#")[i:i+2], 16) for i in (0, 2, 4))
+    rgb_node.outputs['Color'].default_value = (rgb[0]/255.0, rgb[1]/255.0, rgb[2]/255.0, 1.0)
+    return 
+
 def transform_material(mapping_node:bpy.types.Node, transforms:dict):
-    
     mapping_node.inputs["Location"].default_value = transforms["location"]
     mapping_node.inputs["Rotation"].default_value = Euler(transforms["rotation"], "XYZ")
     mapping_node.inputs["Scale"].default_value = transforms["scale"]
@@ -299,7 +304,7 @@ class Renderer():
         bpy.ops.object.editmode_toggle()
         return
     
-    def apply_texture(self,obj,unwrap_method_,texture_path,texture_name, material_finish, material_transforms=None):
+    def apply_texture(self,obj,unwrap_method_,texture_path,texture_name, material_finish, material_transforms=None, material_color=None):
         self.set_gpu("CYCLES")
         bpy.context.scene.cycles.device = 'GPU'
         obj.select_set(True)
@@ -326,7 +331,14 @@ class Renderer():
         mat.node_tree.links.new(texture_coord_node.outputs['UV'], mapping_node.inputs['Vector'])
         mat.node_tree.links.new(mapping_node.outputs['Vector'], image_texture_node.inputs['Vector'])
 
-        mat.node_tree.links.new(bsdf.inputs['Base Color'],image_texture_node.outputs['Color'])
+        rgb_node = mat.node_tree.nodes.new('ShaderNodeRGB')
+        mix_node = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
+        # mix_node.blend_type = 'MIX'
+        mat.node_tree.links.new(image_texture_node.outputs['Color'], mix_node.inputs['Color1'])
+        mat.node_tree.links.new(rgb_node.outputs['Color'], mix_node.inputs['Color2'])
+
+        # mat.node_tree.links.new(bsdf.inputs['Base Color'],image_texture_node.outputs['Color'])
+        mat.node_tree.links.new(mix_node.outputs['Color'],bsdf.inputs['Base Color'])
         mat.node_tree.links.new(bsdf.inputs['Alpha'],image_texture_node.outputs['Alpha'])
 
         setup_material(bsdf,mat.node_tree,image_texture_node,material_type=texture_name,material_finish=material_finish)
@@ -334,6 +346,9 @@ class Renderer():
         # Add some function here to adjust the values of the  mapping node
         if material_transforms:
             transform_material(mapping_node,material_transforms)
+        
+        if material_color:
+            add_color_finish(rgb_node,material_color)
 
         obj.data.materials.clear()
         obj.data.materials.append(mat)
@@ -435,14 +450,18 @@ def main():
             part_material_name = texture_object_parts[model_key][part]["mat_name"]
             part_material_finish = texture_object_parts[model_key][part]["mat_finish"]
             part_material_transforms = None
+            part_material_color = None
 
             if "mat_transforms" in texture_object_parts[model_key][part].keys(): 
                 part_material_transforms = texture_object_parts[model_key][part]["mat_transforms"]
+
+            if "mat_color" in texture_object_parts[model_key][part].keys():
+                part_material_color = texture_object_parts[model_key][part]["mat_color"]
             
             part_path = os.path.join(models_dir,model_key, f'{part}.obj')
             obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
             renderer.recalculate_normals(obj)
-            renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish, part_material_transforms)
+            renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish, part_material_transforms, part_material_color)
     renderer.render(out_path=args.out_path)
     
 if __name__=="__main__":
