@@ -3,6 +3,7 @@ import { onMount } from "svelte";
 // This component is a dynamic image component. It should dynamically load an image given the URL.
 export let imagepath; //Image path that will be passed to the server to get the image
 export let alt; //Alternate text to be displayed
+export let size=200;
 let imagesource; //Returned image
 
 export async function getImage() {
@@ -27,11 +28,11 @@ onMount(getImage);
 
 </script>
 
-<img src={imagesource} alt={alt ? alt:"Image"}>
+<img src={imagesource} alt={alt ? alt:"Image"} style="max-width: {size}px;">
 
 <style>
     img {
-        max-width: 100%;
+        width: 100%;
         height: auto;
     }
 </style>

@@ -11,7 +11,7 @@
     {#each pairs as pair, i}
         <label class="preview-card" class:selected={selected_texturepaths.includes(pair.texture)}>
             <input type=checkbox bind:group={selected_texturepaths} name="option" value={pair.texture} >
-            <PreviewCard texture={pair.texture} rendering={pair.rendering} info={pair.info} index={i}/>
+            <PreviewCard texture={pair.texture} rendering={pair.rendering} info={pair.info} index={i} size=175/>
         </label>
     {/each} 
     
@@ -26,7 +26,7 @@
 
     .image-grid {
         width:100%;
-        max-width:900px;
+        max-width:1000px;
         margin:0 auto;
         text-align:left;
     }

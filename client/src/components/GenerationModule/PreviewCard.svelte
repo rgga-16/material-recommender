@@ -4,6 +4,7 @@
     export let texture;
     export let rendering; 
     export let info; 
+    export let size=200;
     // export let index;
 
     let currentImage=0;
@@ -25,13 +26,13 @@
 <div class="card">
     {#if rendering}
         {#if currentImage===0}
-        <div class="image"> <DynamicImage imagepath={rendering} alt="Rendering"/> </div>
+        <div class="image"> <DynamicImage imagepath={rendering} size={size} alt="Rendering"/> </div>
         {:else} 
-        <div class="image"> <DynamicImage imagepath={texture} alt="Texture"/> </div>
+        <div class="image"> <DynamicImage imagepath={texture} size={size} alt="Texture"/> </div>
         {/if}
         <button on:click|preventDefault={switchImage}> {viewString} </button>
     {:else}
-        <div class="image"> <DynamicImage imagepath={texture} alt="Texture"/> </div>
+        <div class="image"> <DynamicImage imagepath={texture} size={size} alt="Texture"/> </div>
         
     {/if}
     
@@ -45,7 +46,6 @@
     }
     .image{
         width:100%;
-        max-width: 200px;
         object-fit: cover;
     }
 
