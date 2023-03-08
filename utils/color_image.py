@@ -18,10 +18,11 @@ def apply_color(image_path, color_hex:str,alpha=0.5):
     # Blend the input image and the new image using the "over" blending mode
     blended_img = Image.blend(new_img, img, alpha=alpha)
     
-    out_path = f"{os.path.splitext(os.path.basename(image_path))[0]}_out.png"
+    out_path = f"{os.path.splitext(os.path.basename(image_path))[0]}_{color_hex}.png"
     # Save the blended image
     blended_img.save(out_path)
+    return out_path
     
 # Example usage
 if __name__=="__main__":
-    apply_color("./tmp/dark teak.png", "#d56062",alpha=0.5)
+    apply_color("./utils/stainless steel_2.png", "#FF0000",alpha=0.5)

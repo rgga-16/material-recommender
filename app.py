@@ -33,8 +33,43 @@ def feedback_on_assembly():
     
     return recommended_attachments
 
-@app.route("/update_selected_rendering", methods=['POST'])
-def updated_selected_rendering():
+@app.route("/add_color_to_rendering", methods=['POST'])
+def add_color_to_rendering():
+    form_data = request.get_json()
+    texture_parts = form_data["selected_textureparts"]
+    textureparts_path = form_data["selected_textureparts_path"]
+    render_path = form_data["selected_rendering"]
+    obj = form_data["selected_obj"]
+    part = form_data["selected_part"]
+
+    texture_parts[obj][part]["mat_color"] = form_data["color"]
+
+    with open(textureparts_path,"w") as f:
+        json.dump(texture_parts,f)
+
+    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
+    os.system(command_str)
+    return {"updated_rendering": render_path, "updated_textureparts": texture_parts,"updated_textureparts_path": textureparts_path,}
+
+@app.route("/add_finish_to_rendering", methods=['POST'])
+def add_finish_to_rendering():
+    form_data = request.get_json()
+    texture_parts = form_data["selected_textureparts"]
+    textureparts_path = form_data["selected_textureparts_path"]
+    render_path = form_data["selected_rendering"]
+    obj = form_data["selected_obj"]
+    part = form_data["selected_part"]
+    texture_parts[obj][part]["mat_finish"] = form_data["finish"]
+
+    with open(textureparts_path,"w") as f:
+        json.dump(texture_parts,f)
+
+    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
+    os.system(command_str)
+    return {"updated_rendering": render_path, "updated_textureparts": texture_parts,"updated_textureparts_path": textureparts_path,}
+
+@app.route("/add_transform_to_rendering", methods=['POST'])
+def add_transform_to_rendering():
     form_data = request.get_json()
     texture_parts = form_data["selected_textureparts"]
     textureparts_path = form_data["selected_textureparts_path"]
@@ -47,8 +82,6 @@ def updated_selected_rendering():
     rotation = tuple(degrees_to_radians(deg) for deg in rotation)
     scale = tuple(form_data["scale"])
 
-
-    texture_parts[obj][part]["mat_finish"] = form_data["finish"]
     texture_parts[obj][part]["mat_transforms"]= {
         "location": location,
         "rotation": rotation,
@@ -60,8 +93,6 @@ def updated_selected_rendering():
 
     command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
     os.system(command_str)
-
-
     return {"updated_rendering": render_path, "updated_textureparts": texture_parts,"updated_textureparts_path": textureparts_path,}
 
 @app.route("/suggest_colors_by_style", methods=['POST'])
@@ -409,8 +440,6 @@ if __name__ == "__main__":
 
 
 ################### Dump
-
-
 # @app.route("/transfer_textures", methods=['POST'])
 # def transfer_textures():
 #     form_data = request.get_json()
