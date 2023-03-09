@@ -212,7 +212,7 @@
         <div class="carousel-nav-btns">
             <button on:click|preventDefault={()=>prev_page()}> Previous </button>
             <!-- <button on:click|preventDefault={()=>next_page()}> Next </button> -->
-            <button on:click|preventDefault={()=>next_page()}> Next </button>
+            <button on:click|preventDefault={()=>apply_to_curr_rendering(selected_index)}> Apply to current rendering </button>
         </div>
     </div>
 
