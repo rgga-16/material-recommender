@@ -1,8 +1,8 @@
 <script>
     import DynamicImage from "../DynamicImage.svelte";
-    import PreviewCard from "./PreviewCard.svelte";
     import NumberSpinner from "svelte-number-spinner";
     import { Circle } from 'svelte-loading-spinners';
+    import { onMount } from "svelte";
 
     export let selected_index; 
     export let rendering_texture_pairs;
@@ -29,6 +29,7 @@
     let material_finish;
 
     let selected_swatch_idx=0; 
+
     let selected_palette = [
         {name: 'Red', code: '#FF0000'}, 
         {name: 'Blue', code: '#0000FF'}, 
@@ -36,6 +37,13 @@
         {name: 'Yellow', code: '#FFFF00'}, 
         {name: 'Grey', code: '#D7D6D5'}, 
     ];
+    let no_color = {name: 'No Color', code: '#FFFFFF'}
+
+
+    function addNoColorOption() {
+        selected_palette.unshift(no_color);
+        selected_palette=selected_palette;
+    }
 
     let dynamic_image;
     function updateRendering() {
@@ -98,6 +106,11 @@
 
     async function applyColor() {
         is_loading= true; 
+        let code; 
+
+        if (selected_swatch_idx!=0) { //Checks if a color has been selected. idx=0 is no color.
+            code = selected_palette[selected_swatch_idx].code;
+        }
 
         const response = await fetch("/add_color_to_rendering", {
             method: "POST",
@@ -108,7 +121,7 @@
                 "selected_textureparts": rendering_texture_pairs[selected_index].info,
                 "selected_textureparts_path": rendering_texture_pairs[selected_index].info_path,
                 "selected_rendering": rendering_texture_pairs[selected_index].rendering,
-                "color": selected_palette[selected_swatch_idx].code
+                "color": code
             }),
         });
         const json = await response.json();
@@ -128,6 +141,10 @@
     function removeDegree(str) {
         return str.replace("°", "").trim();
     }
+
+    onMount(() => {
+        addNoColorOption();
+    });
 
 
 </script>
@@ -182,14 +199,21 @@
     <div class="color-finish">
         <div class="color-selector">
             <div class="palette">
-                <!-- Insert the rows of colors here. They should be selectable. -->
                 {#each selected_palette as swatch, i }
+
                     <label class="swatch" style="background-color: {swatch.code};" class:selected={selected_swatch_idx===i}>
-                        <input type=radio bind:group={selected_swatch_idx} name={swatch.code} value={i}>
+                        {#if i===0} <img src="./logos/cancel-svgrepo-com.svg" alt=""> {/if}
+                        <input type=radio bind:group={selected_swatch_idx} name={swatch.name} value={i}>
                     </label>
                 {/each}
             </div>
-            <div id="current-swatch"  style="background-color: {selected_palette[selected_swatch_idx].code};" ></div>
+            {#if selected_swatch_idx===0}
+                <div id="current-swatch">         
+                    <pre>No color</pre> 
+                </div>
+            {:else }
+                <input id="current-swatch" type="color"  bind:value={selected_palette[selected_swatch_idx].code}>
+            {/if}
             <button on:click|preventDefault={()=>applyColor()}> Apply to texture </button>
         </div>
 
@@ -302,13 +326,39 @@
         align-items: center;
         justify-content: space-between;
         padding: 5px;
+        border: 1px solid black; 
     }
 
     .palette .swatch {
-        width: 50px; 
-        height: 50px;
+        width: 25px; 
+        height: 25px;
         border: 1px solid black; 
-        margin: 2px;
+        margin-right: 2px;
+    }
+
+    #current-swatch {
+        border: 1px solid black; 
+        width: calc(6 * 25px + 2 * 2px);
+        height: calc(6 * 25px + 2 * 2px);
+        padding: 0;
+    }
+/* 
+    input[type="color"] {
+        border: 1px solid black; 
+        width: calc(6 * 25px + 2 * 2px);
+        height: calc(6 * 25px + 2 * 2px);
+        padding: 0;
+    } */
+
+    input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+    input[type="color"]::-webkit-color-swatch {
+        border: none;
+    }
+
+    input[type="color"]:hover {
+        cursor:pointer;
     }
 
     .palette .swatch:hover {
@@ -325,10 +375,11 @@
         width:0; 
     }
 
-    #current-swatch {
-        border: 1px solid black; 
-        width: 175px;
-        height: 175px;
+    .swatch * {
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
     }
 
     .tab-content .transforms{
@@ -343,6 +394,8 @@
         border: 1px solid black;
         padding: 5px;
         margin: 5px;
+        width: 100%;
+        height: 100%;
     }
 
     .transform .control {
