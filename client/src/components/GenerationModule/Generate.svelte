@@ -239,8 +239,10 @@
         text-align: center;
     }
     
-    .material_generator .page{
+    .material_generator div.page{
         text-align: center;
+        align-items: center;
+        justify-content: center;
         min-height:800px;
         width:100%;
         height: 100%; 
@@ -290,8 +292,8 @@
     }
     
     .images-placeholder {
-        width: 385px;
-        height: 400px;
+        width: 100%;
+        height: 500px;
         border: 1px dashed black;
         display: flex;
         align-items: center;

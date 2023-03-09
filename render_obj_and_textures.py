@@ -332,6 +332,7 @@ class Renderer():
         mat.node_tree.links.new(mapping_node.outputs['Vector'], image_texture_node.inputs['Vector'])
 
         rgb_node = mat.node_tree.nodes.new('ShaderNodeRGB')
+        rgb_node.outputs['Color'].default_value = (0.0, 0.0, 0.0, 1.0)
         mix_node = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
         # mix_node.blend_type = 'MIX'
         mat.node_tree.links.new(image_texture_node.outputs['Color'], mix_node.inputs['Color1'])
