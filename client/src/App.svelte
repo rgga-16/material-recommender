@@ -8,11 +8,7 @@
 	import {get} from 'svelte/store';
 	import {onMount} from "svelte";	
 
-	onMount(async function () {
-		const response = await fetch("/get_static_dir");
-		const data = await response.text();
-		// console.log(data);
-	});
+	
 
 	let current_rendering_path;
 	let current_texture_parts;
@@ -107,6 +103,11 @@
 		curr_texture_parts.set(current_texture_parts);
 		curr_textureparts_path.set(current_textureparts_path);
 	}
+
+	onMount(async function () {
+		const response = await fetch("/get_static_dir");
+		const data = await response.text();
+	});
 
 
 </script>
