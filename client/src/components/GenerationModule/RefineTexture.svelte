@@ -28,22 +28,24 @@
 
     let material_finish;
 
-    let selected_swatch_idx=0; 
-
-    let selected_palette = [
-        {name: 'Red', code: '#FF0000'}, 
-        {name: 'Blue', code: '#0000FF'}, 
-        {name: 'Green', code: '#008000'}, 
-        {name: 'Yellow', code: '#FFFF00'}, 
-        {name: 'Grey', code: '#D7D6D5'}, 
+    let palettes = [
+        [{name: 'Red', code: '#FF0000'},{name: 'Blue', code: '#0000FF'},{name: 'Green', code: '#008000'},{name: 'Yellow', code: '#FFFF00'},{name: 'Grey', code: '#D7D6D5'}],
+        [{name: 'Blue', code: '#0000FF'},{name: 'Red', code: '#FF0000'},{name: 'Yellow', code: '#FFFF00'},{name: 'Green', code: '#008000'},{name: 'Grey', code: '#D7D6D5'}],
+        [{name: 'Yellow', code: '#FFFF00'},{name: 'Grey', code: '#D7D6D5'},{name: 'Green', code: '#008000'},{name: 'Red', code: '#FF0000'},{name: 'Blue', code: '#0000FF'}]
     ];
+    let selected_palette_idx=0;
+    
+
+    let isOpen=false;
+
+
+    function toggleDropDown() {
+        isOpen = !isOpen;
+    }
+
+    let selected_swatch_idx=0; 
     let no_color = {name: 'No Color', code: '#FFFFFF'}
 
-
-    function addNoColorOption() {
-        selected_palette.unshift(no_color);
-        selected_palette=selected_palette;
-    }
 
     let dynamic_image;
     function updateRendering() {
@@ -106,10 +108,10 @@
 
     async function applyColor() {
         is_loading= true; 
-        let code; 
+        let code=undefined; 
 
-        if (selected_swatch_idx!=0) { //Checks if a color has been selected. idx=0 is no color.
-            code = selected_palette[selected_swatch_idx].code;
+        if (selected_swatch_idx!=undefined) { //Checks if a color has been selected. idx=0 is no color.
+            code = palettes[selected_palette_idx][selected_swatch_idx].code;
         }
 
         const response = await fetch("/add_color_to_rendering", {
@@ -143,7 +145,9 @@
     }
 
     onMount(() => {
-        addNoColorOption();
+        // addNoColorOption();
+
+
     });
 
 
@@ -198,23 +202,49 @@
 
     <div class="color-finish">
         <div class="color-selector">
-            <div class="palette">
-                {#each selected_palette as swatch, i }
+            <div class="color-palette-header">
 
-                    <label class="swatch" style="background-color: {swatch.code};" class:selected={selected_swatch_idx===i}>
-                        {#if i===0} <img src="./logos/cancel-svgrepo-com.svg" alt=""> {/if}
-                        <input type=radio bind:group={selected_swatch_idx} name={swatch.name} value={i}>
-                    </label>
-                {/each}
+                <label class="swatch" style="background-color: {no_color.code};" class:selected={selected_swatch_idx===undefined}>
+                    <img src="./logos/cancel-svgrepo-com.svg" alt="">
+                    <input type=radio bind:group={selected_swatch_idx} name={no_color.name} value={undefined}>
+                </label>
+                
+                <div class="palette" style="position: relative;">
+                    {#each palettes[selected_palette_idx] as swatch, i }
+                        <label class="swatch selectable" style="background-color: {swatch.code};" class:selected={selected_swatch_idx===i}>
+                            <input type=radio bind:group={selected_swatch_idx} name={swatch.name} value={i}>
+                        </label>
+                    {/each}
+                    
+                    {#if isOpen}
+                        <div class="dropdown-list" style="position: absolute; top: 30px; left: 0; z-index=1;" >
+                            {#each palettes as palette, j}
+                                <label class="palette selectable" class:selected={selected_palette_idx===j}>
+                                    {#each palette as swatch}
+                                        <div class="swatch" style="background-color: {swatch.code};"></div>
+                                    {/each}
+                                    <input type=radio bind:group={selected_palette_idx} name={j} value={j}>
+                                </label>
+                            {/each}
+                        </div>  
+                    {/if} 
+                </div>
+                
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <div style=" width: 25px; height: 25px; align-items: center; justify-content: center; cursor: pointer;" on:click={toggleDropDown}> 
+                    <img src="./logos/dropdown-svgrepo-com.svg" alt="Select a palette" style="width: 100%; height: 100%;" />
+                </div>
+                
             </div>
-            {#if selected_swatch_idx===0}
+            {#if selected_swatch_idx===undefined}
                 <div id="current-swatch">         
                     <pre>No color</pre> 
                 </div>
             {:else }
-                <input id="current-swatch" type="color"  bind:value={selected_palette[selected_swatch_idx].code}>
+                <input id="current-swatch" type="color"  bind:value={palettes[selected_palette_idx][selected_swatch_idx].code}>
             {/if}
             <button on:click|preventDefault={()=>applyColor()}> Apply to texture </button>
+
         </div>
 
         <div class="color-selector">
@@ -222,11 +252,7 @@
             <DynamicImage bind:imagepath={rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_image_texture"]} alt="{selected_obj} {selected_part} material" size=175/>
             <span> Color: { "mat_color" in rendering_texture_pairs[selected_index].info[selected_obj][selected_part] ? rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_color"] : "None applied"} </span>
         </div>
-
     </div>
-
-    
-    
 </div>
 
 <div class='tab-content' class:active={activeTab==='adjust-texture'} id="adjust-texture">
@@ -318,18 +344,41 @@
         padding: 5px; 
         align-items: center;
         justify-content: center;
+        border: 1px solid black; 
     }
 
-    .color-selector .palette {
+    .color-selector .dropdown-list {
+        background-color: #fff;
+    }
+
+    .color-selector .color-palette-header {
         display:flex; 
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        padding: 5px;
         border: 1px solid black; 
+        padding: 10px;
     }
 
-    .palette .swatch {
+    .palette {
+        display:flex; 
+        flex-direction: row;
+        border: 1px solid black; 
+        align-items: center; 
+        justify-content: space-between;
+        padding: 5px; 
+    }
+
+    .palette.selectable:hover {
+        background-color: grey;
+    }
+
+    .palette.selectable.selected {
+        background-color: blue;
+    }
+
+
+    .swatch {
         width: 25px; 
         height: 25px;
         border: 1px solid black; 
@@ -342,13 +391,7 @@
         height: calc(6 * 25px + 2 * 2px);
         padding: 0;
     }
-/* 
-    input[type="color"] {
-        border: 1px solid black; 
-        width: calc(6 * 25px + 2 * 2px);
-        height: calc(6 * 25px + 2 * 2px);
-        padding: 0;
-    } */
+
 
     input[type="color"]::-webkit-color-swatch-wrapper {
         padding: 0;
@@ -361,15 +404,15 @@
         cursor:pointer;
     }
 
-    .palette .swatch:hover {
+    .swatch.selectable:hover {
         border: 3px solid grey;
     }
 
-    .swatch.selected {
+    .swatch.selectable.selected {
         border: 3px solid blue;
     } 
 
-    .swatch input[type="radio"] {
+    input[type="radio"] {
         opacity: 0;
         position: fixed;
         width:0; 
