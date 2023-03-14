@@ -1,5 +1,5 @@
 <script>
-	import UserInterface from "./components/UserInterface.svelte";
+	import ActionsPanel from "./components/ActionsPanel.svelte";
 	import RenderingDisplay from "./components/RenderingDisplay.svelte";
 	import Information from "./components/Information.svelte";
 	import {curr_rendering_path} from './stores.js';
@@ -117,7 +117,7 @@
 	<div class="container">
 
 		<div class="user-interface" class:collapsed={ui_collapsed}>
-			<UserInterface />
+			<ActionsPanel />
 			<!-- <button on:click={()=>collapseDiv(ui_collapsed)}> Hide </button> -->
 		</div>
 

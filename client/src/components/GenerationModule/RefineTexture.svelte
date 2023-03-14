@@ -377,7 +377,6 @@
         background-color: blue;
     }
 
-
     .swatch {
         width: 25px; 
         height: 25px;
@@ -391,7 +390,6 @@
         height: calc(6 * 25px + 2 * 2px);
         padding: 0;
     }
-
 
     input[type="color"]::-webkit-color-swatch-wrapper {
         padding: 0;
