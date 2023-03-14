@@ -1,8 +1,8 @@
 
 import os 
 import openai
-openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set your env variable, OPENAI_API_KEY to your API key from OPENAI
-import re 
+openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
+import re , ast
 import yake 
 
 kw_extractor = yake.KeywordExtractor(lan='en',n=3,top=20,dedupLim=0.9)
@@ -41,13 +41,10 @@ def feedback_on_assembly(object, child_part, child_material, parent_part, parent
 
     return attachments
 
-
-
 def extract_keywords(text):
     return kw_extractor.extract_keywords(text)
 
 def suggest_materials_by_style2(style,material_type,n_materials=5,object=None,part=None):
-    openai.api_key=os.getenv("OPENAI_API_KEY")
     prompt=f'''
     What examples of {material_type} materials are of {style} interior design style?
 
@@ -72,36 +69,48 @@ def suggest_materials_by_style2(style,material_type,n_materials=5,object=None,pa
 
     return materials
 
-def suggest_materials_by_style_debug(style,material_type,n_materials=5,object=None,part=None):
-    openai.api_key=os.getenv("OPENAI_API_KEY")
-    prompt=f'''
-    What examples of {material_type} materials are of {style} interior design style?
-
-    For each example, give your reason. Separate the example and reason by a | . Return in bullet points.
-    '''
-
-    response = '\n- Oak | Durable, warm, and timeless wood with a classic look \n- Cherry | Elegant wood with a subtle grain pattern and reddish hue \n- Walnut | Rich dark wood with a classic feel \n- Mahogany | Deep red-brown wood with a classic look \n- Pine | Light wood with a rustic feel \n- Maple | Light wood with a subtle grain pattern and a classic look'
-
-    items = parse_into_list(response)
-
-    materials = []
-    for item in items:
-        name = item.split("|")[0].strip()
-        reason = item.split("|")[1].strip()
-        keywords = extract_keywords(reason)
-        materials.append({"name":name,"reason":reason, "keywords":keywords})
-
-    return materials
-
-
 
 def suggest_color_by_style2(style,n_themes=5):
+    # prompt=f'''
+    # What are colors that are of {style} interior design style? Return {n_themes} hex color palettes and their palette names in bullet points.
+    # Separate the palette name and color palette with a |. In each color palette, separate the hex colors with a , .
+    # Don't say anything else apart from the color palettes and their names.
+    # '''
+
     prompt=f'''
-    What are colors that are of {style} interior design style? Return {n_themes} hex color palettes.
+    What are colors that are of {style} interior design style? Return {n_themes} hex color themes.
     
-    Don't say anything else apart from the color palettes and their names. Return them as a dictionary.
+    Don't say anything else apart from the hex codes and theme name. Return them as a dictionary.
     '''
-    return 
+    # Return as a dictionary.  
+
+    # # Using GPT-3
+    # response = openai.Completion.create(
+    #     model="text-davinci-003",
+    #     prompt=prompt,
+    #     max_tokens=764,
+    #     temperature=0.7,
+    # )
+    # response_msg = response["choices"][0]["text"]
+
+    # Using ChatGPT
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role":"user", "content":prompt}],
+    )
+    response_msg = response["choices"][0]["message"]["content"]
+    color_palettes = ast.literal_eval(response_msg)
+
+    # items = parse_into_list(response_msg)
+
+    # color_palettes = []
+    # for item in items:
+    #     name = item.split("|")[0].strip()
+    #     palette_str = item.split("|")[1].strip()
+    #     palette = palette_str.split(",")
+    #     color_palettes.append({"name":name, "palette":palette})
+
+    return color_palettes
 
 def suggest_color_by_style(style,n_themes=5):
     prompt=f'''
