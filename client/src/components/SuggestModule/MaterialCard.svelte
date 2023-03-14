@@ -1,5 +1,5 @@
 <script>
-    import DynamicImage from "./DynamicImage.svelte";
+    import DynamicImage from "../DynamicImage.svelte";
     export let material_path;
     export let material_name;
     export let material_info; 
