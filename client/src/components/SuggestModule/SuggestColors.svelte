@@ -62,14 +62,13 @@
         </form>
 
         {#if suggested_color_palettes.length > 0}
-            <!-- Display color palettes here -->
-            <div class="image-grid">
-                {#each suggested_color_palettes as cp}
-                    <!-- <div class="material-card"> -->
-                        <ColorPalette color_codes={cp["palette"]} name={cp["name"]} />
-                    <!-- </div> -->
-                {/each}
-            </div>
+            
+            {#each suggested_color_palettes as cp}
+                <div class="color-card">
+                    <ColorPalette color_codes={cp["palette"]} name={cp["name"]} />
+                </div>
+            {/each}
+            
         {:else if is_loading==true}
             <div class="images-placeholder">
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
@@ -88,12 +87,6 @@
 
 <style>
     
-    .image-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        grid-column-gap: 0.25rem;
-        grid-row-gap: 0.25rem;
-    }
 
     .image-grid input[type="radio"] {
         opacity: 0;
@@ -101,11 +94,10 @@
         width:0; 
     } 
 
-    .material-card {
-        display:flex; 
-        flex-direction: column;
-        justify-content: space-around;
+    .color-card {
         border: 1px solid black;
+        padding: 5px;
+        height: 100%;
     }
 
     .tab-content {
@@ -113,7 +105,8 @@
 	}
   
 	.tab-content.active {
-		display: block;
+		display: flex;
+        flex-direction: column;
         height: 100%;
         width:100%;
         padding: 5px;

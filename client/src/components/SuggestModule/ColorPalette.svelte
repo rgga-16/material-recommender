@@ -8,13 +8,14 @@
     // console.log(paletteWidth);
 </script>
 
-
+<span> {name} </span>
 <div bind:this={palette} class="color-palette">
     {#each color_codes as cc, i}
-        <input type="color" value={cc} />
+        <input type="color" bind:value={cc} />
     {/each}
 </div>
-<!-- <span> {name} </span> -->
+
+
 
 <style>
     .color-palette {
@@ -26,15 +27,9 @@
     }
 
 
-    .swatch {
-        /* width: 25px; 
-        height: 25px;
-        border: 1px solid black; 
-        margin-right: 2px; */
-    }
-
     input[type="color"] {
         padding: 0;
+        height: 100%;
     }
 
     input[type="color"]::-webkit-color-swatch-wrapper {
