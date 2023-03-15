@@ -1,5 +1,5 @@
 <script>
-
+    import DynamicImage from "./DynamicImage.svelte";
     export let current_rendering_path;
 
 </script>

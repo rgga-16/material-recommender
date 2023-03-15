@@ -1,12 +1,10 @@
 
 <script>
     import PreviewCard from "./PreviewCard.svelte";
-  
-      
-      export let pairs;
-      export let selected_texturepaths=[]; 
-  </script>
-  
+    export let pairs;
+    export let selected_texturepaths=[]; 
+</script>
+
 <div class="image-grid">
     {#each pairs as pair, i}
         <label class="preview-card" class:selected={selected_texturepaths.includes(pair.texture)}>
@@ -27,7 +25,6 @@
     .image-grid {
         width:100%;
         margin:0 auto;
-        /* text-align:left; */
     }
 
     .preview-card {
