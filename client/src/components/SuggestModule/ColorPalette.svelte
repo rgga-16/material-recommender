@@ -4,16 +4,17 @@
     export let name;
 
     let palette;
-    // const paletteWidth = palette.offsetWidth;
-    // console.log(paletteWidth);
+
 </script>
 
-<span> {name} </span>
-<div bind:this={palette} class="color-palette">
-    {#each color_codes as cc, i}
-        <input type="color" bind:value={cc} />
-    {/each}
-</div>
+
+    {name}
+    <div bind:this={palette} class="color-palette">
+        {#each color_codes as cc, i}
+            <input type="color" bind:value={cc} />
+        {/each}
+    </div>
+
 
 
 
@@ -26,10 +27,10 @@
         height: 100%;
     }
 
-
     input[type="color"] {
         padding: 0;
-        height: 100%;
+        height: 80%;
+        width: 100%;
     }
 
     input[type="color"]::-webkit-color-swatch-wrapper {
