@@ -37,6 +37,7 @@
   .actions-panel{
     display:flex;
     flex-direction: column;
+    height: inherit;
   }
 
   .tab-btn {

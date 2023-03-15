@@ -116,7 +116,7 @@
 
 	<div class="container">
 
-		<div class="user-interface" class:collapsed={ui_collapsed}>
+		<div class="actions-panel" class:collapsed={ui_collapsed}>
 			<ActionsPanel />
 			<!-- <button on:click={()=>collapseDiv(ui_collapsed)}> Hide </button> -->
 		</div>
@@ -172,11 +172,10 @@
  		width: 100vw;
 	}
 
-	.user-interface {
-		/* display:flex;
-		flex-direction:row; */
+	.actions-panel {
 	  	width: 25%;
 	  	background-color: lightgray;
+		height: inherit;
 	}
 
 	.renderings {
