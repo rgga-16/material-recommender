@@ -1,4 +1,6 @@
 <script>
+    import { saved_color_palettes } from "../../stores.js";
+    
     import DynamicImage from "../DynamicImage.svelte";
     import NumberSpinner from "svelte-number-spinner";
     import { Circle } from 'svelte-loading-spinners';
@@ -9,7 +11,6 @@
     export let objs_and_parts;
     export let selected_objs_and_parts_dict;
 
-    console.log(objs_and_parts);
 
     let selected_obj=Object.keys(selected_objs_and_parts_dict)[0]; 
     let selected_part=selected_objs_and_parts_dict[selected_obj][0]; 
@@ -28,22 +29,22 @@
 
     let material_finish;
 
-    let palettes = [
-        [{name: 'Red', code: '#FF0000'},{name: 'Blue', code: '#0000FF'},{name: 'Green', code: '#008000'},{name: 'Yellow', code: '#FFFF00'},{name: 'Grey', code: '#D7D6D5'}],
-        [{name: 'Blue', code: '#0000FF'},{name: 'Red', code: '#FF0000'},{name: 'Yellow', code: '#FFFF00'},{name: 'Green', code: '#008000'},{name: 'Grey', code: '#D7D6D5'}],
-        [{name: 'Yellow', code: '#FFFF00'},{name: 'Grey', code: '#D7D6D5'},{name: 'Green', code: '#008000'},{name: 'Red', code: '#FF0000'},{name: 'Blue', code: '#0000FF'}]
-    ];
-    let selected_palette_idx=0;
+    let palettes=[]; 
+    let selected_palette_idx=undefined;
+	saved_color_palettes.subscribe(value => {
+		palettes=value;
+        selected_palette_idx=0;
+        console.log(palettes);
+	});
     
 
+    
     let isOpen=false;
-
-
     function toggleDropDown() {
         isOpen = !isOpen;
     }
 
-    let selected_swatch_idx=0; 
+    let selected_swatch_idx=undefined; 
     let no_color = {name: 'No Color', code: '#FFFFFF'}
 
 
@@ -110,8 +111,8 @@
         is_loading= true; 
         let code=undefined; 
 
-        if (selected_swatch_idx!=undefined) { //Checks if a color has been selected. idx=0 is no color.
-            code = palettes[selected_palette_idx][selected_swatch_idx].code;
+        if (selected_swatch_idx!=undefined) { //Checks if a color has been selected.
+            code = palettes[selected_palette_idx]['palette'][selected_swatch_idx];
         }
 
         const response = await fetch("/add_color_to_rendering", {
@@ -145,8 +146,6 @@
     }
 
     onMount(() => {
-        // addNoColorOption();
-
 
     });
 
@@ -203,29 +202,41 @@
     <div class="color-finish">
         <div class="color-selector">
             <div class="color-palette-header">
-
-                <label class="swatch" style="background-color: {no_color.code};" class:selected={selected_swatch_idx===undefined}>
+                
+                <!-- No Colors Swatch Option -->
+                <label class="swatch selectable" style="background-color: {no_color.code};" class:selected={selected_swatch_idx===undefined}>
                     <img src="./logos/cancel-svgrepo-com.svg" alt="">
                     <input type=radio bind:group={selected_swatch_idx} name={no_color.name} value={undefined}>
                 </label>
                 
+                <!-- Color Swatch Options from the Selected Palette -->
                 <div class="palette" style="position: relative;">
-                    {#each palettes[selected_palette_idx] as swatch, i }
-                        <label class="swatch selectable" style="background-color: {swatch.code};" class:selected={selected_swatch_idx===i}>
-                            <input type=radio bind:group={selected_swatch_idx} name={swatch.name} value={i}>
-                        </label>
-                    {/each}
-                    
+                    {#if selected_palette_idx != undefined && palettes.length > 0}
+                        {#each palettes[selected_palette_idx]['palette'] as swatch, i }
+                            <label class="swatch selectable" style="background-color: {swatch};" class:selected={selected_swatch_idx===i}>
+                                <input type=radio bind:group={selected_swatch_idx} name={swatch} value={i}>
+                            </label>
+                        {/each}
+                    {:else}
+                        <div class="swatch" style="background-color: #FFFFFF;"></div>
+                        <div class="swatch" style="background-color: #FFFFFF;"></div>
+                        <div class="swatch" style="background-color: #FFFFFF;"></div>
+                        <div class="swatch" style="background-color: #FFFFFF;"></div>
+                        <div class="swatch" style="background-color: #FFFFFF;"></div>
+                    {/if}
+
                     {#if isOpen}
+                        <!-- Dropdown list of color palettes -->
                         <div class="dropdown-list" style="position: absolute; top: 30px; left: 0; z-index=1;" >
-                            {#each palettes as palette, j}
+                            {#each palettes as p, j}
                                 <label class="palette selectable" class:selected={selected_palette_idx===j}>
-                                    {#each palette as swatch}
-                                        <div class="swatch" style="background-color: {swatch.code};"></div>
+                                    {#each p["palette"] as swatch}
+                                        <div class="swatch" style="background-color: {swatch};"></div>
                                     {/each}
                                     <input type=radio bind:group={selected_palette_idx} name={j} value={j}>
                                 </label>
                             {/each}
+                            <div class="palette selectable"> +Suggest colors</div>
                         </div>  
                     {/if} 
                 </div>
@@ -241,7 +252,7 @@
                     <pre>No color</pre> 
                 </div>
             {:else }
-                <input id="current-swatch" type="color"  bind:value={palettes[selected_palette_idx][selected_swatch_idx].code}>
+                <input id="current-swatch" type="color"  bind:value={palettes[selected_palette_idx]['palette'][selected_swatch_idx]}>
             {/if}
             <button on:click|preventDefault={()=>applyColor()}> Apply to texture </button>
 
@@ -374,7 +385,11 @@
     }
 
     .palette.selectable.selected {
-        background-color: blue;
+        background-color: rgb(86, 165, 255);
+    }
+
+    .palette.selectable.selected:hover {
+        background-color: rgb(86, 165, 255);
     }
 
     .swatch {
@@ -407,6 +422,10 @@
     }
 
     .swatch.selectable.selected {
+        border: 3px solid blue;
+    } 
+
+    .swatch.selectable.selected:hover {
         border: 3px solid blue;
     } 
 

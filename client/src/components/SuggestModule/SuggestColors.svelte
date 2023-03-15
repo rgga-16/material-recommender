@@ -1,6 +1,8 @@
 <script>
     import ColorPalette from "./ColorPalette.svelte";
     import { Circle } from 'svelte-loading-spinners';
+    import {saved_color_palettes} from '../../stores.js';
+    import {get} from 'svelte/store';
 
     const interior_design_styles = ['Modern', 'Traditional', 'Contemporary', 'Industrial', 'Transitional', 'Rustic', 'Bohemian', 'Minimalist', 'Hollywood Regency', 'Scandinavian']
 
@@ -19,7 +21,7 @@
 
     let is_loading=false;
 
-    async function suggest_by_style(style){
+    async function suggestByStyle(style){
 
         is_loading=true;
 
@@ -35,13 +37,12 @@
         });
         const color_suggestions_json = await color_suggestions_response.json();
         suggested_color_palettes = await color_suggestions_json;
-        console.log(suggested_color_palettes);
         is_loading=false;
-        
     }
 
-    function proceed_to_generate(material_name) {
-
+    function saveColorPalettes() {
+        if (selected_color_palettes.length <= 0) { alert("Please select at least 1 color palette"); return }
+        saved_color_palettes.update(lst => lst.concat(selected_color_palettes));
     }
 
 </script>
@@ -52,23 +53,23 @@
     </div>
 
     <div class='tab-content'  class:active={activeTab==='by_id_style'} id="by_id_style">
-        <form on:submit|preventDefault={suggest_by_style(selected_style)}>
+        <form on:submit|preventDefault={suggestByStyle(selected_style)}>
             <select bind:value={selected_style}>
                 {#each interior_design_styles as style}
                     <option value={style}> {style} </option>
                 {/each}
             </select>
-            <button> Suggest Colors </button>
+            <button> Suggest Color Palettes </button>
         </form>
 
         {#if suggested_color_palettes.length > 0}
-            
             {#each suggested_color_palettes as cp}
-                <div class="color-card">
+                <label class="color-card" class:selected={selected_color_palettes.includes(cp)}>
+                    <input type="checkbox" bind:group={selected_color_palettes} value={cp}>
                     <ColorPalette color_codes={cp["palette"]} name={cp["name"]} />
-                </div>
+                </label>
             {/each}
-            
+            <button on:click={()=>saveColorPalettes()}> Save Palettes </button>
         {:else if is_loading==true}
             <div class="images-placeholder">
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
@@ -80,15 +81,9 @@
         {/if}
     </div> 
 
-    
-
-    
-
-
 <style>
     
-
-    .image-grid input[type="radio"] {
+    input[type="checkbox"] {
         opacity: 0;
         position: fixed;
         width:0; 
@@ -97,7 +92,22 @@
     .color-card {
         border: 1px solid black;
         padding: 5px;
-        height: 100%;
+        height: 80%;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .color-card:hover {
+        border: 3px solid grey;
+        cursor: pointer;
+    }
+
+    .color-card.selected:hover {
+        border: 3px solid blue;
+    }
+
+    .selected {
+        border: 3px solid blue;
     }
 
     .tab-content {

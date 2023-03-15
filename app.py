@@ -42,7 +42,7 @@ def add_color_to_rendering():
     obj = form_data["selected_obj"]
     part = form_data["selected_part"]
 
-    texture_parts[obj][part]["mat_color"] = form_data["color"]
+    texture_parts[obj][part]["mat_color"] = form_data["color"] if "color" in list(form_data.keys()) else None
 
     with open(textureparts_path,"w") as f:
         json.dump(texture_parts,f)
@@ -126,13 +126,14 @@ def suggest_materials_by_style():
         reason=m["reason"] ; m = m["name"];
         prompt = m if material_type.lower()=='all types' else f"{m} {material_type}"
         image, filename = generate_textures(prompt,n=1,imsize=448); image=image[0]; filename=filename[0]
-        image.save(os.path.join(SERVER_IMDIR,"suggested",filename))
-        loadpath = os.path.join(CLIENT_IMDIR,"suggested",filename)
+        savepath = os.path.join(SERVER_IMDIR,"suggested",filename)
+        image.save(savepath)
+        # loadpath = os.path.join(CLIENT_IMDIR,"suggested",filename)
         suggested_materials.append({
             "name":m,
             # "texture":image,
             "reason":reason,
-            "filepath":loadpath
+            "filepath":savepath
         })
     
     return suggested_materials
@@ -432,38 +433,3 @@ if __name__ == "__main__":
 
     texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
     app.run(debug=True)
-
-
-
-
-################### Dump
-# @app.route("/transfer_textures", methods=['POST'])
-# def transfer_textures():
-#     form_data = request.get_json()
-
-#     texture_string = form_data["texture_string"]
-#     obj_part_dict = form_data["obj_parts_dict"]
-#     texture_paths = form_data["texture_paths"]
-
-#     rendering_paths = []
-
-#     for i in range(len(texture_paths)):
-#         new_texture_parts = copy.deepcopy(current_texture_parts)
-#         for obj in list(obj_part_dict.keys()):
-#             for part in obj_part_dict[obj]:
-#                 new_texture_parts[obj][part]["mat_name"]=texture_string
-#                 new_texture_parts[obj][part]["mat_finish"]="glossy"
-#                 new_texture_parts[obj][part]["mat_image_texture"]=texture_paths[i]
-                
-#         tmp_texture_parts_savepath = os.path.join(SERVER_IMDIR,"renderings",f"texture_parts_{i}.json")
-        
-#         with open(tmp_texture_parts_savepath,"w") as tmpfile:
-#             json.dump(new_texture_parts,tmpfile)
-
-#         tmp_rendering_savepath = os.path.join(SERVER_IMDIR,"renderings",f"rendering_{i}.png")
-#         tmp_rendering_loadpath = os.path.join(CLIENT_IMDIR,"renderings",f"rendering_{i}.png")
-#         rendering_paths.append(tmp_rendering_loadpath)
-#         command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {tmp_rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath}'
-#         os.system(command_str)
-
-#     return rendering_paths
