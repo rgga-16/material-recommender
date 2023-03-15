@@ -1,63 +1,38 @@
 <script>
     import MaterialCard from "./MaterialCard.svelte";
-    import ColorPalette from "./ColorPalette.svelte";
+    import { Circle } from 'svelte-loading-spinners';
 
     const material_types = ["All types","wood","metal","fabric","ceramic"]
     const interior_design_styles = ['Modern', 'Traditional', 'Contemporary', 'Industrial', 'Transitional', 'Rustic', 'Bohemian', 'Minimalist', 'Hollywood Regency', 'Scandinavian']
-    const suggestion_choices = ["Materials", "Colors"];
 
-    let selected_choices = [];
     let selected_material_type;
     let selected_style;
 
-    let do_suggest_materials=true;
-    let do_suggest_colors=false; 
-
     let suggested_materials=[];
-    let suggested_color_palettes=[];
-
-    let selected_cp_index;
     let selected_material_index;
 
-    async function suggest_by_style(material_type,style,suggest_materials,suggest_colors){
+    let activeTab='by_id_style';
+    function switchTab(tab) {
+        activeTab = tab;
+    }
+    let is_loading=false;
 
-        if (suggest_materials===false && suggest_colors===false) {
-            alert("Please choose to suggest at least either materials or colors.");
-            return;
+    async function suggest_by_style(material_type,style){
+        is_loading=true;
+        let material_suggest_dict = {
+            "style":style,
+            "material_type":material_type
         }
+        suggested_materials=[];
 
-        if(suggest_materials) {
-            let material_suggest_dict = {
-                "style":style,
-                "material_type":material_type
-            }
-            suggested_materials=[];
-
-            const material_suggestions_response = await fetch("/suggest_materials_by_style", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(material_suggest_dict),
-            });
-            const material_suggestions_json = await material_suggestions_response.json();
-            suggested_materials = await material_suggestions_json;
-        }
-
-        if(suggest_colors) {
-
-            let color_suggest_dict = {
-                "style":style,
-                "material_type":material_type
-            }
-            suggested_color_palettes=[];
-
-            const color_suggestions_response = await fetch("/suggest_colors_by_style", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(color_suggest_dict),
-            });
-            const color_suggestions_json = await color_suggestions_response.json();
-            suggested_color_palettes = await color_suggestions_json;
-        }
+        const material_suggestions_response = await fetch("/suggest_materials_by_style", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(material_suggest_dict),
+        });
+        const material_suggestions_json = await material_suggestions_response.json();
+        suggested_materials = await material_suggestions_json;
+        is_loading=false;
 
     }
 
@@ -69,73 +44,48 @@
 
     <h4>Suggest Materials</h4>
 
-    <form on:submit|preventDefault={suggest_by_style(selected_material_type,selected_style,do_suggest_materials,do_suggest_colors)}>
-        <select bind:value={selected_material_type}>
-            {#each material_types as mt}
-                <option value={mt}> {mt} </option>
-            {/each}
-        </select>
-        
-        <select bind:value={selected_style}>
-            {#each interior_design_styles as style}
-                <option value={style}> {style} </option>
-            {/each}
-        </select>
+    <div class="w3-bar w3-grey tabs">
+        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='by_id_style'} on:click={()=>switchTab('by_id_style')} id="id-style-btn">By Interior Design Style</button>
+    </div>
 
-        <!-- <div class="checkbox-group">
-            <label> 
-                <input type=checkbox bind:checked={do_suggest_materials} value="Materials">
-                Materials
-            </label>
+    <div class='tab-content'  class:active={activeTab==='by_id_style'} id="by_id_style">
+        <form on:submit|preventDefault={suggest_by_style(selected_material_type,selected_style)}>
+            <select bind:value={selected_material_type}>
+                {#each material_types as mt}
+                    <option value={mt}> {mt} </option>
+                {/each}
+            </select>
             
-            <label> 
-                <input type=checkbox bind:checked={do_suggest_colors} value="Colors">
-                Colors
-            </label> 
+            <select bind:value={selected_style}>
+                {#each interior_design_styles as style}
+                    <option value={style}> {style} </option>
+                {/each}
+            </select>
+            <button> Suggest </button>
+        </form>
+    
+        {#if suggested_materials.length > 0}
+            <div class="image-grid">
+                {#each suggested_materials as m, i}
+                    <label class="material-card" class:selected={selected_material_index===i}>
+                        <input type=radio bind:group={selected_material_index} name="option" value={i} >
+                        <MaterialCard material_name={m["name"]} material_path={m["filepath"]} material_info={m["reason"]} index={i}/>
+                    </label>
+                {/each}
+            </div>
+            <button> Generate Material Texture </button>
+        {:else if is_loading==true}
+            <div class="images-placeholder">
+                <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+            </div>
+        {:else}
+            <div class="images-placeholder">
+                <pre>No materials suggested yet.</pre>
+            </div>
+        {/if}
+    </div>
 
-        </div>-->
-
-        <button> Suggest </button>
-
-
-    </form>
-    {#if do_suggest_materials}
-        {#await suggested_materials}
-            <p>Loading material suggestions</p>
-        {:then suggested_materials} 
-            {#if suggested_materials.length > 0}
-                <div class="image-grid">
-                    {#each suggested_materials as m, i}
-                        <label class="material-card" class:selected={selected_material_index===i}>
-                            <input type=radio bind:group={selected_material_index} name="option" value={i} >
-                            <MaterialCard material_name={m["name"]} material_path={m["filepath"]} material_info={m["reason"]} index={i}/>
-                            <!-- <button> Proceed to generate </button> -->
-                        </label>
-                    {/each}
-                </div>
-            {:else}
-                <p> Suggesting materials...</p>
-            {/if}
-        {/await}
-        
-    {/if}
-
-    {#if do_suggest_colors}
-        {#await suggested_color_palettes}
-            <pre>Loading color suggestions</pre>
-        {:then suggested_color_palettes} 
-            {#if suggested_color_palettes.length > 0}
-                <div class="image-grid">
-                    {#each suggested_color_palettes as cp}
-                        <div class="material-card">
-                            <ColorPalette color_codes={cp["palette"]} name={cp["name"]} />
-                        </div>
-                    {/each}
-                </div>
-            {/if}
-        {/await}
-    {/if}
-
+    
 
 <style>
     
@@ -159,12 +109,47 @@
         border: 1px solid black;
     }
 
-    /* .material-card:hover {
-        border: 1px solid grey;
+    .material-card:hover {
+        border: 3px solid grey;
     }
 
     .material-card.selected {
-        border: 1px solid blue;
-    } */
+        border: 3px solid blue;
+    }
+
+    .material-card.selected:hover {
+        border: 3px solid blue;
+    }
+
+    .tab-content {
+		display: none;
+	}
+  
+	.tab-content.active {
+		display: flex;
+        flex-direction: column;
+        height: 100%;
+        width:100%;
+        padding: 5px;
+	}
+
+    .tab-btn {
+        height:100%;
+    }
+
+	.tab-btn.active {
+		background-color: rgb(89, 185, 218);
+	}
+
+    .images-placeholder {
+        width: 100%;
+        height: 500px;
+        border: 1px dashed black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
 
 </style>
