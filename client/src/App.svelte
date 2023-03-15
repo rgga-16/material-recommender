@@ -5,10 +5,14 @@
 	import {curr_rendering_path} from './stores.js';
 	import {curr_texture_parts} from './stores.js';
 	import {curr_textureparts_path} from './stores.js';
+	import {saved_color_palettes} from './stores.js';
 	import {get} from 'svelte/store';
 	import {onMount} from "svelte";	
 
-	
+	let saved_cps; 
+	saved_color_palettes.subscribe(value => {
+		saved_cps=value;
+	});
 
 	let current_rendering_path;
 	let current_texture_parts;
@@ -159,7 +163,6 @@
 			{/await}
 			
 		</div>
-		
 
 	</div>
 </main>

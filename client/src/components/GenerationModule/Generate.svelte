@@ -234,7 +234,7 @@
         flex-direction: column;
         width:100%;
         height: 100%; 
-        background: white; 
+        /* background: white;  */
         overflow: hidden;
         text-align: center;
     }
@@ -243,7 +243,6 @@
         text-align: center;
         align-items: center;
         justify-content: center;
-        min-height:800px;
         width:100%;
         height: 100%; 
     }   
