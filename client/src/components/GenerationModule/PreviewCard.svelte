@@ -33,7 +33,6 @@
         <button on:click|preventDefault={switchImage}> {viewString} </button>
     {:else}
         <div class="image"> <DynamicImage imagepath={texture} size={size} alt="Texture"/> </div>
-        
     {/if}
     
 

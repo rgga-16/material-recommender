@@ -1,6 +1,9 @@
 <script>
+	import { Circle } from 'svelte-loading-spinners';
+	
 	import ActionsPanel from "./components/ActionsPanel.svelte";
 	import RenderingDisplay from "./components/RenderingDisplay.svelte";
+	import DynamicImage from "./components/DynamicImage.svelte";
 	import Information from "./components/Information.svelte";
 	import {curr_rendering_path} from './stores.js';
 	import {curr_texture_parts} from './stores.js';
@@ -9,29 +12,22 @@
 	import {get} from 'svelte/store';
 	import {onMount} from "svelte";	
 
-	let saved_cps; 
-	saved_color_palettes.subscribe(value => {
-		saved_cps=value;
-	});
 
 	let current_rendering_path;
 	let current_texture_parts;
 	let current_textureparts_path;
 
+	let current_rendering; 
+	function updateCurrentRendering() {
+		current_rendering.getImage();
+	}
+
 	let saved_renderings = [];
 	let selected_saved_rendering_idx; 
+	let is_loading=false;
 
-	curr_rendering_path.subscribe(value => {
-		current_rendering_path = get(curr_rendering_path);
-	});
+	let information_panel; 
 
-	curr_texture_parts.subscribe(value => {
-		current_texture_parts = get(curr_texture_parts);
-	});
-
-	curr_textureparts_path.subscribe(value => {
-		current_textureparts_path = get(curr_textureparts_path);
-	});
 
 	async function getSavedRenderings() {
 		let response = await fetch('/get_saved_renderings');
@@ -44,17 +40,15 @@
 	async function getInitialRendering() {
 		let response = await fetch('/get_current_rendering');
 		let data = await response.json();
-		current_rendering_path = await data["rendering_path"];
-		current_texture_parts = await data ["texture_parts"];
-		current_textureparts_path = await data["textureparts_path"];
 
-		curr_rendering_path.set(current_rendering_path);
-		curr_texture_parts.set(current_texture_parts);
-		curr_textureparts_path.set(current_textureparts_path);
-		
+		curr_rendering_path.set(await data["rendering_path"]);
+		curr_texture_parts.set(await data ["texture_parts"]);
+		curr_textureparts_path.set(await data["textureparts_path"]);
+
 		return data; 
 	}
-	const promise = getInitialRendering();
+	
+	
 
 	let ui_collapsed = false;
 
@@ -87,6 +81,7 @@
 
 	async function loadRendering(idx) {
 		let selected = saved_renderings[idx];
+		is_loading=true;
 
 		const response = await fetch("/apply_to_current_rendering", {
             method: "POST",
@@ -99,18 +94,33 @@
         });
 
         const data = await response.json();
-		current_rendering_path = await data["rendering_path"];
-		current_texture_parts = await data["texture_parts"];
-		current_textureparts_path = await data["textureparts_path"];
+		curr_rendering_path.set(await data["rendering_path"]);
+		curr_texture_parts.set(await data["texture_parts"]);
+		curr_textureparts_path.set(await data["textureparts_path"]);
 
-		curr_rendering_path.set(current_rendering_path);
-		curr_texture_parts.set(current_texture_parts);
-		curr_textureparts_path.set(current_textureparts_path);
+		information_panel.loadParts();
+
+		is_loading=false;
+		// updateCurrentRendering();
+		
 	}
+	const promise = getInitialRendering();
+	curr_rendering_path.subscribe(value => {
+		current_rendering_path = value;
+	});
 
+	curr_texture_parts.subscribe(value => {
+		current_texture_parts = value;
+	});
+
+	curr_textureparts_path.subscribe(value => {
+		current_textureparts_path = value;
+	});
 	onMount(async function () {
 		const response = await fetch("/get_static_dir");
 		const data = await response.text();
+
+		
 	});
 
 
@@ -119,20 +129,33 @@
 <main>
 
 	<div class="container">
-
+		<!-- Left Section -->
 		<div class="actions-panel" class:collapsed={ui_collapsed}>
 			<ActionsPanel />
 			<!-- <button on:click={()=>collapseDiv(ui_collapsed)}> Hide </button> -->
 		</div>
 
+		<!-- Middle Section  -->
 		<div class="renderings">
 			<div class="rendering-display">
-				{#await promise}
-					<pre> Loading rendering. Please wait. </pre>
-				{:then data} 
-					<RenderingDisplay {current_rendering_path} />
-					<button on:click|preventDefault={saveRendering}> Save rendering </button>
-				{/await}
+				{#if is_loading}
+					<div class="images-placeholder">
+						<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+					</div>
+				{:else}
+					{#await promise}
+						<pre> Loading rendering. Please wait. </pre>
+					{:then data} 
+						<h3>Current Rendering</h3>
+						<div class="image">
+							<DynamicImage bind:this={current_rendering} imagepath={current_rendering_path} alt="Current rendering" size={500}/>
+						</div>
+						<button on:click|preventDefault={saveRendering}> Save rendering </button>
+					{/await}
+				{/if}
+
+
+
 			</div>
 			
 			<div class="saved-renderings">
@@ -159,7 +182,8 @@
 			{#await promise}
 				<pre> Loading rendering information. Please wait. </pre>
 			{:then data} 
-				<Information {current_texture_parts} />
+				<!-- <Information bind:this={information_panel}  {current_texture_parts}/> -->
+				<Information bind:this={information_panel} />
 			{/await}
 			
 		</div>
@@ -172,32 +196,59 @@
 		display: flex;
 		flex-direction: row;
 		height: 100vh;
- 		width: 100vw;
+		width: 100vw;
 	}
 
 	.actions-panel {
-	  	width: 25%;
-	  	background-color: lightgray;
+		width: 25%;
+		background-color: lightgray;
 		height: inherit;
 	}
 
 	.renderings {
 		width: 50%;
-		padding: 0.5rem;
+		height: inherit;
+		padding: 5px;
+		/* padding: 0.5rem; */
 	}
 
 	.information-panel {
 		width: 25%; 
+		height: inherit;
 	}
 
 	.rendering-display {
 		justify-content: center;
-	  	background-color: lightblue;
+		align-items: center;
+		background-color: lightblue;
 		border: 2px solid black;
 		display:flex;
 		flex-direction: column;
 		padding:10px;
+		margin-bottom: 5px;
+		height: 70%;
 	}
+
+	.rendering-display .image {
+		display:flex;
+		width:100%;
+        height: 100%;
+        object-fit: cover;
+        border: solid 1px black; 
+		justify-content: center;
+		align-items: center;
+	}
+
+	.images-placeholder {
+        width: 100%;
+        height: 100%;
+        border: 1px dashed black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
 
 	.rendering-display button{
 		width: fit-content;
@@ -207,7 +258,8 @@
 	.saved-renderings{
 		background-color: rgb(78, 230, 156) ;
 		border: 2px solid black;
-		padding:10px;
+		padding: 5px;
+		height: 30%;
 	}
 
 	.saved-renderings-list{

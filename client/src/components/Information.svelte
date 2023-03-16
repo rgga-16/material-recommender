@@ -4,23 +4,39 @@
     import TexturePart from './TexturePart.svelte';
     import PartPairs from './PartPairs.svelte';
     
-    export let current_texture_parts;
+    let current_texture_parts = get(curr_texture_parts);
+    // export let current_texture_parts;
+    
+    let objects = Object.keys(current_texture_parts);
+    console.log(objects);
+
+    let selected_obj = objects[0];
+    // let current_texture_parts[selected_obj] = current_texture_parts[selected_obj];
+    let selected_parts = Object.keys(current_texture_parts[selected_obj]);
+
+    let textureparts = [];
+
+    let is_loading=false;
     let activeTab = 'tab1-content';
 
     function switchTab(tab) {
         activeTab = tab;
     }
 
-    let objects = Object.keys(current_texture_parts);
+    
+    export function loadParts() {
+        // current_texture_parts[selected_obj] = current_texture_parts[selected_obj];
+        selected_parts = Object.keys(current_texture_parts[selected_obj]);
 
-    let selected_obj = objects[0];
-    let selected_obj_info = current_texture_parts[selected_obj];
-    let selected_parts = Object.keys(selected_obj_info);
-
-    function loadParts(obj) {
-        selected_obj_info = current_texture_parts[obj];
-        selected_parts = Object.keys(selected_obj_info);
+        for (let i = 0; i < textureparts.length; i++) {
+            textureparts[i].updateImage();
+        }
     }
+
+    
+    curr_texture_parts.subscribe(value => {
+		current_texture_parts = value;
+	});
 
     
 </script>
@@ -34,7 +50,7 @@
     <div class='tab-content'  class:active={activeTab==='tab1-content'} id="tab1-content">
         <h3> Rendering Information </h3>
 
-        <select bind:value={selected_obj} on:change={() => loadParts(selected_obj)}>
+        <select bind:value={selected_obj} on:change={() => loadParts()}>
             {#each objects as obj}
                 <option value={obj}>
                     {obj}
@@ -43,8 +59,14 @@
         </select>
 
         <div class="image-grid">
-            {#each selected_parts as part}
-                <TexturePart part_name = {part} part_info={selected_obj_info[part]} />
+            {#each selected_parts as part,i}
+                <TexturePart bind:this={textureparts[i]} 
+
+                    bind:part_name ={part} 
+                    bind:material_name={current_texture_parts[selected_obj][part]['mat_name']} 
+                    bind:material_finish={current_texture_parts[selected_obj][part]['mat_finish']} 
+                    bind:material_url={current_texture_parts[selected_obj][part]['mat_image_texture']} 
+                />
             {/each}
         </div>
 
@@ -53,7 +75,7 @@
     <div class='tab-content' class:active={activeTab==='tab2-content'} id="tab2-content">   
         <h3> Feedback </h3>
 
-        <select bind:value={selected_obj} on:change={() => loadParts(selected_obj)}>
+        <select bind:value={selected_obj} on:change={() => loadParts()}>
             {#each objects as obj}
                 <option value={obj}>
                     {obj}
@@ -63,9 +85,9 @@
 
         <div class="image-grid">
             {#each selected_parts as child_part}
-                {#if selected_obj_info[child_part]["parents"].length > 0}
-                    {#each selected_obj_info[child_part]["parents"] as parent_part}
-                        <PartPairs obj={selected_obj} object_info={selected_obj_info} child_part={child_part} parent_part={parent_part} />
+                {#if current_texture_parts[selected_obj][child_part]["parents"].length > 0}
+                    {#each current_texture_parts[selected_obj][child_part]["parents"] as parent_part}
+                        <PartPairs obj={selected_obj} object_info={current_texture_parts[selected_obj]} child_part={child_part} parent_part={parent_part} />
                     {/each}
                 {/if}
             {/each}
