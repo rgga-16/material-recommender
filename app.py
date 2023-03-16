@@ -271,7 +271,8 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
     curr_render_savedir = os.path.join(SERVER_IMDIR,'renderings','current')
     if(not os.path.isdir(curr_render_savedir)):
         makedir(curr_render_savedir)
-    # emptydir(curr_render_savedir)
+    
+    emptydir(curr_render_savedir)
     
     curr_render_path = os.path.join(curr_render_savedir,"rendering.png")
     curr_textureparts_path = os.path.join(curr_render_savedir,"object_part_material.json")
@@ -367,7 +368,8 @@ def get_saved_renderings():
 
 @app.route("/get_current_rendering")
 def get_current_rendering():
-    curr_render_loaddir = os.path.join(CLIENT_IMDIR,'renderings','current')
+    # curr_render_loaddir = os.path.join(CLIENT_IMDIR,'renderings','current')
+    curr_render_savedir = os.path.join(SERVER_IMDIR,'renderings','current')
 
     current_textureparts_path = os.path.join(SERVER_IMDIR,'renderings','current',"object_part_material.json")
     texture_parts = json.load(open(current_textureparts_path))
@@ -380,7 +382,7 @@ def get_current_rendering():
             # texture_parts[obj][part]["mat_image_texture"] = texture_path.replace(STATIC_IMDIR,"")
             texture_parts[obj][part]["mat_image_texture"] = texture_path
 
-    current_render_path = os.path.join(curr_render_loaddir,"rendering.png")
+    current_render_path = os.path.join(curr_render_savedir,"rendering.png")
     
     return {"rendering_path":current_render_path, "texture_parts":texture_parts, "textureparts_path":current_textureparts_path}
 
