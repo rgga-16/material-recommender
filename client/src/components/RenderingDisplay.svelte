@@ -2,18 +2,24 @@
     import DynamicImage from "./DynamicImage.svelte";
     export let current_rendering_path;
 
+    let rendering;
+    function updateRendering() {
+        rendering.getImage();
+    }
+
 </script>
 
 
-{#if current_rendering_path}
     <h3>Current Rendering</h3>
-    <img src={current_rendering_path} alt="Current rendering"/> 
-{/if}
+    <div class="image">
+        <DynamicImage bind:this={rendering} imagepath={current_rendering_path} alt="Current rendering" />
+    </div>
 
 <style>
-    img{
+    .image{
         width:50%;
         height: auto;
         object-fit: cover;
+        border: solid 1px black; 
     }
 </style>

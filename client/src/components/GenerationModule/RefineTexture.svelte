@@ -34,11 +34,8 @@
 	saved_color_palettes.subscribe(value => {
 		palettes=value;
         selected_palette_idx=0;
-        console.log(palettes);
 	});
-    
 
-    
     let isOpen=false;
     function toggleDropDown() {
         isOpen = !isOpen;

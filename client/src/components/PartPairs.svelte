@@ -44,8 +44,6 @@
         }
     }
 
-    // onMount(get_assembly_feedback());
-
 
 </script>
 
