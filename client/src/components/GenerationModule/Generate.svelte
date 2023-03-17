@@ -6,6 +6,8 @@
     import GeneratedTextures from './GeneratedTextures.svelte';
     import RefineTexture from './RefineTexture.svelte';
     import {curr_rendering_path} from '../../stores.js';
+    import {curr_texture_parts} from './stores.js';
+	import {curr_textureparts_path} from './stores.js';
 
     let input_material='';
 
@@ -77,6 +79,23 @@
     }
 
     async function apply_to_curr_rendering(index) {
+        
+        // const response = await fetch("/apply_to_current_rendering", {
+        //     method: "POST",
+        //     headers: {"Content-Type": "application/json"},
+        //     body: JSON.stringify({
+        //         "rendering_path": selected["rendering_path"],
+        //         "texture_parts": selected["texture_parts"],
+        //         "textureparts_path": selected["textureparts_path"]
+        //     }),
+        // });
+
+        // const data = await response.json();
+		// curr_rendering_path.set(await data["rendering_path"]);
+		// curr_texture_parts.set(await data["texture_parts"]);
+		// curr_textureparts_path.set(await data["textureparts_path"]);
+        
+        
         if(index==undefined) {
             alert("Please select one of the options"); 
             return;
@@ -97,8 +116,11 @@
                 "textureparts_path": selected_info_path
             }),
         });
+
         const json = await response.json();
         curr_rendering_path.set(json["rendering_path"]);
+        curr_texture_parts.set(await data["texture_parts"]);
+		curr_textureparts_path.set(await data["textureparts_path"]);
     }
 
     const n_pages = 4;
@@ -234,7 +256,6 @@
         flex-direction: column;
         width:100%;
         height: 100%; 
-        /* background: white;  */
         overflow: hidden;
         text-align: center;
     }

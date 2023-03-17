@@ -4,11 +4,10 @@
 	import ActionsPanel from "./components/ActionsPanel.svelte";
 	import RenderingDisplay from "./components/RenderingDisplay.svelte";
 	import DynamicImage from "./components/DynamicImage.svelte";
-	import Information from "./components/Information.svelte";
+	import Information from "./components/InformationPanel.svelte";
 	import {curr_rendering_path} from './stores.js';
 	import {curr_texture_parts} from './stores.js';
 	import {curr_textureparts_path} from './stores.js';
-	import {saved_color_palettes} from './stores.js';
 	import {get} from 'svelte/store';
 	import {onMount} from "svelte";	
 
@@ -98,10 +97,9 @@
 		curr_texture_parts.set(await data["texture_parts"]);
 		curr_textureparts_path.set(await data["textureparts_path"]);
 
-		information_panel.loadParts();
+		information_panel.updatePartInformation();
 
 		is_loading=false;
-		// updateCurrentRendering();
 		
 	}
 	const promise = getInitialRendering();
@@ -118,9 +116,7 @@
 	});
 	onMount(async function () {
 		const response = await fetch("/get_static_dir");
-		const data = await response.text();
-
-		
+		const data = await response.text();	
 	});
 
 
@@ -137,6 +133,7 @@
 
 		<!-- Middle Section  -->
 		<div class="renderings">
+			<!-- Display of current rendering -->
 			<div class="rendering-display">
 				{#if is_loading}
 					<div class="images-placeholder">
@@ -153,18 +150,15 @@
 						<button on:click|preventDefault={saveRendering}> Save rendering </button>
 					{/await}
 				{/if}
-
-
-
 			</div>
-			
+			<!-- Display of saved renderings -->
 			<div class="saved-renderings">
 				{#await saved_renderings_promise}
 					<pre> Loading saved renderings. Please wait. </pre>
 				{:then data} 
 					<form on:submit|preventDefault={loadRendering(selected_saved_rendering_idx)}>
 						<h3>Saved Renderings</h3>
-						<div class="saved-renderings-list">
+						<div class="saved-renderings-list"> <button style:opacity={selected_saved_rendering_idx!=undefined ? 1:0}> Load rendering </button>
 							{#each saved_renderings as saved_renderings,i}
 								<label class = "saved-rendering" class:selected={selected_saved_rendering_idx===i}>
 									<input type=radio bind:group={selected_saved_rendering_idx} name="option-{i}" value={i} />
@@ -172,7 +166,6 @@
 								</label>
 							{/each}
 						</div>
-						<button style:opacity={selected_saved_rendering_idx!=undefined ? 1:0}> Load rendering </button>
 					</form>
 				{/await}
 			</div>
@@ -205,16 +198,17 @@
 		height: inherit;
 	}
 
+	.information-panel {
+		width: 25%; 
+		background-color: lightgray;
+		height: inherit;
+	}
+
 	.renderings {
 		width: 50%;
 		height: inherit;
 		padding: 5px;
 		/* padding: 0.5rem; */
-	}
-
-	.information-panel {
-		width: 25%; 
-		height: inherit;
 	}
 
 	.rendering-display {
@@ -226,7 +220,7 @@
 		flex-direction: column;
 		padding:10px;
 		margin-bottom: 5px;
-		height: 70%;
+		height: 65%;
 	}
 
 	.rendering-display .image {
@@ -259,7 +253,7 @@
 		background-color: rgb(78, 230, 156) ;
 		border: 2px solid black;
 		padding: 5px;
-		height: 30%;
+		height: 35%;
 	}
 
 	.saved-renderings-list{
@@ -276,8 +270,8 @@
 		height:0;
 	}
 	.saved-renderings-list img{
-		width:175px;
-		height: 175px;
+		width:150px;
+		height: 150px;
 		margin:10px;
 	}
 

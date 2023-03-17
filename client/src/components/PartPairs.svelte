@@ -3,15 +3,32 @@
     import DynamicImage from "./DynamicImage.svelte";
     
     export let obj; 
-    export let object_info; 
+    // export let object_info; 
 
     export let child_part; 
+    export let child_mat_name;
+    export let child_mat_finish; 
+    export let child_mat_url; 
+
     export let parent_part; 
+    export let parent_mat_name;
+    export let parent_mat_finish;
+    export let parent_mat_url; 
+
+    
+    
 
     let assembly_feedback=[];
 
     let currentView=0;
     let viewString = "View suggested attachments";
+
+    let child_image;
+    let parent_image; 
+    export function updateImages() {
+        child_image.getImage();
+        parent_image.getImage();
+    }
 
     async function get_assembly_feedback() {
         assembly_feedback=[];
@@ -21,7 +38,7 @@
             "child_part":child_part,
             "child_material":object_info[child_part]["mat_name"],
             "parent_part":parent_part,
-            "parent_material":object_info[parent_part]["mat_name"],
+            "parent_material":parent_mat_name,
         }
         
         const assembly_feedback_response = await fetch("/get_feedback_on_assembly", {
@@ -53,9 +70,8 @@
             <div class="pairs">
                 <div class="material-card">
                     <p> <b> {child_part} </b></p>
-                    <DynamicImage imagepath={object_info[child_part]["mat_image_texture"]} alt={object_info[child_part]["mat_name"]} />
-                    <!-- <img src={object_info[child_part]["mat_image_texture"]} alt={object_info[child_part]["mat_name"]} /> -->
-                    <p> Material: {object_info[child_part]["mat_name"]}</p>
+                    <DynamicImage bind:this={child_image} imagepath={child_mat_url} alt={child_mat_name} />
+                    <p> Material: {child_mat_name}</p>
                 </div>
         
                 <div id="arrow">
@@ -64,9 +80,8 @@
                 
                 <div class="material-card">
                     <p> <b> {parent_part} </b></p>
-                    <DynamicImage imagepath={object_info[parent_part]["mat_image_texture"]} alt={object_info[parent_part]["mat_name"]} />
-                    <!-- <img src={object_info[parent_part]["mat_image_texture"]} alt={object_info[parent_part]["mat_name"]} /> -->
-                    <p> Material: {object_info[parent_part]["mat_name"]}</p>
+                    <DynamicImage bind:this={parent_image} imagepath={parent_mat_url} alt={parent_mat_name} />
+                    <p> Material: {parent_mat_name}</p>
                 </div>
             </div>
         {:else if currentView===1}   
@@ -96,6 +111,7 @@
         padding: 5px;
         border: 1px solid black; 
         justify-content: center;
+        align-items: center;
     }
     .pairs {
         display:flex; 
