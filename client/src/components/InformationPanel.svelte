@@ -1,20 +1,19 @@
 <script>
+    import { Circle } from 'svelte-loading-spinners';
     import {get} from 'svelte/store';
     import {curr_texture_parts} from '../stores.js';
     import TexturePart from './TexturePart.svelte';
     import PartPairs from './PartPairs.svelte';
     
     let current_texture_parts = get(curr_texture_parts);
-    // export let current_texture_parts;
     
     let objects = Object.keys(current_texture_parts);
-    console.log(objects);
 
     let selected_obj = objects[0];
-    // let current_texture_parts[selected_obj] = current_texture_parts[selected_obj];
     let selected_parts = Object.keys(current_texture_parts[selected_obj]);
 
     let textureparts = [];
+    let partpairs = [];
 
     let is_loading=false;
     let activeTab = 'tab1-content';
@@ -24,13 +23,18 @@
     }
 
     
-    export function loadParts() {
-        // current_texture_parts[selected_obj] = current_texture_parts[selected_obj];
-        selected_parts = Object.keys(current_texture_parts[selected_obj]);
+    export async function updatePartInformation() {
 
+        is_loading=true;
+        selected_parts = Object.keys(current_texture_parts[selected_obj]);
         for (let i = 0; i < textureparts.length; i++) {
             textureparts[i].updateImage();
         }
+
+        for (let j = 0; j < partpairs.length; j++) {
+            partpairs[j].updateImages();
+        }
+        is_loading=false;
     }
 
     
@@ -58,17 +62,23 @@
             {/each}
         </select>
 
-        <div class="image-grid">
+        <!-- <div class="image-grid"> -->
+        {#if is_loading}
+            <div class="images-placeholder">
+                <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+            </div>
+        {:else}
             {#each selected_parts as part,i}
                 <TexturePart bind:this={textureparts[i]} 
-
                     bind:part_name ={part} 
                     bind:material_name={current_texture_parts[selected_obj][part]['mat_name']} 
                     bind:material_finish={current_texture_parts[selected_obj][part]['mat_finish']} 
                     bind:material_url={current_texture_parts[selected_obj][part]['mat_image_texture']} 
                 />
             {/each}
-        </div>
+        {/if}
+            
+        <!-- </div> -->
 
     </div> 
 
@@ -83,43 +93,79 @@
             {/each}
         </select>
 
-        <div class="image-grid">
+        <!-- <div class="image-grid"> -->
+        {#if is_loading}
+            <div class="images-placeholder">
+                <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+            </div>
+        {:else}
             {#each selected_parts as child_part}
                 {#if current_texture_parts[selected_obj][child_part]["parents"].length > 0}
-                    {#each current_texture_parts[selected_obj][child_part]["parents"] as parent_part}
-                        <PartPairs obj={selected_obj} object_info={current_texture_parts[selected_obj]} child_part={child_part} parent_part={parent_part} />
+                    {#each current_texture_parts[selected_obj][child_part]["parents"] as parent_part, i}
+                        <PartPairs bind:this={partpairs[i]} 
+                            bind:obj={selected_obj} 
+                            bind:child_part={child_part} 
+                            bind:child_mat_name={current_texture_parts[selected_obj][child_part]['mat_name']}
+                            bind:child_mat_finish={current_texture_parts[selected_obj][child_part]['mat_finish']}
+                            bind:child_mat_url={current_texture_parts[selected_obj][child_part]['mat_image_texture']}
+
+                            bind:parent_part={parent_part} 
+                            bind:parent_mat_name={current_texture_parts[selected_obj][parent_part]['mat_name']}
+                            bind:parent_mat_finish={current_texture_parts[selected_obj][parent_part]['mat_finish']}
+                            bind:parent_mat_url={current_texture_parts[selected_obj][parent_part]['mat_image_texture']} 
+                        />                 
                     {/each}
                 {/if}
             {/each}
-        </div>
-
+        {/if}
+        <!-- </div> -->
     </div>
 
 </div>
 
 <style>
-    .tab-btn {
-    height:100%;
-  }
 
-	.tab-btn.active {
-		background-color: rgb(89, 185, 218);
-	}
-  
-	.tab-content {
-		display: none;
-	}
-  
-	.tab-content.active {
-		display: block;
-        padding: 1rem;
-        background-color: lightgray;
-	}
-
-    .image-grid {
-        display:flex; 
+    .information-panel {
+        display: flex;
+        align-items:center;
+        justify-content:center;
         flex-direction: column;
-        overflow-y: scroll;
+        width:100%;
+        height: 100%; 
+        overflow: hidden;
+        text-align: center;
+    }
+    .tab-btn {
+        height:100%;
+    }
+
+    .tab-btn.active {
+        background-color: rgb(89, 185, 218);
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        /* display: block;
+        padding: 1rem;
+        background-color: lightgray; */
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width:100%;
         padding: 5px;
+        overflow: auto; 
+    }
+
+    .images-placeholder {
+        width: 100%;
+        height: 500px;
+        border: 1px dashed black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
     }
 </style>
