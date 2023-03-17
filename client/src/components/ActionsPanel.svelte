@@ -11,26 +11,26 @@
     
 </script>
 
-    <div class="actions-panel">
-      <div class="w3-bar w3-grey tabs">
-        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='generate'} on:click={()=>switchTab('generate')} id="generate-btn">Generate</button>
-        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_materials'} on:click={()=>switchTab('suggest_materials')} id="suggest-materials-btn">Suggest Materials</button>
-        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_colors'} on:click={()=>switchTab('suggest_colors')} id="suggest-colors-btn">Suggest Colors</button>
-      </div>
-      
-      <div class='tab-content'  class:active={activeTab==='generate'} id="generate">
-        <Generate />
-      </div> 
+<div class="actions-panel">
+  <div class="w3-bar w3-grey tabs">
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='generate'} on:click={()=>switchTab('generate')} id="generate-btn">Generate</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_materials'} on:click={()=>switchTab('suggest_materials')} id="suggest-materials-btn">Suggest Materials</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_colors'} on:click={()=>switchTab('suggest_colors')} id="suggest-colors-btn">Suggest Colors</button>
+  </div>
+  
+  <div class='tab-content'  class:active={activeTab==='generate'} id="generate">
+    <Generate />
+  </div> 
 
-      <div class='tab-content' class:active={activeTab==='suggest_materials'} id="suggest_materials">
-        <SuggestMaterials />
-      </div>
+  <div class='tab-content' class:active={activeTab==='suggest_materials'} id="suggest_materials">
+    <SuggestMaterials />
+  </div>
 
-      <div class='tab-content' class:active={activeTab==='suggest_colors'} id="suggest_colors">
-        <SuggestColors />
-      </div>
+  <div class='tab-content' class:active={activeTab==='suggest_colors'} id="suggest_colors">
+    <SuggestColors />
+  </div>
 
-    </div>
+</div>
       
   <style>
 
