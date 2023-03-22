@@ -6,8 +6,8 @@
     import GeneratedTextures from './GeneratedTextures.svelte';
     import RefineTexture from './RefineTexture.svelte';
     import {curr_rendering_path} from '../../stores.js';
-    import {curr_texture_parts} from './stores.js';
-	import {curr_textureparts_path} from './stores.js';
+    import {curr_texture_parts} from '../../stores.js';
+	import {curr_textureparts_path} from '../../stores.js';
 
     let input_material='';
 
