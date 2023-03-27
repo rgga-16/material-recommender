@@ -1,5 +1,5 @@
 <script>
-    import { onMount } from "svelte";
+
     import DynamicImage from "./DynamicImage.svelte";
     
     export let obj; 
@@ -15,8 +15,6 @@
     export let parent_mat_finish;
     export let parent_mat_url; 
 
-    
-    
 
     let assembly_feedback=[];
 
@@ -36,7 +34,7 @@
         let partpairs_dict = {
             "object":obj, 
             "child_part":child_part,
-            "child_material":object_info[child_part]["mat_name"],
+            "child_material":child_mat_name,
             "parent_part":parent_part,
             "parent_material":parent_mat_name,
         }

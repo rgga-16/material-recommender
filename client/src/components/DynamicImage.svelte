@@ -29,6 +29,12 @@ export async function getImage() {
 
 }
 
+function log() {
+    console.log("Image path: " + imagepath);
+}
+
+$: getImage();
+
 onMount(getImage);
 
 </script>

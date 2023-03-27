@@ -2,6 +2,12 @@
     import Generate from "./GenerationModule/Generate.svelte";
     import SuggestMaterials from "./SuggestModule/SuggestMaterials.svelte";
     import SuggestColors from "./SuggestModule/SuggestColors.svelte";
+
+    export let onCallUpdateCurrentRendering;
+
+    function callUpdateCurrentRendering() {
+        onCallUpdateCurrentRendering();
+    }
     
     let activeTab = 'generate';
     function switchTab(tab) {
@@ -19,7 +25,7 @@
   </div>
   
   <div class='tab-content'  class:active={activeTab==='generate'} id="generate">
-    <Generate />
+    <Generate onCallUpdateCurrentRendering={callUpdateCurrentRendering} />
   </div> 
 
   <div class='tab-content' class:active={activeTab==='suggest_materials'} id="suggest_materials">

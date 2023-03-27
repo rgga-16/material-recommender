@@ -16,16 +16,18 @@
 	let current_texture_parts;
 	let current_textureparts_path;
 
-	let current_rendering; 
-	function updateCurrentRendering() {
-		current_rendering.getImage();
-	}
+
 
 	let saved_renderings = [];
 	let selected_saved_rendering_idx; 
 	let is_loading=false;
 
 	let information_panel; 
+
+	let current_rendering; 
+	function updateCurrentRenderingDisplay() {
+		current_rendering.getImage();
+	}
 
 
 	async function getSavedRenderings() {
@@ -36,17 +38,22 @@
 	}
 	const saved_renderings_promise = getSavedRenderings();
 
-	async function getInitialRendering() {
+	
+
+	async function updateCurrentRendering() {
+		is_loading=true;
+		console.log("UPDATING CURRENT RENDERING");
 		let response = await fetch('/get_current_rendering');
-		let data = await response.json();
+		const data = await response.json();
 
 		curr_rendering_path.set(await data["rendering_path"]);
 		curr_texture_parts.set(await data ["texture_parts"]);
 		curr_textureparts_path.set(await data["textureparts_path"]);
 
-		return data; 
+		// updateCurrentRenderingDisplay();
+		information_panel.updatePartInformation();
+		is_loading=false;
 	}
-	
 	
 
 	let ui_collapsed = false;
@@ -92,6 +99,8 @@
             }),
         });
 
+		// updateCurrentRendering();
+
         const data = await response.json();
 		curr_rendering_path.set(await data["rendering_path"]);
 		curr_texture_parts.set(await data["texture_parts"]);
@@ -102,7 +111,8 @@
 		is_loading=false;
 		
 	}
-	const promise = getInitialRendering();
+
+
 	curr_rendering_path.subscribe(value => {
 		current_rendering_path = value;
 	});
@@ -114,6 +124,19 @@
 	curr_textureparts_path.subscribe(value => {
 		current_textureparts_path = value;
 	});
+
+	async function getInitialRendering() {
+		let response = await fetch('/get_current_rendering');
+		let data = await response.json();
+		curr_rendering_path.set(await data["rendering_path"]);
+		curr_texture_parts.set(await data ["texture_parts"]);
+		curr_textureparts_path.set(await data["textureparts_path"]);
+		return data;
+	}
+	const promise = getInitialRendering();
+
+
+
 	onMount(async function () {
 		const response = await fetch("/get_static_dir");
 		const data = await response.text();	
@@ -127,7 +150,8 @@
 	<div class="container">
 		<!-- Left Section -->
 		<div class="actions-panel" class:collapsed={ui_collapsed}>
-			<ActionsPanel />
+			<ActionsPanel onCallUpdateCurrentRendering={updateCurrentRendering}/> 
+			<!-- <ActionsPanel/> -->
 			<!-- <button on:click={()=>collapseDiv(ui_collapsed)}> Hide </button> -->
 		</div>
 
@@ -151,6 +175,7 @@
 					{/await}
 				{/if}
 			</div>
+
 			<!-- Display of saved renderings -->
 			<div class="saved-renderings">
 				{#await saved_renderings_promise}
@@ -175,7 +200,6 @@
 			{#await promise}
 				<pre> Loading rendering information. Please wait. </pre>
 			{:then data} 
-				<!-- <Information bind:this={information_panel}  {current_texture_parts}/> -->
 				<Information bind:this={information_panel} />
 			{/await}
 			

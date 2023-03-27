@@ -272,7 +272,7 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
     if(not os.path.isdir(curr_render_savedir)):
         makedir(curr_render_savedir)
     
-    emptydir(curr_render_savedir)
+    # emptydir(curr_render_savedir)
     
     curr_render_path = os.path.join(curr_render_savedir,"rendering.png")
     curr_textureparts_path = os.path.join(curr_render_savedir,"object_part_material.json")
