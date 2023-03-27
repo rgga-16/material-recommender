@@ -14,6 +14,7 @@
 
     let textureparts = [];
     let partpairs = [];
+    let partpairs_infos = [];
 
     let is_loading=false;
     let activeTab = 'tab1-content';
@@ -22,25 +23,51 @@
         activeTab = tab;
     }
 
-    
+    function updatePartPairs() {
+        selected_parts = Object.keys(current_texture_parts[selected_obj]);
+        partpairs_infos = [];
+
+        for (let i = 0; i < selected_parts.length; i++) {
+            let child_part = selected_parts[i];
+            if (current_texture_parts[selected_obj][child_part]["parents"].length > 0) {
+                for (let j = 0; j < current_texture_parts[selected_obj][child_part]["parents"].length; j++) {
+                    let parent_part = current_texture_parts[selected_obj][child_part]["parents"][j];
+                    let partpair_info = {
+                        "parent_part": parent_part,
+                        "child_part": child_part,
+                        "parent_part_path": current_texture_parts[selected_obj][parent_part]["path"],
+                        "child_part_path": current_texture_parts[selected_obj][child_part]["path"]
+                    }
+                    partpairs_infos.push(partpair_info);
+                }
+            }
+        }
+
+    }
+
     export async function updatePartInformation() {
 
         is_loading=true;
         selected_parts = Object.keys(current_texture_parts[selected_obj]);
+        
         for (let i = 0; i < textureparts.length; i++) {
             textureparts[i].updateImage();
         }
 
+        updatePartPairs();
+        
         for (let j = 0; j < partpairs.length; j++) {
             partpairs[j].updateImages();
         }
         is_loading=false;
     }
-
     
     curr_texture_parts.subscribe(value => {
 		current_texture_parts = value;
 	});
+    updatePartPairs();
+
+
 
     
 </script>
@@ -54,7 +81,7 @@
     <div class='tab-content'  class:active={activeTab==='tab1-content'} id="tab1-content">
         <h3> Rendering Information </h3>
 
-        <select bind:value={selected_obj} on:change={() => loadParts()}>
+        <select bind:value={selected_obj} on:change={() => updatePartInformation()}>
             {#each objects as obj}
                 <option value={obj}>
                     {obj}
@@ -84,8 +111,7 @@
 
     <div class='tab-content' class:active={activeTab==='tab2-content'} id="tab2-content">   
         <h3> Feedback </h3>
-
-        <select bind:value={selected_obj} on:change={() => loadParts()}>
+        <select bind:value={selected_obj} on:change={() => updatePartInformation()}>
             {#each objects as obj}
                 <option value={obj}>
                     {obj}
@@ -93,15 +119,29 @@
             {/each}
         </select>
 
-        <!-- <div class="image-grid"> -->
         {#if is_loading}
             <div class="images-placeholder">
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
             </div>
         {:else}
-            {#each selected_parts as child_part}
+            {#each partpairs_infos as partpair_info, i}
+                <PartPairs bind:this={partpairs[i]} 
+                    bind:obj={selected_obj} 
+                    bind:child_part={partpair_info.child_part} 
+                    bind:child_mat_name={current_texture_parts[selected_obj][partpair_info.child_part]['mat_name']}
+                    bind:child_mat_finish={current_texture_parts[selected_obj][partpair_info.child_part]['mat_finish']}
+                    bind:child_mat_url={current_texture_parts[selected_obj][partpair_info.child_part]['mat_image_texture']}
+
+                    bind:parent_part={partpair_info.parent_part} 
+                    bind:parent_mat_name={current_texture_parts[selected_obj][partpair_info.parent_part]['mat_name']}
+                    bind:parent_mat_finish={current_texture_parts[selected_obj][partpair_info.parent_part]['mat_finish']}
+                    bind:parent_mat_url={current_texture_parts[selected_obj][partpair_info.parent_part]['mat_image_texture']}
+                />
+            {/each}
+            <!-- {#each selected_parts as child_part, i}
                 {#if current_texture_parts[selected_obj][child_part]["parents"].length > 0}
-                    {#each current_texture_parts[selected_obj][child_part]["parents"] as parent_part, i}
+                    {#each current_texture_parts[selected_obj][child_part]["parents"] as parent_part, j}
+                        {partpairs_infos.push({child_part: child_part, parent_part: parent_part})}
                         <PartPairs bind:this={partpairs[i]} 
                             bind:obj={selected_obj} 
                             bind:child_part={child_part} 
@@ -114,13 +154,14 @@
                             bind:parent_mat_finish={current_texture_parts[selected_obj][parent_part]['mat_finish']}
                             bind:parent_mat_url={current_texture_parts[selected_obj][parent_part]['mat_image_texture']} 
                         />                 
+                        
                     {/each}
                 {/if}
-            {/each}
-        {/if}
-        <!-- </div> -->
-    </div>
+            {/each} -->
+            <!-- {console.log(partpairs_infos)} -->
 
+        {/if}
+    </div>
 </div>
 
 <style>
@@ -148,9 +189,6 @@
     }
 
     .tab-content.active {
-        /* display: block;
-        padding: 1rem;
-        background-color: lightgray; */
         display: flex;
         flex-direction: column;
         height: 100%;
@@ -169,3 +207,24 @@
         text-align: center;
     }
 </style>
+
+<!-- Old Code -->
+
+<!-- {#each selected_parts as child_part, i}
+        {#if current_texture_parts[selected_obj][child_part]["parents"].length > 0}
+            {#each current_texture_parts[selected_obj][child_part]["parents"] as parent_part, j}
+                <PartPairs bind:this={partpairs[i*j]} 
+                    bind:obj={selected_obj} 
+                    bind:child_part={child_part} 
+                    bind:child_mat_name={current_texture_parts[selected_obj][child_part]['mat_name']}
+                    bind:child_mat_finish={current_texture_parts[selected_obj][child_part]['mat_finish']}
+                    bind:child_mat_url={current_texture_parts[selected_obj][child_part]['mat_image_texture']}
+
+                    bind:parent_part={parent_part} 
+                    bind:parent_mat_name={current_texture_parts[selected_obj][parent_part]['mat_name']}
+                    bind:parent_mat_finish={current_texture_parts[selected_obj][parent_part]['mat_finish']}
+                    bind:parent_mat_url={current_texture_parts[selected_obj][parent_part]['mat_image_texture']} 
+                />                 
+            {/each}
+        {/if}
+    {/each} -->

@@ -9,6 +9,11 @@
     import {curr_texture_parts} from '../../stores.js';
 	import {curr_textureparts_path} from '../../stores.js';
 
+    export let onCallUpdateCurrentRendering
+    function callUpdateCurrentRendering() {
+        onCallUpdateCurrentRendering();
+    }
+
     let input_material='';
 
     let selected_object_parts=[]; 
@@ -80,22 +85,6 @@
 
     async function apply_to_curr_rendering(index) {
         
-        // const response = await fetch("/apply_to_current_rendering", {
-        //     method: "POST",
-        //     headers: {"Content-Type": "application/json"},
-        //     body: JSON.stringify({
-        //         "rendering_path": selected["rendering_path"],
-        //         "texture_parts": selected["texture_parts"],
-        //         "textureparts_path": selected["textureparts_path"]
-        //     }),
-        // });
-
-        // const data = await response.json();
-		// curr_rendering_path.set(await data["rendering_path"]);
-		// curr_texture_parts.set(await data["texture_parts"]);
-		// curr_textureparts_path.set(await data["textureparts_path"]);
-        
-        
         if(index==undefined) {
             alert("Please select one of the options"); 
             return;
@@ -119,12 +108,18 @@
 
         const json = await response.json();
         curr_rendering_path.set(json["rendering_path"]);
-        curr_texture_parts.set(await data["texture_parts"]);
-		curr_textureparts_path.set(await data["textureparts_path"]);
+        curr_texture_parts.set(await json["texture_parts"]);
+		curr_textureparts_path.set(await json["textureparts_path"]);
+
+        callUpdateCurrentRendering();
     }
 
     const n_pages = 4;
     let current_page = 0;
+
+    function reset_page() {
+        current_page=0;
+    }
 
     function next_page() {
         current_page+=1;
@@ -233,7 +228,6 @@
         
         <div class="carousel-nav-btns">
             <button on:click|preventDefault={()=>prev_page()}> Previous </button>
-            <!-- <button on:click|preventDefault={()=>next_page()}> Next </button> -->
             <button on:click|preventDefault={()=>apply_to_curr_rendering(selected_index)}> Apply to current rendering </button>
         </div>
     </div>
@@ -325,7 +319,7 @@
 
 </style>
 
-
+<!-- OLD CODE BELOW-->
 
 <!-- async function gen_and_apply_textures(texture_str) {
         
