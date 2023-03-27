@@ -159,8 +159,8 @@
             </div>
         {/if}
         <div class="carousel-nav-btns">
-            {#if selected_textures.length > 0}
-                <button on:click|preventDefault={()=>next_page()}> Next </button>
+            {#if generated_textures.length > 0}
+                <button disabled={selected_textures.length<=0} on:click|preventDefault={()=>next_page()}> Next </button>
             {/if}
         </div>
     </div>
@@ -212,8 +212,8 @@
         
         <div class="carousel-nav-btns">
             <button on:click|preventDefault={()=>prev_page()}> Prev </button>
-            {#if selected_index!=undefined}
-                <button on:click|preventDefault={()=>next_page()}> Next </button>
+            {#if rendering_texture_pairs.length > 0}
+                <button disabled={!(selected_index!=undefined)} on:click|preventDefault={()=>next_page()}> Next </button>
             {/if}
         </div>
     </div>
