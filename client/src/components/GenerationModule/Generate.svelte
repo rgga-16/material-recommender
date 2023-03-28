@@ -35,7 +35,8 @@
         objs_and_parts = obj_and_part_json;
     }); 
 
-    async function generate_textures(texture_str) {
+    export async function generate_textures(texture_str) {
+        input_material=texture_str;
         is_loading=true; 
         generated_textures=[];
         const results_response = await fetch("/generate_textures", {
@@ -146,6 +147,7 @@
             <button> Generate Material </button>
         </form>
         {#if generated_textures.length > 0}
+                <p> Texture map results for: {input_material}</p>
                 <GeneratedTextures pairs= {generated_textures} bind:selected_texturepaths={selected_textures}/>
                 <p> {selected_textures.length}/4 textures selected. {#if selected_textures.length<=0} Please select at least 1 texture map to proceed.{/if}</p>
         {:else if is_loading==true}

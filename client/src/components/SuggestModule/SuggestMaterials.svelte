@@ -1,6 +1,10 @@
 <script>
     import MaterialCard from "./MaterialCard.svelte";
     import { Circle } from 'svelte-loading-spinners';
+    import {actions_panel_tab} from '../../stores.js';
+    import {createEventDispatcher} from 'svelte';
+
+    const dispatch = createEventDispatcher();
 
     const material_types = ["All types","wood","metal","fabric","ceramic"]
     const interior_design_styles = ['Modern', 'Traditional', 'Contemporary', 'Industrial', 'Transitional', 'Rustic', 'Bohemian', 'Minimalist', 'Hollywood Regency', 'Scandinavian']
@@ -36,8 +40,13 @@
 
     }
 
-    function proceed_to_generate(material_name) {
+    function switchActionPanelTab(tab) {
+        actions_panel_tab.set(tab);
+    }
 
+    function proceed_to_generate(material_name) {
+        switchActionPanelTab('generate');
+        dispatch('proceedToGenerate', material_name);
     }
 
 </script>
@@ -73,7 +82,7 @@
                     </label>
                 {/each}
             </div>
-            <button> Generate Material Texture </button>
+            <button on:click={()=>proceed_to_generate(suggested_materials[selected_material_index]["name"] + " " + selected_material_type)}> Generate Material Texture </button>
         {:else if is_loading==true}
             <div class="images-placeholder">
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
