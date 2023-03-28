@@ -5,6 +5,7 @@
     import {actions_panel_tab} from '../stores.js';
 
     export let onCallUpdateCurrentRendering;
+    let generate;
 
     function callUpdateCurrentRendering() {
         onCallUpdateCurrentRendering();
@@ -29,11 +30,11 @@
   </div>
   
   <div class='tab-content'  class:active={activeTab==='generate'} id="generate">
-    <Generate onCallUpdateCurrentRendering={callUpdateCurrentRendering} />
+    <Generate onCallUpdateCurrentRendering={callUpdateCurrentRendering} bind:this={$generate} />
   </div> 
 
   <div class='tab-content' class:active={activeTab==='suggest_materials'} id="suggest_materials">
-    <SuggestMaterials />
+    <SuggestMaterials on:proceedToGenerate={arg => $generate.generate_textures(arg.detail)}/>
   </div>
 
   <div class='tab-content' class:active={activeTab==='suggest_colors'} id="suggest_colors">
