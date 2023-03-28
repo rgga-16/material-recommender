@@ -39,11 +39,15 @@
     }
 
     .preview-card:hover {
-        border: 2px solid grey;
+        border: 3px solid grey;
     }
 
     .selected {
-        border: 2px solid blue;
+        border: 3px solid blue;
+    }
+
+    .selected:hover {
+        border: 3px solid blue;
     }
 
     

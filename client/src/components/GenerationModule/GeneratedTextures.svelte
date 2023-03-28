@@ -43,5 +43,9 @@
         border: 3px solid blue;
     }
 
+    .selected:hover {
+        border: 3px solid blue;
+    }
+
     
 </style>

@@ -58,6 +58,10 @@
 	.tab-btn.active {
 		background-color: rgb(89, 185, 218);
 	}
+
+  .tab-btn.active:hover {
+		background-color: rgb(89, 185, 218);
+	}
   
 	.tab-content {
 		display: none;
