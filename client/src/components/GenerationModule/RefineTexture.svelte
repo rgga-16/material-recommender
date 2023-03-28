@@ -5,6 +5,7 @@
     import NumberSpinner from "svelte-number-spinner";
     import { Circle } from 'svelte-loading-spinners';
     import { onMount } from "svelte";
+    import {actions_panel_tab} from "../../stores.js";
 
     export let selected_index; 
     export let rendering_texture_pairs;
@@ -30,7 +31,7 @@
     let material_finish;
 
     let palettes=[]; 
-    let selected_palette_idx=undefined;
+    let selected_palette_idx=0;
 	saved_color_palettes.subscribe(value => {
 		palettes=value;
         selected_palette_idx=0;
@@ -142,9 +143,11 @@
         return str.replace("°", "").trim();
     }
 
-    onMount(() => {
 
-    });
+    function switchActionPanelTab(tab) {
+        actions_panel_tab.set(tab);
+    }
+
 
 
 </script>
@@ -214,12 +217,6 @@
                                 <input type=radio bind:group={selected_swatch_idx} name={swatch} value={i}>
                             </label>
                         {/each}
-                    {:else}
-                        <div class="swatch" style="background-color: #FFFFFF;"></div>
-                        <div class="swatch" style="background-color: #FFFFFF;"></div>
-                        <div class="swatch" style="background-color: #FFFFFF;"></div>
-                        <div class="swatch" style="background-color: #FFFFFF;"></div>
-                        <div class="swatch" style="background-color: #FFFFFF;"></div>
                     {/if}
 
                     {#if isOpen}
@@ -233,7 +230,8 @@
                                     <input type=radio bind:group={selected_palette_idx} name={j} value={j}>
                                 </label>
                             {/each}
-                            <div class="palette selectable"> +Suggest colors</div>
+                            <!-- svelte-ignore a11y-click-events-have-key-events -->
+                            <div class="palette selectable" on:click={()=>switchActionPanelTab('suggest_colors')}> +Suggest colors </div>
                         </div>  
                     {/if} 
                 </div>
@@ -411,6 +409,10 @@
     }
 
     input[type="color"]:hover {
+        cursor:pointer;
+    }
+
+    .selectable:hover {
         cursor:pointer;
     }
 

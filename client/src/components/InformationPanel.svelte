@@ -4,6 +4,8 @@
     import {curr_texture_parts} from '../stores.js';
     import TexturePart from './TexturePart.svelte';
     import PartPairs from './PartPairs.svelte';
+
+    import {information_panel_tab} from '../stores.js';
     
     let current_texture_parts = get(curr_texture_parts);
     
@@ -17,10 +19,13 @@
     let partpairs_infos = [];
 
     let is_loading=false;
-    let activeTab = 'tab1-content';
+    let activeTab;
+    information_panel_tab.subscribe(value => {
+        activeTab = value;
+    });
 
     function switchTab(tab) {
-        activeTab = tab;
+        information_panel_tab.set(tab);
     }
 
     function updatePartPairs() {
@@ -74,11 +79,11 @@
 
 <div class="information-panel">
     <div class="w3-bar w3-grey tabs">
-        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='tab1-content'} on:click={()=>switchTab('tab1-content')} id="tab1-btn">Information</button>
-        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='tab2-content'} on:click={()=>switchTab('tab2-content')}  id="tab2-btn">Feedback</button>
+        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='information'} on:click={()=>switchTab('information')} id="information-btn">Information</button>
+        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='feedback'} on:click={()=>switchTab('feedback')}  id="feedback-btn">Feedback</button>
     </div>
 
-    <div class='tab-content'  class:active={activeTab==='tab1-content'} id="tab1-content">
+    <div class='tab-content'  class:active={activeTab==='information'} id="information">
         <h3> Rendering Information </h3>
 
         <select bind:value={selected_obj} on:change={() => updatePartInformation()}>
@@ -109,7 +114,7 @@
 
     </div> 
 
-    <div class='tab-content' class:active={activeTab==='tab2-content'} id="tab2-content">   
+    <div class='tab-content' class:active={activeTab==='feedback'} id="feedback">   
         <h3> Feedback </h3>
         <select bind:value={selected_obj} on:change={() => updatePartInformation()}>
             {#each objects as obj}
@@ -138,28 +143,6 @@
                     bind:parent_mat_url={current_texture_parts[selected_obj][partpair_info.parent_part]['mat_image_texture']}
                 />
             {/each}
-            <!-- {#each selected_parts as child_part, i}
-                {#if current_texture_parts[selected_obj][child_part]["parents"].length > 0}
-                    {#each current_texture_parts[selected_obj][child_part]["parents"] as parent_part, j}
-                        {partpairs_infos.push({child_part: child_part, parent_part: parent_part})}
-                        <PartPairs bind:this={partpairs[i]} 
-                            bind:obj={selected_obj} 
-                            bind:child_part={child_part} 
-                            bind:child_mat_name={current_texture_parts[selected_obj][child_part]['mat_name']}
-                            bind:child_mat_finish={current_texture_parts[selected_obj][child_part]['mat_finish']}
-                            bind:child_mat_url={current_texture_parts[selected_obj][child_part]['mat_image_texture']}
-
-                            bind:parent_part={parent_part} 
-                            bind:parent_mat_name={current_texture_parts[selected_obj][parent_part]['mat_name']}
-                            bind:parent_mat_finish={current_texture_parts[selected_obj][parent_part]['mat_finish']}
-                            bind:parent_mat_url={current_texture_parts[selected_obj][parent_part]['mat_image_texture']} 
-                        />                 
-                        
-                    {/each}
-                {/if}
-            {/each} -->
-            <!-- {console.log(partpairs_infos)} -->
-
         {/if}
     </div>
 </div>

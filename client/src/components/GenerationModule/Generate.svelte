@@ -8,6 +8,7 @@
     import {curr_rendering_path} from '../../stores.js';
     import {curr_texture_parts} from '../../stores.js';
 	import {curr_textureparts_path} from '../../stores.js';
+    import {actions_panel_tab} from '../../stores.js';
 
     export let onCallUpdateCurrentRendering
     function callUpdateCurrentRendering() {
@@ -134,8 +135,6 @@
             current_page=0;
         }
     }
-
-
 </script>
 
 <div class="material_generator">

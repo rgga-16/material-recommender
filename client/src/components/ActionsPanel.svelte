@@ -2,6 +2,7 @@
     import Generate from "./GenerationModule/Generate.svelte";
     import SuggestMaterials from "./SuggestModule/SuggestMaterials.svelte";
     import SuggestColors from "./SuggestModule/SuggestColors.svelte";
+    import {actions_panel_tab} from '../stores.js';
 
     export let onCallUpdateCurrentRendering;
 
@@ -9,9 +10,12 @@
         onCallUpdateCurrentRendering();
     }
     
-    let activeTab = 'generate';
+    let activeTab;
+    actions_panel_tab.subscribe(value => {
+        activeTab = value;
+    });
     function switchTab(tab) {
-        activeTab = tab;
+      actions_panel_tab.set(tab);
     }
 
     
