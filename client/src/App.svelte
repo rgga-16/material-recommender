@@ -183,7 +183,8 @@
 				{:then data} 
 					<form on:submit|preventDefault={loadRendering(selected_saved_rendering_idx)}>
 						<h3>Saved Renderings</h3>
-						<div class="saved-renderings-list"> <button style:opacity={selected_saved_rendering_idx!=undefined ? 1:0}> Load rendering </button>
+						<div class="saved-renderings-list"> 
+							<button disabled={!(selected_saved_rendering_idx!=undefined)}> Load rendering </button>
 							{#each saved_renderings as saved_renderings,i}
 								<label class = "saved-rendering" class:selected={selected_saved_rendering_idx===i}>
 									<input type=radio bind:group={selected_saved_rendering_idx} name="option-{i}" value={i} />
