@@ -56,10 +56,10 @@
     async function apply_textures() {
         rendering_texture_pairs=[];
         selected_obj_parts_dict = {};
-        is_loading=true;
+        
 
         if (selected_object_parts.length <= 0) { alert("Please select at least 1 object part"); return }
-
+        is_loading=true;
         for (let i = 0; i < selected_object_parts.length; i++) {
             let splitted = selected_object_parts[i].split("-");
             let obj = splitted[0];
@@ -213,9 +213,9 @@
         
         <div class="carousel-nav-btns">
             <button on:click|preventDefault={()=>prev_page()}> Prev </button>
-            {#if rendering_texture_pairs.length > 0}
-                <button disabled={!(selected_index!=undefined)} on:click|preventDefault={()=>next_page()}> Next </button>
-            {/if}
+            <!-- {#if rendering_texture_pairs.length > 0} -->
+                <button disabled={!(selected_index!=undefined && rendering_texture_pairs.length > 0)} on:click|preventDefault={()=>next_page()}> Next </button>
+            <!-- {/if} -->
         </div>
     </div>
 
@@ -238,7 +238,6 @@
 </div>
 
 <style>
-
 
     .tab {
         border: 1px solid gray;
@@ -278,30 +277,20 @@
     
     label {
         padding: 5px;
-        /* border: 1px solid gray;
-        border-radius: 5px 5px 0 0;
-        margin-bottom: -1px;
-        background-color: lightgray; */
     }
+
     input[type="radio"]:checked + label {
         background-color: white;
     }
+
     .checkbox-group {
-        /* display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        grid-column-gap: 5px;
-        grid-row-gap: 5px; */
         width:100%;
         max-width:900px;
         margin:0 auto;
         text-align:left;
     }
     .checkbox-item {
-        /* padding:5px; 
-        max-width: 50%; */
         display: inline-block;
-        /* height: 170px;
-        width: 170px; */
         margin:5px;
         background-color:lightblue;
     }
