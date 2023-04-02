@@ -274,8 +274,10 @@ class Renderer():
         self.camera.scale = scale
         bpy.context.scene.camera = self.camera
 
-    def load_object(self,mesh_path, loc=(0.0,0.0,2.636), rot=(90,0,0), scale=(1.0,1.0,1.0)):
-        bpy.ops.import_scene.obj(filepath=mesh_path)
+    def load_object(self,mesh_path, loc=(0.0,0.0,2.636), rot=(90,0,0), scale=(1.0,1.0,1.0), axis_forward='-Z', axis_up='Y'):
+        bpy.ops.import_scene.obj(filepath=mesh_path, axis_forward=axis_forward, axis_up=axis_up)
+
+
         mesh_file = os.path.basename(mesh_path)
         selected = bpy.context.selected_objects
         obj = bpy.context.selected_objects.pop()
