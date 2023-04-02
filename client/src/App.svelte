@@ -233,7 +233,6 @@
 		width: 50%;
 		height: inherit;
 		padding: 5px;
-		/* padding: 0.5rem; */
 	}
 
 	.rendering-display {

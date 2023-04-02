@@ -49,6 +49,7 @@
             }),
         });
         const results_json = await results_response.json();
+        
         generated_textures = results_json["results"];
         is_loading=false;
     }
@@ -136,6 +137,12 @@
             current_page=0;
         }
     }
+
+    let active_obj_id=0;
+    function switchObjectTab(id) {
+        active_obj_id=id;
+    }
+
 </script>
 
 <div class="material_generator">
@@ -172,6 +179,29 @@
             {#await objs_and_parts}
                 <pre>Loading object names and their part names</pre>
             {:then data} 
+                <div class="w3-bar w3-grey tabs">
+                    {#each Object.entries(data) as [obj_name, attribs],i}
+                        <button class="w3-bar-item w3-button tab-btn" class:active={active_obj_id===i} on:click|preventDefault={()=>switchObjectTab(i)}> {obj_name} </button>
+                    {/each}
+                </div>
+
+                {#each Object.entries(data) as [obj_name,attribs], i}
+                    <div class="tab-content" class:active={active_obj_id===i}>
+                        <div class="checkbox-group">
+                            {#each attribs.parts.names as part_name}
+                                <div class="checkbox-item">
+                                    <label for="checkbox-{part_name}"> 
+                                        <input type="checkbox" bind:group={selected_object_parts} id="checkbox-{obj_name}-{part_name}" 
+                                        name="checkbox-group-{obj_name}" value="{obj_name}-{part_name}" >
+                                        {part_name} 
+                                    </label>
+                                </div>
+                            {/each}
+                        </div>
+                    </div>
+                {/each}
+                
+<!-- 
                 {#each Object.entries(data) as [obj_name,attribs]}
                     <div class="tab">
                         <input type="radio" name="css-tabs" id="tab-{obj_name}" checked="checked" class="tab-switch">
@@ -190,7 +220,7 @@
                         </div>
                     </div>
                     
-                {/each}
+                {/each} -->
             {/await}
             <button> Apply textures </button>
         </form>
@@ -239,9 +269,29 @@
 
 <style>
 
-    .tab {
-        border: 1px solid gray;
+    .tab-btn {
+        height:100%;
     }
+
+	.tab-btn.active {
+		background-color: rgb(89, 185, 218);
+	}
+
+    .tab-btn.active:hover {
+		background-color: rgb(89, 185, 218);
+	}
+
+	.tab-content {
+		display: none;
+	}
+
+    .tab-content.active {
+		display: flex;
+        flex-direction: row;
+        height: 100%;
+        width:100%;
+        padding: 5px;
+	}
 
     .material_generator {
         display: flex;
