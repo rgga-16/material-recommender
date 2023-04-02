@@ -409,9 +409,10 @@ if __name__ == "__main__":
 
     products = [
         "nightstand_family",
+        "bedroom"
     ]
 
-    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[0])
+    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[1])
     RENDER_DIR = os.path.join(DATA_DIR,"renderings")
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 
@@ -430,7 +431,6 @@ if __name__ == "__main__":
         dir_path = os.path.join(init_saved_renderings_dir,str(d))
         render_path = os.path.join(dir_path,"rendering.png")
         textureparts_path = os.path.join(dir_path,"object_part_material.json")
-        # texture_parts = json.load(open(textureparts_path))
         add_to_saved_renderings(render_path,textureparts_path)
 
     texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
