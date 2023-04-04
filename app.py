@@ -415,9 +415,8 @@ if __name__ == "__main__":
     init_render_path = os.path.join(RENDER_DIR,"current","rendering.png")
 
     # Code to render initial rendering.
-    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {init_render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path}'
-    os.system(command_str)
-
+    # command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {init_render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path}'
+    # os.system(command_str)
 
     # Code to load current rendering into frontend (client folder).
     init_texture_parts = json.load(open(os.path.join(RENDER_DIR, "current","object_part_material.json")))
@@ -434,7 +433,4 @@ if __name__ == "__main__":
         textureparts_path = os.path.join(dir_path,"object_part_material.json")
         add_to_saved_renderings(render_path,textureparts_path)
 
-    
-
-    # command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath}'
     app.run(debug=True)
