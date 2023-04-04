@@ -51,11 +51,7 @@ def setup_fabric(principled_node: bpy.types.Node, mat_node_tree, image_texture_n
     bump_node = mat_node_tree.nodes.new('ShaderNodeBump')
     bump_node.inputs['Strength'].default_value=0.1
 
-    # mapping_node = mat_node_tree.nodes.new('ShaderNodeMapping')
-    # texture_coord_node = mat_node_tree.nodes.new('ShaderNodeTexCoord')
 
-    # mat_node_tree.links.new(texture_coord_node.outputs['UV'], mapping_node.inputs['Vector'])
-    # mat_node_tree.links.new(mapping_node.outputs['Vector'], image_texture_node.inputs['Vector'])
     mat_node_tree.links.new(image_texture_node.outputs['Color'], bump_node.inputs['Height'])
     mat_node_tree.links.new(bump_node.outputs['Normal'], principled_node.inputs['Normal'])
 
@@ -98,7 +94,6 @@ def isin_materials(input_material_type,materials_list):
 
 def setup_material(principled_node: bpy.types.Node, mat_node_tree, image_texture_node: bpy.types.Node, material_type:str, material_finish:str='glossy' ):
     material_type=material_type.lower()
-    
 
     # Do another pass here on the type of finish. For now, default finish is "glossy"
     set_pbsdf_settings(principled_node,material_finish)
@@ -124,7 +119,6 @@ def setup_material(principled_node: bpy.types.Node, mat_node_tree, image_texture
 
 
 def set_pbsdf_settings(principled_node: bpy.types.Node, material_finish:str):
-
     if material_finish:
         material_finish = material_finish.lower()
         for k in mat_finish_settings.keys():
@@ -174,12 +168,14 @@ def transform_material(mapping_node:bpy.types.Node, transforms:dict):
 
 
 class Renderer():
-    def __init__(self,cam_info, light_info):
+    def __init__(self,cam_info, light_info, resolution=(1024,1024)):
+        self.resolution = resolution
         self.set_gpu("BLENDER_EEVEE")
         self.setup_render()
         self.setup_background()
         self.setup_camera(cam_info['loc'],cam_info['rot'],cam_info['scale'])
         self.setup_light(light_info['loc'],light_info['rot'],light_info['scale'])
+        
         self.objects = []
     
     def set_gpu(self, rendering_engine):
@@ -228,8 +224,8 @@ class Renderer():
     
     def setup_render(self):
         self.scene = bpy.context.scene
-        self.scene.render.resolution_x = 1024
-        self.scene.render.resolution_y = 1024
+        self.scene.render.resolution_x = self.resolution[0]
+        self.scene.render.resolution_y = self.resolution[1]
 
         self.scene.render.image_settings.quality = 100
         self.scene.render.image_settings.file_format = 'PNG'
@@ -431,15 +427,16 @@ def get_args():
 
 def main(): 
     args = get_args()
-    unwrap_method_='CUBE_PROJECT'
+    unwrap_method_='UNWRAP'
     with open(args.rendering_setup_json) as json_file:
         info = json.load(json_file)
         models_dir = info['dir']
         models_info = info['objects']
         cam_info = info['camera']
         light_info = info['light']
+        resolution = info['resolution']
 
-    renderer = Renderer(cam_info=cam_info,light_info=light_info)
+    renderer = Renderer(cam_info=cam_info,light_info=light_info,resolution=resolution)
 
     with open(args.texture_object_parts_json) as json_file:
         texture_object_parts = json.load(json_file)
