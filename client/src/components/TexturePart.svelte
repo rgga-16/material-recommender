@@ -12,6 +12,7 @@
     export function updateImage() {
       image.getImage();
     }
+
 </script>
 
 <div class="card">
@@ -19,7 +20,7 @@
     <div class="texture-details">
       <div>
           <div class="texture-name">{material_name}</div>
-          <div>{material_finish}</div>
+          <div>Material finish: {material_finish}</div>
       </div>
       <div><b>{part_name}</b></div>
     </div>
@@ -33,12 +34,6 @@
       max-width: 300px;
       border: 1px solid black;
       padding: 5px; 
-    }
-    
-    .texture-image {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
     }
     
     .texture-details {

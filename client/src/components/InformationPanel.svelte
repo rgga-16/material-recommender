@@ -1,5 +1,6 @@
 <script>
     import { Circle } from 'svelte-loading-spinners';
+    import {createComponent} from 'svelte';
     import {get} from 'svelte/store';
     import {curr_texture_parts} from '../stores.js';
     import TexturePart from './TexturePart.svelte';
@@ -13,13 +14,15 @@
 
     let selected_obj = objects[0];
     let selected_parts = Object.keys(current_texture_parts[selected_obj]);
-
+    
     let textureparts = [];
+    let texturepart_infos = [];
     let partpairs = [];
     let partpairs_infos = [];
 
     let is_loading=false;
     let activeTab;
+
     information_panel_tab.subscribe(value => {
         activeTab = value;
     });
@@ -50,6 +53,59 @@
 
     }
 
+
+    async function updateTextureParts() {
+        console.log(selected_obj);
+        textureparts = [];
+        selected_parts = Object.keys(current_texture_parts[selected_obj]);
+        texturepart_infos = [];
+
+        for (let i = 0; i < selected_parts.length; i++) {
+            let part = selected_parts[i];
+
+            let texturepart_info = {
+                "part": part,
+                "mat_name": current_texture_parts[selected_obj][part]["mat_name"],
+                "mat_path": current_texture_parts[selected_obj][part]["mat_image_texture"],
+                "mat_finish": current_texture_parts[selected_obj][part]["mat_finish"],
+            }
+            texturepart_infos.push(texturepart_info);
+            texturepart_infos=texturepart_infos;
+
+            //BUG: This is not working. The textureparts are not being updated.
+            let texturepart = new TexturePart({
+                target: document.body,
+                props: {
+                    part_name: texturepart_infos[i]["part"],
+                    material_name: texturepart_infos[i]["mat_name"],
+                    material_finish: texturepart_infos[i]["mat_finish"],
+                    material_url: texturepart_infos[i]["mat_path"]
+                }
+            });
+
+            // let texturepart = createComponent(TexturePart, {
+            //     target: document.getElementById("textureparts"),
+            //     props: {
+            //         part_name: texturepart_infos[i]["part"],
+            //         material_name: texturepart_infos[i]["mat_name"],
+            //         material_finish: texturepart_infos[i]["mat_finish"],
+            //         material_url: texturepart_infos[i]["mat_path"]
+            //     }
+            // });
+            // texturepart.updateImage();
+            textureparts.push(texturepart);
+            textureparts=textureparts;
+        }
+
+        is_loading=true;
+        for (let i=0; i < textureparts.length; i++) {
+            textureparts[i].updateImage();
+        }
+        is_loading=false;
+
+
+    }
+
     export async function updatePartInformation() {
 
         is_loading=true;
@@ -71,10 +127,8 @@
 		current_texture_parts = value;
 	});
     updatePartPairs();
+    updateTextureParts();
 
-
-
-    
 </script>
 
 <div class="information-panel">
@@ -86,7 +140,7 @@
     <div class='tab-content'  class:active={activeTab==='information'} id="information">
         <h3> Rendering Information </h3>
 
-        <select bind:value={selected_obj} on:change={() => updatePartInformation()}>
+        <select bind:value={selected_obj} on:change={() => updateTextureParts()}>
             {#each objects as obj}
                 <option value={obj}>
                     {obj}
@@ -94,24 +148,26 @@
             {/each}
         </select>
 
-        <!-- <div class="image-grid"> -->
         {#if is_loading}
             <div class="images-placeholder">
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
             </div>
         {:else}
-            {#each selected_parts as part,i}
-                <TexturePart bind:this={textureparts[i]} 
-                    bind:part_name ={part} 
-                    bind:material_name={current_texture_parts[selected_obj][part]['mat_name']} 
-                    bind:material_finish={current_texture_parts[selected_obj][part]['mat_finish']} 
-                    bind:material_url={current_texture_parts[selected_obj][part]['mat_image_texture']} 
-                />
-            {/each}
-        {/if}
-            
-        <!-- </div> -->
 
+        {#each textureparts as texturepart}
+            <svelte:component this={texturepart} />
+        {/each}
+            
+          
+        <!-- {#each texturepart_infos as texturepart_info, i}
+                <TexturePart bind:this={textureparts[i]} 
+                    bind:part_name ={texturepart_info.part} 
+                    bind:material_name={texturepart_info["mat_name"]} 
+                    bind:material_finish={texturepart_info["mat_finish"]} 
+                    bind:material_url={texturepart_info["mat_path"]} 
+                />
+            {/each} -->
+        {/if}
     </div> 
 
     <div class='tab-content' class:active={activeTab==='feedback'} id="feedback">   

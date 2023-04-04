@@ -48,10 +48,11 @@
                 "imsize":448,
             }),
         });
-        const results_json = await results_response.json();
         
+        const results_json = await results_response.json();
         generated_textures = results_json["results"];
         is_loading=false;
+        
     }
 
     async function apply_textures() {
@@ -200,27 +201,6 @@
                         </div>
                     </div>
                 {/each}
-                
-<!-- 
-                {#each Object.entries(data) as [obj_name,attribs]}
-                    <div class="tab">
-                        <input type="radio" name="css-tabs" id="tab-{obj_name}" checked="checked" class="tab-switch">
-                        <label for="tab-{obj_name}" class="tab-label">{obj_name}</label>
-
-                        <div class="checkbox-group">
-                            {#each attribs.parts.names as part_name}
-                                <div class="checkbox-item">
-                                    <label for="checkbox-{part_name}"> 
-                                        <input type="checkbox" bind:group={selected_object_parts} id="checkbox-{obj_name}-{part_name}" 
-                                        name="checkbox-group-{obj_name}" value="{obj_name}-{part_name}" >
-                                        {part_name} 
-                                    </label>
-                                </div>
-                            {/each}
-                        </div>
-                    </div>
-                    
-                {/each} -->
             {/await}
             <button> Apply textures </button>
         </form>
@@ -243,9 +223,7 @@
         
         <div class="carousel-nav-btns">
             <button on:click|preventDefault={()=>prev_page()}> Prev </button>
-            <!-- {#if rendering_texture_pairs.length > 0} -->
-                <button disabled={!(selected_index!=undefined && rendering_texture_pairs.length > 0)} on:click|preventDefault={()=>next_page()}> Next </button>
-            <!-- {/if} -->
+            <button disabled={!(selected_index!=undefined && rendering_texture_pairs.length > 0)} on:click|preventDefault={()=>next_page()}> Next </button>
         </div>
     </div>
 
@@ -360,37 +338,4 @@
 </style>
 
 <!-- OLD CODE BELOW-->
-
-<!-- async function gen_and_apply_textures(texture_str) {
-        
-    rendering_texture_pairs=[];
-    let selected_obj_parts_dict = {};
-
-    if (selected_object_parts.length <= 0) { alert("Please select at least 1 object part"); return }
-    for (let i = 0; i < selected_object_parts.length; i++) {
-        let splitted = selected_object_parts[i].split("-");
-        let obj = splitted[0];
-        let part = splitted[1];
-        if(obj in selected_obj_parts_dict) {
-            selected_obj_parts_dict[obj].push(part);
-        } else {
-            selected_obj_parts_dict[obj] = [part]; 
-        }
-    }
-    
-    const results_response = await fetch("/generate_and_transfer_textures", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            "texture_string": texture_str,
-            "n":4,
-            "imsize":448,
-            "obj_parts_dict": selected_obj_parts_dict,
-        }),
-    });
-    const results_json = await results_response.json();
-    rendering_texture_pairs = results_json["results"];
-} -->
-
-
     
