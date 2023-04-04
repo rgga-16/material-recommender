@@ -11,7 +11,7 @@ let imagesource; //Returned image
 let is_loading=false;
 
 export async function getImage() {
-    console.log("updating image!");
+    // console.log("updating image!");
     await fetch("/get_image", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
