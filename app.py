@@ -101,7 +101,7 @@ def suggest_colors_by_style():
     form_data = request.get_json()
     style = form_data["style"]
     suggested_color_palettes=[]
-    color_palettes_dict = gpt3.suggest_color_by_style2(style=style)
+    color_palettes_dict = gpt3.suggest_color_by_style(style=style)
 
     for key in color_palettes_dict.keys():
         suggested_color_palettes.append({
@@ -118,7 +118,7 @@ def suggest_materials_by_style():
     style = form_data["style"]
     material_type = form_data["material_type"]
 
-    materials = gpt3.suggest_materials_by_style2(style=style,material_type=material_type)
+    materials = gpt3.suggest_materials_by_style(style=style,material_type=material_type)
     # materials = gpt_wizard.suggest_materials_by_style_debug(style=style,material_type=material_type)
 
     suggested_materials = []
