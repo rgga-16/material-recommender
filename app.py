@@ -131,7 +131,6 @@ def suggest_materials_by_style():
         # loadpath = os.path.join(CLIENT_IMDIR,"suggested",filename)
         suggested_materials.append({
             "name":m,
-            # "texture":image,
             "reason":reason,
             "filepath":savepath
         })
@@ -162,8 +161,6 @@ def generate_and_transfer_textures():
         for obj in list(obj_part_dict.keys()):
             for part in obj_part_dict[obj]:
                 new_texture_parts[obj][part]["mat_name"]=texture_string
-                # new_texture_parts[obj][part]["mat_finish"]="glossy"
-                # new_texture_parts[obj][part]["mat_image_texture"]=os.path.join(SERVER_IMDIR,filenames[i]).replace(STATIC_IMDIR,"")
                 new_texture_parts[obj][part]["mat_image_texture"]=os.path.join(SERVER_IMDIR,filenames[i])
 
         tmp_texture_parts_savepath = os.path.join(SERVER_IMDIR,"renderings",f"texture_parts_{i}.json")
@@ -206,12 +203,9 @@ def generate_textures_():
         savepath = os.path.join(SERVER_IMDIR,filenames[i])
         textures[i].save(savepath)
 
-        texture_loadpath = os.path.join(CLIENT_IMDIR,filenames[i])
         texture_loadpaths.append({
             'rendering': None,
             'texture': savepath
-            # 'texture': encoded_texture
-            # 'texture':texture_loadpath
         })
 
     return {"results": texture_loadpaths}
@@ -231,7 +225,6 @@ def apply_textures():
     for i in range(len(selected_texturepaths)):
         filename = os.path.basename(selected_texturepaths[i])
         texture_savepath = os.path.join(SERVER_IMDIR,filename)
-        texture_loadpath = os.path.join(CLIENT_IMDIR,filename)
 
         new_texture_parts = copy.deepcopy(current_texture_parts)
         for obj in list(obj_part_dict.keys()):
@@ -246,7 +239,6 @@ def apply_textures():
             json.dump(new_texture_parts,tmpfile)
 
         rendering_savepath = os.path.join(SERVER_IMDIR,"renderings",f"rendering_{i}.png")
-        rendering_loadpath = os.path.join(CLIENT_IMDIR,"renderings",f"rendering_{i}.png")
         
         command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath}'
         os.system(command_str)
@@ -406,6 +398,8 @@ if __name__ == "__main__":
 
     # Here, you should make the necessary dirs under client/public.
     
+    ######################################
+    texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
 
     products = [
         "nightstand_family",
@@ -416,9 +410,16 @@ if __name__ == "__main__":
     RENDER_DIR = os.path.join(DATA_DIR,"renderings")
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 
-    # Code to load current rendering into frontend (client folder).
+    
     init_texture_parts_path = os.path.join(RENDER_DIR, "current","object_part_material.json")
     init_render_path = os.path.join(RENDER_DIR,"current","rendering.png")
+
+    # Code to render initial rendering.
+    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {init_render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path}'
+    os.system(command_str)
+
+
+    # Code to load current rendering into frontend (client folder).
     init_texture_parts = json.load(open(os.path.join(RENDER_DIR, "current","object_part_material.json")))
     current_texture_parts = copy.deepcopy(init_texture_parts)
     apply_to_current_rendering(init_render_path,init_texture_parts_path)
@@ -433,5 +434,7 @@ if __name__ == "__main__":
         textureparts_path = os.path.join(dir_path,"object_part_material.json")
         add_to_saved_renderings(render_path,textureparts_path)
 
-    texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
+    
+
+    # command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath}'
     app.run(debug=True)
