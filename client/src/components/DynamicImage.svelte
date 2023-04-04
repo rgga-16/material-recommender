@@ -11,7 +11,7 @@ let imagesource; //Returned image
 let is_loading=false;
 
 export async function getImage() {
-
+    console.log("updating image!");
     await fetch("/get_image", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -26,11 +26,6 @@ export async function getImage() {
         };
         reader.readAsDataURL(blob);
     }).catch(error => console.error(error));
-
-}
-
-function log() {
-    console.log("Image path: " + imagepath);
 }
 
 $: getImage();

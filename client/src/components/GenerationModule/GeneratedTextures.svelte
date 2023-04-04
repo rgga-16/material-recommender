@@ -1,6 +1,7 @@
 
 <script>
     import PreviewCard from "./PreviewCard.svelte";
+    import DynamicImage from "../DynamicImage.svelte";
     export let pairs;
     export let selected_texturepaths=[]; 
 </script>
@@ -9,7 +10,8 @@
     {#each pairs as pair, i}
         <label class="preview-card" class:selected={selected_texturepaths.includes(pair.texture)}>
             <input type=checkbox bind:group={selected_texturepaths} name="option" value={pair.texture} >
-            <PreviewCard texture={pair.texture} rendering={pair.rendering} info={pair.info} index={i} size=175/>
+            <div class="image"> <DynamicImage imagepath={pair.texture} size={175} alt="Texture"/> </div>
+            <!-- <PreviewCard texture={pair.texture} rendering={pair.rendering} info={pair.info} index={i} size=175/> -->
         </label>
     {/each} 
     
@@ -25,6 +27,11 @@
     .image-grid {
         width:100%;
         margin:0 auto;
+    }
+
+    .image{
+        width:100%;
+        object-fit: cover;
     }
 
     .preview-card {

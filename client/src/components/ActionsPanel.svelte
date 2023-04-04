@@ -30,11 +30,11 @@
   </div>
   
   <div class='tab-content'  class:active={activeTab==='generate'} id="generate">
-    <Generate onCallUpdateCurrentRendering={callUpdateCurrentRendering} bind:this={$generate} />
+    <Generate onCallUpdateCurrentRendering={callUpdateCurrentRendering} bind:this={generate} />
   </div> 
 
   <div class='tab-content' class:active={activeTab==='suggest_materials'} id="suggest_materials">
-    <SuggestMaterials on:proceedToGenerate={arg => $generate.generate_textures(arg.detail)}/>
+    <SuggestMaterials on:proceedToGenerate={arg => generate.generate_textures(arg.detail)}/>
   </div>
 
   <div class='tab-content' class:active={activeTab==='suggest_colors'} id="suggest_colors">
