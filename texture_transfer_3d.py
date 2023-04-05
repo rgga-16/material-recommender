@@ -6,6 +6,13 @@ from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 import time, os
 import pathlib as p
 
+def patch_conv(cls):
+    init = cls.__init__
+    def __init__(self, *args, **kwargs):
+        return init(self, *args, **kwargs, padding_mode='circular')
+    cls.__init__ = __init__
+patch_conv(torch.nn.Conv2d)
+
 # class StableDiffusionAPI():
 #     def __init__(self) -> None:
 #         pass
