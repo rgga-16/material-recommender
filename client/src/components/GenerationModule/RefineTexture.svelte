@@ -9,8 +9,14 @@
 
     export let selected_index; 
     export let rendering_texture_pairs;
-    export let objs_and_parts;
-    export let selected_objs_and_parts_dict;
+    export let objs_and_parts; //Contains all the objects and parts in the scene including the ones that are not selected. Also indicates their rotation, scale, and location.
+    export let selected_objs_and_parts_dict; //Contains the selected objects and parts in the scene. Does not indicate their rotation, scale, and location.
+
+    onMount(async () => {
+        // console.log(objs_and_parts);
+        console.log(selected_objs_and_parts_dict);
+        console.log(rendering_texture_pairs);
+    });
 
 
     let selected_obj=Object.keys(selected_objs_and_parts_dict)[0]; 
@@ -153,8 +159,13 @@
 </script>
 
 <h5> Refine material textures</h5> 
-<select bind:value={selected_obj}>
-    {#each Object.keys(selected_objs_and_parts_dict) as obj} <option value={obj}> {obj} </option> {/each}
+<select bind:value={selected_obj} on:change={()=>(console.log(selected_obj))}>
+    <!-- {#each Object.keys(objs_and_parts) as obj} 
+        <option value={obj}> {obj} </option> 
+    {/each} -->
+    {#each Object.keys(selected_objs_and_parts_dict) as obj} 
+        <option value={obj}> {obj} </option> 
+    {/each}
 </select>
 
 <div class="image">
@@ -174,11 +185,17 @@
 <div class='tab-content'  class:active={activeTab==='add-finish'} id="add-finish">
     <label>
         {selected_obj} part:
-        <select bind:value={selected_part}>
-            {#each selected_objs_and_parts_dict[selected_obj] as part} <option value={part}> {part} </option> {/each}
+        <select bind:value={selected_part} on:change={()=> (console.log(selected_part))}>
+            {#each selected_objs_and_parts_dict[selected_obj] as part} 
+                <option value={part}> {part} </option> 
+            {/each}
+            <!-- {#each objs_and_parts[selected_obj]['parts']['names'] as part} 
+                <option value={part}> {part} </option> 
+            {/each} -->
         </select>
     </label>
     Current Material Finish: {rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"]}
+    Current Material Finish: {rendering_texture_pairs[selected_index].info[selected_obj][selected_part]}
     <label>
         Material finishes:
         <select bind:value={material_finish}>
@@ -196,7 +213,10 @@
         {selected_obj} part:
         <select bind:value={selected_part}>
             {#each selected_objs_and_parts_dict[selected_obj] as part} <option value={part}> {part} </option> {/each}
-        </select>
+            <!-- {#each objs_and_parts[selected_obj]['parts']['names'] as part} 
+                <option value={part}> {part} </option> 
+            {/each} -->
+        </select> 
     </label>
 
     <div class="color-finish">
@@ -266,6 +286,9 @@
         {selected_obj} part:
         <select bind:value={selected_part}>
             {#each selected_objs_and_parts_dict[selected_obj] as part} <option value={part}> {part} </option> {/each}
+            <!-- {#each objs_and_parts[selected_obj]['parts']['names'] as part} 
+                <option value={part}> {part} </option> 
+            {/each} -->
         </select>
     </label>
 
