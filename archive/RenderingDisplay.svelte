@@ -1,5 +1,5 @@
 <script>
-    import DynamicImage from "./DynamicImage.svelte";
+    import DynamicImage from "../client/src/components/DynamicImage.svelte";
     export let current_rendering_path;
 
     let rendering;
@@ -12,13 +12,13 @@
 
     <h3>Current Rendering</h3>
     <div class="image">
-        <DynamicImage bind:this={rendering} imagepath={current_rendering_path} alt="Current rendering" size={1000}/>
+        <DynamicImage bind:this={rendering} imagepath={current_rendering_path} alt="Current rendering" size={2000}/>
     </div>
 
 <style>
     .image{
         width:100%;
-        height: auto;
+        height: 100%;
         object-fit: cover;
         border: solid 1px black; 
     }
