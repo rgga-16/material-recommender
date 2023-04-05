@@ -196,6 +196,7 @@ def generate_textures_():
     emptydir(SERVER_IMDIR,delete_dirs=False)
 
     #################### Generating the textures ################
+    
     textures, filenames = generate_textures(texture_string, n, imsize)
 
     texture_loadpaths = []
@@ -414,7 +415,7 @@ if __name__ == "__main__":
     init_texture_parts_path = os.path.join(RENDER_DIR, "current","object_part_material.json")
     init_render_path = os.path.join(RENDER_DIR,"current","rendering.png")
 
-    # Code to render initial rendering.
+    # Code to render initial rendering. Uncomment the below code if you want to re-render the initial rendering.
     # command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {init_render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path}'
     # os.system(command_str)
 
