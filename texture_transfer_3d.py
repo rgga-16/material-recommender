@@ -1,7 +1,7 @@
 import torch
 from torch import autocast
 torch.cuda.empty_cache()
-from diffusers import StableDiffusionPipeline, LMSDiscreteScheduler, DPMSolverMultistepScheduler
+from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 # StableDiffusionImg2ImgPipeline
 import time, os
 import pathlib as p
@@ -23,6 +23,7 @@ class TextureDiffusion():
 
     def text2texture(self, texture_str,n=4, gen_imsize=512):
         prompt = f'{texture_str} texture map, 4k'
+        print(f"PROMPT: {prompt}")
         images = []
         for _ in range(n):
             with autocast("cuda"):
