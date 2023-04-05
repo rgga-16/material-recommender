@@ -16,7 +16,7 @@
 </script>
 
 <div class="card">
-    <DynamicImage bind:this={image} imagepath={material_url} alt={material_name} />
+    <DynamicImage bind:this={image} imagepath={material_url} alt={material_name} size={"200px"}/>
     <div class="texture-details">
       <div>
           <div class="texture-name">{material_name}</div>
