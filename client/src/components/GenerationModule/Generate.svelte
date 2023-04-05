@@ -269,6 +269,7 @@
         height: 100%;
         width:100%;
         padding: 5px;
+        overflow: auto;
 	}
 
     .material_generator {
@@ -278,7 +279,7 @@
         flex-direction: column;
         width:100%;
         height: 100%; 
-        overflow: hidden;
+        /* overflow: hidden; */
         text-align: center;
     }
     
@@ -286,6 +287,7 @@
         text-align: center;
         align-items: center;
         justify-content: center;
+        overflow:auto;
         width:100%;
         height: 100%; 
     }   

@@ -4,7 +4,6 @@
     import {get} from 'svelte/store';
     import {curr_texture_parts} from '../stores.js';
     import TexturePart from './TexturePart.svelte';
-    import TextureParts from './TextureParts.svelte';
     import PartPairs from './PartPairs.svelte';
     import {onMount} from 'svelte';
 
@@ -74,29 +73,6 @@
         }
     }
 
-    async function updateTextureParts() {
-        // textureparts = [];
-        selected_parts = Object.keys(current_texture_parts[selected_obj]);
-        texturepart_infos = [];
-
-        for (let i = 0; i < selected_parts.length; i++) {
-            let part = selected_parts[i];
-            let texturepart_info = {
-                "part": part,
-                "mat_name": current_texture_parts[selected_obj][part]["mat_name"],
-                "mat_path": current_texture_parts[selected_obj][part]["mat_image_texture"],
-                "mat_finish": current_texture_parts[selected_obj][part]["mat_finish"],
-            }
-            texturepart_infos.push(texturepart_info);
-            texturepart_infos=texturepart_infos;
-        }
-
-        is_loading=true;
-        for (let i=0; i < textureparts.length; i++) {
-            textureparts[i].updateImage();
-        }
-        is_loading=false;
-    }
 
     export async function updatePartInformation() {
 
@@ -119,10 +95,6 @@
 		current_texture_parts = value;
 	});
     updatePartPairs();
-    
-    // updateTextureParts();
-
-    
 
     onMount(async () => {
 
@@ -156,21 +128,10 @@
         {:else}
 
             <div id="texture-parts"> 
-                {#each textureparts as texturepart}
+                <!-- {#each textureparts as texturepart}
                     <svelte:component this={TexturePart} />
-                {/each}
+                {/each} -->
             </div>
-            <!-- {#each texturepart_infos as texturepart_info, i}
-                <TexturePart bind:this={textureparts[i]} 
-                    bind:part_name ={texturepart_info.part} 
-                    bind:material_name={texturepart_info["mat_name"]} 
-                    bind:material_finish={texturepart_info["mat_finish"]} 
-                    bind:material_url={texturepart_info["mat_path"]} 
-                />
-            {/each} -->
-            <!--{#each textureparts as texturepart}
-                <svelte:component this={texturepart} />
-            {/each} -->
 
         {/if}
     </div> 
@@ -217,7 +178,6 @@
         flex-direction: column;
         width:100%;
         height: 100%; 
-        overflow: hidden;
         text-align: center;
     }
     .tab-btn {
