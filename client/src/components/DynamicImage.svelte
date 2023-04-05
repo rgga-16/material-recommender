@@ -5,7 +5,7 @@ import { Circle } from 'svelte-loading-spinners';
 // This component is a dynamic image component. It should dynamically load an image given its path.
 export let imagepath; //Image path that will be passed to the server to get the image
 export let alt; //Alternate text to be displayed
-export let size=200;
+export let size="200px";
 let imagesource; //Returned image
 
 let is_loading=false;
@@ -38,13 +38,14 @@ onMount(getImage);
     {#if is_loading}
         <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
     {:else}
-        <img src={imagesource} alt={alt ? alt:"Image"} style="max-width: {size}px;">
+        <img src={imagesource} alt={alt ? alt:"Image"} style="max-width: {size}; max-height:{size}">
+        <!-- <img src={imagesource} alt={alt ? alt:"Image"}>  -->
     {/if}
 
 
 <style>
     img {
         width: 100%;
-        height: auto;
+        height: 100%;
     }
 </style>

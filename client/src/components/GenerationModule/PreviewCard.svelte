@@ -4,7 +4,7 @@
     export let texture;
     export let rendering; 
     export let info; 
-    export let size=200;
+    export let size="200px";
     // export let index;
 
     let currentImage=0;
