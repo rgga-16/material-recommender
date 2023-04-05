@@ -154,10 +154,36 @@ def unwrap_method(method:str):
         else: 
             logging.exception('ERROR: Invalid unwrapping method.')
 
+# Code from https://blender.stackexchange.com/questions/158896/how-set-hex-in-rgb-node-python
+def srgb_to_linearrgb(c):
+    if   c < 0:       return 0
+    elif c < 0.04045: return c/12.92
+    else:             return ((c+0.055)/1.055)**2.4
+
+def hex_to_rgb(h,alpha=1):
+    r = (h & 0xff0000) >> 16
+    g = (h & 0x00ff00) >> 8
+    b = (h & 0x0000ff)
+    return tuple([srgb_to_linearrgb(c/0xff) for c in (r,g,b)] + [alpha])
+
 
 def add_color_finish(rgb_node, hex_code:str):
-    rgb = tuple(int(hex_code.lstrip("#")[i:i+2], 16) for i in (0, 2, 4))
-    rgb_node.outputs['Color'].default_value = (rgb[0]/255.0, rgb[1]/255.0, rgb[2]/255.0, 1.0)
+    print(f'HEX: {hex_code}')
+    hex_code_with_0x = hex(int(hex_code[1:], 16))
+    hex_code_with_0x = int(hex_code_with_0x, 16)
+    print(f'HEX_WITH_0x: {hex_code_with_0x}')
+    print(f'TYPE of HEX_WITH_0x: {type(hex_code_with_0x)}')
+    rgb = hex_to_rgb(hex_code_with_0x)
+    print(f'RGB: {rgb}')
+
+    # rgb = tuple(int(hex_code.lstrip("#")[i:i+2], 16) for i in (0, 2, 4))
+    # rgb_relative = tuple(int(hex_code.lstrip("#")[i:i+2], 16)/255 for i in (0, 2, 4))
+    # print(f'RGB: {rgb}')
+    # print(f'RGB_RELATIVE: {rgb_relative}')
+
+    rgb_node.outputs['Color'].default_value = rgb
+    # rgb_node.outputs['Color'].default_value = (rgb[0]/255, rgb[1]/255, rgb[2]/255, 1.0)
+    # rgb_node.outputs['Color'].default_value = tuple(int(hex_code[i:i+2], 16)/255 for i in (1, 3, 5))
     return 
 
 def transform_material(mapping_node:bpy.types.Node, transforms:dict):
@@ -168,20 +194,20 @@ def transform_material(mapping_node:bpy.types.Node, transforms:dict):
 
 
 class Renderer():
-    def __init__(self,cam_info, light_info, resolution=(1024,1024)):
+    def __init__(self,cam_info, light_info=None, resolution=(1024,1024)):
         self.resolution = resolution
         self.set_gpu("BLENDER_EEVEE")
         self.setup_render()
         self.setup_background()
         self.setup_camera(cam_info['loc'],cam_info['rot'],cam_info['scale'])
-        self.setup_light(light_info['loc'],light_info['rot'],light_info['scale'])
+        if light_info: self.setup_light(light_info['loc'],light_info['rot'],light_info['scale'])
         
         self.objects = []
     
     def set_gpu(self, rendering_engine):
         assert rendering_engine in ['CYCLES', 'BLENDER_EEVEE']
         bpy.context.scene.render.engine = rendering_engine
-
+        bpy.context.scene.view_settings.view_transform = 'Standard'
         if rendering_engine=='CYCLES':
             bpy.context.preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
             bpy.context.preferences.addons['cycles'].preferences.get_devices()
@@ -190,6 +216,18 @@ class Renderer():
             bpy.context.scene.cycles.samples=1024
         elif rendering_engine=='BLENDER_EEVEE':
             bpy.context.scene.eevee.taa_render_samples=1024
+            #Enable bloom
+            bpy.context.scene.eevee.use_bloom=True
+            #Enable ambient occlusion
+            bpy.data.scenes["Scene"].world.use_nodes=True
+            bpy.context.scene.eevee.use_gtao=True
+            bpy.context.scene.eevee.gtao_distance=1.0
+            bpy.context.scene.eevee.gtao_quality=1.0
+            # Enable screen space reflections
+            bpy.context.scene.eevee.use_ssr=True
+            # Increase shadow resolution
+            bpy.context.scene.eevee.shadow_cube_size='4096'
+            bpy.context.scene.eevee.shadow_cascade_size='4096'
 
     def delete_object(self,obj):
         objs = [obj]
@@ -311,7 +349,7 @@ class Renderer():
         # Get uv map of obj
         bpy.ops.object.mode_set(mode="EDIT")
         obj.select_set(True)
-        unwrap_method(unwrap_method_)
+        # unwrap_method(unwrap_method_)
 
         # Load texture image
         image = bpy.data.images.load(texture_path,check_existing=True)
@@ -433,7 +471,8 @@ def main():
         models_dir = info['dir']
         models_info = info['objects']
         cam_info = info['camera']
-        light_info = info['light']
+        light_info=None
+        if 'light' in info: light_info = info['light'] 
         resolution = info['resolution']
 
     renderer = Renderer(cam_info=cam_info,light_info=light_info,resolution=resolution)
