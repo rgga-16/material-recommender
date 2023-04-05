@@ -2,7 +2,7 @@
 	import { Circle } from 'svelte-loading-spinners';
 	
 	import ActionsPanel from "./components/ActionsPanel.svelte";
-	import RenderingDisplay from "./components/RenderingDisplay.svelte";
+	import RenderingDisplay from "../../archive/RenderingDisplay.svelte";
 	import DynamicImage from "./components/DynamicImage.svelte";
 	import Information from "./components/InformationPanel.svelte";
 	import {curr_rendering_path} from './stores.js';
@@ -169,7 +169,7 @@
 					{:then data} 
 						<h3>Current Rendering</h3>
 						<div class="image">
-							<DynamicImage bind:this={current_rendering} imagepath={current_rendering_path} alt="Current rendering" size={500}/>
+							<DynamicImage bind:this={current_rendering} imagepath={current_rendering_path} alt="Current rendering" size={"90%"}/>
 						</div>
 						<button on:click|preventDefault={saveRendering}> Save rendering </button>
 					{/await}
@@ -210,22 +210,32 @@
 </main>
 
 <style>
+	main{
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		height: 99vh;
+		width: 99vw;
+	}
 	.container {
 		display: flex;
 		flex-direction: row;
-		height: 100vh;
-		width: 100vw;
+		height: 99%;
+		width: 99%;
 	}
 
 	.actions-panel {
 		width: 25%;
 		background-color: lightgray;
 		height: inherit;
+		border: 2px solid black;
 	}
 
 	.information-panel {
 		width: 25%; 
 		background-color: lightgray;
+		border: 2px solid black;
 		height: inherit;
 	}
 
@@ -238,11 +248,11 @@
 	.rendering-display {
 		justify-content: center;
 		align-items: center;
-		background-color: lightblue;
+		background-color: lightgray;
 		border: 2px solid black;
 		display:flex;
 		flex-direction: column;
-		padding:10px;
+		padding:5px;
 		margin-bottom: 5px;
 		height: 65%;
 	}
@@ -252,7 +262,7 @@
 		width:100%;
         height: 100%;
         object-fit: cover;
-        border: solid 1px black; 
+        /* border: solid 1px black;  */
 		justify-content: center;
 		align-items: center;
 	}
@@ -274,7 +284,7 @@
 	}
 
 	.saved-renderings{
-		background-color: rgb(78, 230, 156) ;
+		background-color: lightgray;
 		border: 2px solid black;
 		padding: 5px;
 		height: 35%;
@@ -282,7 +292,7 @@
 
 	.saved-renderings-list{
 		display: flex;
-		overflow-x: scroll;
+		overflow-x: auto;
 		justify-content: left;
 		padding:5px;
 		scrollbar-width: none; /* Hide the scrollbar */
