@@ -14,18 +14,17 @@
 
     
     let selected_obj=Object.keys(selected_objs_and_parts_dict)[0]; 
-    let selected_obj_parts = selected_objs_and_parts_dict[selected_obj];
-
-    
+    $: selected_obj_parts = selected_objs_and_parts_dict[selected_obj];
 
     let selected_part =selected_objs_and_parts_dict[selected_obj][0];
+
     console.log(rendering_texture_pairs[selected_index].info[selected_obj][selected_part]);
 
-    $: display_matfinish = rendering_texture_pairs[selected_index].info[selected_obj][selected_part];
+    // $: display_matfinish = rendering_texture_pairs[selected_index].info[selected_obj][selected_part];
     function resetSelectedPart() {
         selected_obj_parts = selected_objs_and_parts_dict[selected_obj];
         selected_part =selected_objs_and_parts_dict[selected_obj][0];
-        console.log("obj: " + selected_obj + " part: " + selected_part + " matfinish: " + display_matfinish);
+        console.log("obj: " + selected_obj + " part: " + selected_part + " matfinish: " + rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"]);
     }
     resetSelectedPart();
 
@@ -209,8 +208,15 @@
 
     I think resolved. Supposed to make selected_part a reactive variable ($: selected_part)
     -->
-    Current Material Finish: {rendering_texture_pairs[selected_index].info[selected_obj][selected_part]}
-    <!-- Current Material Finish: {selected_obj}, {selected_part} -->
+    {#await rendering_texture_pairs[selected_index].info[selected_obj][selected_part]}
+        <pre> Loading.. </pre>
+    {:then info}
+        Current Material Finish: {console.log(info)}
+    {/await}
+    
+    
+    <!-- Current Material Finish: {rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"]}
+    Current Material Finish: {selected_obj}, {selected_part} -->
 
     <label>
         Material finishes:
