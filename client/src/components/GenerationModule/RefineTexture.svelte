@@ -12,15 +12,23 @@
     export let objs_and_parts; //Contains all the objects and parts in the scene including the ones that are not selected. Also indicates their rotation, scale, and location.
     export let selected_objs_and_parts_dict; //Contains the selected objects and parts in the scene. Does not indicate their rotation, scale, and location.
 
-    onMount(async () => {
-        // console.log(objs_and_parts);
-        console.log(selected_objs_and_parts_dict);
-        console.log(rendering_texture_pairs);
-    });
-
-
+    
     let selected_obj=Object.keys(selected_objs_and_parts_dict)[0]; 
-    let selected_part=selected_objs_and_parts_dict[selected_obj][0]; 
+    let selected_obj_parts = selected_objs_and_parts_dict[selected_obj];
+
+    
+
+    let selected_part =selected_objs_and_parts_dict[selected_obj][0];
+    console.log(rendering_texture_pairs[selected_index].info[selected_obj][selected_part]);
+
+    $: display_matfinish = rendering_texture_pairs[selected_index].info[selected_obj][selected_part];
+    function resetSelectedPart() {
+        selected_obj_parts = selected_objs_and_parts_dict[selected_obj];
+        selected_part =selected_objs_and_parts_dict[selected_obj][0];
+        console.log("obj: " + selected_obj + " part: " + selected_part + " matfinish: " + display_matfinish);
+    }
+    resetSelectedPart();
+
 
     let activeTab = "add-finish";
     function switchTab(tab) {
@@ -154,12 +162,13 @@
         actions_panel_tab.set(tab);
     }
 
+    
 
 
 </script>
 
 <h5> Refine material textures</h5> 
-<select bind:value={selected_obj} on:change={()=>(console.log(selected_obj))}>
+<select bind:value={selected_obj} on:change={()=> resetSelectedPart()}>
     <!-- {#each Object.keys(objs_and_parts) as obj} 
         <option value={obj}> {obj} </option> 
     {/each} -->
@@ -185,8 +194,9 @@
 <div class='tab-content'  class:active={activeTab==='add-finish'} id="add-finish">
     <label>
         {selected_obj} part:
-        <select bind:value={selected_part} on:change={()=> (console.log(selected_part))}>
-            {#each selected_objs_and_parts_dict[selected_obj] as part} 
+        <select bind:value={selected_part}>
+        <!-- <select bind:value={selected_part}> -->
+            {#each selected_obj_parts as part} 
                 <option value={part}> {part} </option> 
             {/each}
             <!-- {#each objs_and_parts[selected_obj]['parts']['names'] as part} 
@@ -194,8 +204,14 @@
             {/each} -->
         </select>
     </label>
-    Current Material Finish: {rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"]}
+    <!-- BUG: TypeError: Cannot read properties of undefined (reading 'mat_finish') 
+    rendering_texture_pairs[selected_index].info[selected_obj][selected_part] is undefined. 
+
+    I think resolved. Supposed to make selected_part a reactive variable ($: selected_part)
+    -->
     Current Material Finish: {rendering_texture_pairs[selected_index].info[selected_obj][selected_part]}
+    <!-- Current Material Finish: {selected_obj}, {selected_part} -->
+
     <label>
         Material finishes:
         <select bind:value={material_finish}>
@@ -274,9 +290,9 @@
         </div>
 
         <div class="color-selector">
-            <span> Material: {rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_name"]}</span>
+            <!-- <span> Material: {rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_name"]}</span>
             <DynamicImage bind:imagepath={rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_image_texture"]} alt="{selected_obj} {selected_part} material" size=175/>
-            <span> Color: { "mat_color" in rendering_texture_pairs[selected_index].info[selected_obj][selected_part] ? rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_color"] : "None applied"} </span>
+            <span> Color: { "mat_color" in rendering_texture_pairs[selected_index].info[selected_obj][selected_part] ? rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_color"] : "None applied"} </span> -->
         </div>
     </div>
 </div>
