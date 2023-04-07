@@ -28,6 +28,12 @@ class TextureDiffusion():
         self.pipe.scheduler = DPMSolverMultistepScheduler.from_config(self.pipe.scheduler.config)
         self.pipe.enable_attention_slicing()
 
+    def to_cpu(self):
+        self.pipe.to('cpu')
+    
+    def to_gpu(self):
+        self.pipe.to(self.device)
+    
     def text2texture(self, texture_str,n=4, gen_imsize=512):
         prompt = f'{texture_str} texture map, 4k'
         print(f"PROMPT: {prompt}")
