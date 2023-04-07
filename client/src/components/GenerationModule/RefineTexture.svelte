@@ -14,37 +14,51 @@
 
     
     let selected_obj=Object.keys(selected_objs_and_parts_dict)[0]; 
-    $: selected_obj_parts = selected_objs_and_parts_dict[selected_obj];
-
     let selected_part =selected_objs_and_parts_dict[selected_obj][0];
 
-    // console.log(rendering_texture_pairs[selected_index].info[selected_obj][selected_part]);
 
-    // $: display_matfinish = rendering_texture_pairs[selected_index].info[selected_obj][selected_part];
-    // function resetSelectedPart() {
-    //     selected_obj_parts = selected_objs_and_parts_dict[selected_obj];
-    //     selected_part =selected_objs_and_parts_dict[selected_obj][0];
-    //     console.log("obj: " + selected_obj + " part: " + selected_part + " matfinish: " + rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"]);
+    function updateDisplayedColor() {
+        let mat_color_div = document.getElementById("mat-color");
+        mat_color_div.innerHTML='';
 
-    // }
-    // resetSelectedPart();
+        let elements = [
+            "<span> Material: " + rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_name"] + "</span>",
+            "<div id='dynamic-image-container'></div>",
+            "<span> Color: " + ("mat_color" in rendering_texture_pairs[selected_index].info[selected_obj][selected_part] ? rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_color"] : "None applied") + "</span>"
+        ]
+        let html = "";
+        elements.forEach(element => {
+            html += element;
+        });
+        mat_color_div.innerHTML = html;
 
-    
-    function resetDisplayedMatFinish() {
-        selected_obj_parts = selected_objs_and_parts_dict[selected_obj];
-        selected_part =selected_objs_and_parts_dict[selected_obj][0];
-        updateDisplayedMatFinish();
+        const dynamic_image_container = document.getElementById("dynamic-image-container");
+        new DynamicImage({
+            target: dynamic_image_container,
+            props: {
+                imagepath: rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_image_texture"],
+                alt: selected_obj + " " + selected_part + " material",
+                size: 175
+            }
+        });
     }
     
     
     function updateDisplayedMatFinish() {
-        const mat_finish_div = document.getElementById("mat-finish");
+        let mat_finish_div = document.getElementById("mat-finish");
         mat_finish_div.innerHTML='';
         mat_finish_div.innerHTML = "Current Material Finish: " + rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"];
     }
 
+
     function updateDisplayedInfo() {
         updateDisplayedMatFinish();
+        updateDisplayedColor();
+    }
+
+    function resetDisplayedInfo() {
+        selected_part =selected_objs_and_parts_dict[selected_obj][0];
+        updateDisplayedInfo();
     }
 
 
@@ -168,7 +182,8 @@
 
         is_loading = false; 
         // Should return updated rendering and texture_parts json
-        updateRendering();
+        // updateRendering();
+        updateDisplayedColor();
     }
 
     function addDegree(val) {
@@ -185,14 +200,14 @@
     }
 
     onMount(async () => {
-        updateDisplayedMatFinish();
+        resetDisplayedInfo();
     });
 
 
 </script>
 
 <h5> Refine material textures</h5> 
-<select bind:value={selected_obj} on:change={()=> resetDisplayedMatFinish()}>
+<select bind:value={selected_obj} on:change={()=> resetDisplayedInfo()}>
     <!-- {#each Object.keys(objs_and_parts) as obj} 
         <option value={obj}> {obj} </option> 
     {/each} -->
@@ -219,7 +234,7 @@
     <label>
         {selected_obj} part:
         <select bind:value={selected_part} on:change={()=> updateDisplayedMatFinish()}>
-            {#each selected_obj_parts as part} 
+            {#each selected_objs_and_parts_dict[selected_obj] as part} 
                 <option value={part}> {part} </option> 
             {/each}
             <!-- {#each objs_and_parts[selected_obj]['parts']['names'] as part} 
@@ -227,24 +242,10 @@
             {/each} -->
         </select>
     </label>
-    <!-- BUG: TypeError: Cannot read properties of undefined (reading 'mat_finish') 
-    rendering_texture_pairs[selected_index].info[selected_obj][selected_part] is undefined. 
-
-    I think resolved. Supposed to make selected_part a reactive variable ($: selected_part)
-    -->
 
     <div id="mat-finish">
-        <!-- Current Material Finish: {rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"]} -->
+        <!-- This is where the material finish of the product part will be dynamically displayed -->
     </div>
-    <!-- {#await rendering_texture_pairs[selected_index].info[selected_obj][selected_part]}
-        <pre> Loading.. </pre>
-    {:then info}
-        Current Material Finish: {console.log(info)}
-    {/await} -->
-    
-    
-    <!-- Current Material Finish: {rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"]}
-    Current Material Finish: {selected_obj}, {selected_part} -->
 
     <label>
         Material finishes:
@@ -261,11 +262,9 @@
 <div class='tab-content' class:active={activeTab==='add-color'} id="add-color" >
     <label>
         {selected_obj} part:
-        <select bind:value={selected_part}>
+        <select bind:value={selected_part} on:change={()=> updateDisplayedColor()}>
             {#each selected_objs_and_parts_dict[selected_obj] as part} <option value={part}> {part} </option> {/each}
-            <!-- {#each objs_and_parts[selected_obj]['parts']['names'] as part} 
-                <option value={part}> {part} </option> 
-            {/each} -->
+            <!-- {#each objs_and_parts[selected_obj]['parts']['names'] as part} <option value={part}> {part} </option> {/each} -->
         </select> 
     </label>
 
@@ -323,10 +322,8 @@
 
         </div>
 
-        <div class="color-selector">
-            <!-- <span> Material: {rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_name"]}</span>
-            <DynamicImage bind:imagepath={rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_image_texture"]} alt="{selected_obj} {selected_part} material" size=175/>
-            <span> Color: { "mat_color" in rendering_texture_pairs[selected_index].info[selected_obj][selected_part] ? rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_color"] : "None applied"} </span> -->
+        <div class="color-selector" id="mat-color">
+            <!-- This is where the material color of the product part will be dynamically displayed -->
         </div>
     </div>
 </div>
