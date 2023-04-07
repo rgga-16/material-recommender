@@ -18,15 +18,34 @@
 
     let selected_part =selected_objs_and_parts_dict[selected_obj][0];
 
-    console.log(rendering_texture_pairs[selected_index].info[selected_obj][selected_part]);
+    // console.log(rendering_texture_pairs[selected_index].info[selected_obj][selected_part]);
 
     // $: display_matfinish = rendering_texture_pairs[selected_index].info[selected_obj][selected_part];
-    function resetSelectedPart() {
+    // function resetSelectedPart() {
+    //     selected_obj_parts = selected_objs_and_parts_dict[selected_obj];
+    //     selected_part =selected_objs_and_parts_dict[selected_obj][0];
+    //     console.log("obj: " + selected_obj + " part: " + selected_part + " matfinish: " + rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"]);
+
+    // }
+    // resetSelectedPart();
+
+    
+    function resetDisplayedMatFinish() {
         selected_obj_parts = selected_objs_and_parts_dict[selected_obj];
         selected_part =selected_objs_and_parts_dict[selected_obj][0];
-        console.log("obj: " + selected_obj + " part: " + selected_part + " matfinish: " + rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"]);
+        updateDisplayedMatFinish();
     }
-    resetSelectedPart();
+    
+    
+    function updateDisplayedMatFinish() {
+        const mat_finish_div = document.getElementById("mat-finish");
+        mat_finish_div.innerHTML='';
+        mat_finish_div.innerHTML = "Current Material Finish: " + rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"];
+    }
+
+    function updateDisplayedInfo() {
+        updateDisplayedMatFinish();
+    }
 
 
     let activeTab = "add-finish";
@@ -113,8 +132,12 @@
         rendering_texture_pairs[selected_index].info_path = json["updated_textureparts_path"]
         is_loading=false; 
 
+        console.log(rendering_texture_pairs[selected_index].info);
+
+        updateDisplayedMatFinish();
+
         // Should return updated rendering and texture_parts json
-        updateRendering();
+        // updateRendering();
 
     }
 
@@ -161,13 +184,15 @@
         actions_panel_tab.set(tab);
     }
 
-    
+    onMount(async () => {
+        updateDisplayedMatFinish();
+    });
 
 
 </script>
 
 <h5> Refine material textures</h5> 
-<select bind:value={selected_obj} on:change={()=> resetSelectedPart()}>
+<select bind:value={selected_obj} on:change={()=> resetDisplayedMatFinish()}>
     <!-- {#each Object.keys(objs_and_parts) as obj} 
         <option value={obj}> {obj} </option> 
     {/each} -->
@@ -193,8 +218,7 @@
 <div class='tab-content'  class:active={activeTab==='add-finish'} id="add-finish">
     <label>
         {selected_obj} part:
-        <select bind:value={selected_part}>
-        <!-- <select bind:value={selected_part}> -->
+        <select bind:value={selected_part} on:change={()=> updateDisplayedMatFinish()}>
             {#each selected_obj_parts as part} 
                 <option value={part}> {part} </option> 
             {/each}
@@ -208,11 +232,15 @@
 
     I think resolved. Supposed to make selected_part a reactive variable ($: selected_part)
     -->
-    {#await rendering_texture_pairs[selected_index].info[selected_obj][selected_part]}
+
+    <div id="mat-finish">
+        <!-- Current Material Finish: {rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"]} -->
+    </div>
+    <!-- {#await rendering_texture_pairs[selected_index].info[selected_obj][selected_part]}
         <pre> Loading.. </pre>
     {:then info}
         Current Material Finish: {console.log(info)}
-    {/await}
+    {/await} -->
     
     
     <!-- Current Material Finish: {rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"]}
