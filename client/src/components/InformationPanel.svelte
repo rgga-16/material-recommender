@@ -32,27 +32,7 @@
         information_panel_tab.set(tab);
     }
 
-    function updatePartPairs() {
-        selected_parts = Object.keys(current_texture_parts[selected_obj]);
-        partpairs_infos = [];
-
-        for (let i = 0; i < selected_parts.length; i++) {
-            let child_part = selected_parts[i];
-            if (current_texture_parts[selected_obj][child_part]["parents"].length > 0) {
-                for (let j = 0; j < current_texture_parts[selected_obj][child_part]["parents"].length; j++) {
-                    let parent_part = current_texture_parts[selected_obj][child_part]["parents"][j];
-                    let partpair_info = {
-                        "parent_part": parent_part,
-                        "child_part": child_part,
-                        "parent_part_path": current_texture_parts[selected_obj][parent_part]["path"],
-                        "child_part_path": current_texture_parts[selected_obj][child_part]["path"]
-                    }
-                    partpairs_infos.push(partpair_info);
-                }
-            }
-        }
-
-    }
+    
 
     function displayTextureParts() {
         textureparts=[];
@@ -73,6 +53,63 @@
         }
     }
 
+    function updatePartPairs() {
+        console.log(current_texture_parts);
+        selected_parts = Object.keys(current_texture_parts[selected_obj]);
+        partpairs_infos = [];
+
+        for (let i = 0; i < selected_parts.length; i++) {
+            let child_part = selected_parts[i];
+            if (current_texture_parts[selected_obj][child_part]["parents"].length > 0) {
+                for (let j = 0; j < current_texture_parts[selected_obj][child_part]["parents"].length; j++) {
+                    let parent_part = current_texture_parts[selected_obj][child_part]["parents"][j];
+                    let partpair_info = {
+                        "child_part": child_part,
+                        "child_mat_name": current_texture_parts[selected_obj][child_part]["mat_name"],
+                        "child_mat_url": current_texture_parts[selected_obj][child_part]["mat_image_texture"],
+                        "child_mat_finish": current_texture_parts[selected_obj][child_part]["mat_finish"],
+                        
+                        "parent_part": parent_part,
+                        "parent_mat_name": current_texture_parts[selected_obj][parent_part]["mat_name"],
+                        "parent_mat_url": current_texture_parts[selected_obj][parent_part]["mat_image_texture"],
+                        "parent_mat_finish": current_texture_parts[selected_obj][parent_part]["mat_finish"],
+                        
+                    }
+                    partpairs_infos.push(partpair_info);
+                }
+            }
+        }
+
+    }
+
+    function displayPartPairs() {
+        partpairs=[];
+        const partpairs_div = document.getElementById("part-pairs");
+        partpairs_div.innerHTML='';
+        for (let i = 0; i < partpairs_infos.length; i++) {
+            let partpair = new PartPairs({
+                target: document.getElementById("part-pairs"),
+                props: {
+                    obj: selected_obj,
+                    child_part: partpairs_infos[i]["child_part"],
+                    child_mat_name: partpairs_infos[i]["child_mat_name"],
+                    child_mat_finish: partpairs_infos[i]["child_mat_finish"],
+                    child_mat_url: partpairs_infos[i]["child_mat_url"],
+
+                    parent_part: partpairs_infos[i]["parent_part"],
+                    parent_mat_name: partpairs_infos[i]["parent_mat_name"],
+                    parent_mat_finish: partpairs_infos[i]["parent_mat_finish"],
+                    parent_mat_url: partpairs_infos[i]["parent_mat_url"],
+                }
+            });
+            partpairs.push(partpair);
+        }
+    }
+
+    function updateAndDisplayPartPairs() {
+        updatePartPairs();
+        displayPartPairs();
+    }
 
     export async function updatePartInformation() {
 
@@ -83,7 +120,7 @@
             textureparts[i].updateImage();
         }
 
-        updatePartPairs();
+        updateAndDisplayPartPairs();
         
         for (let j = 0; j < partpairs.length; j++) {
             partpairs[j].updateImages();
@@ -94,10 +131,11 @@
     curr_texture_parts.subscribe(value => {
 		current_texture_parts = value;
 	});
-    updatePartPairs();
+    
+    
 
     onMount(async () => {
-
+        updateAndDisplayPartPairs();
         displayTextureParts();
         console.log("Information Panel Mounted");
     });
@@ -127,18 +165,14 @@
             </div>
         {:else}
 
-            <div id="texture-parts"> 
-                <!-- {#each textureparts as texturepart}
-                    <svelte:component this={TexturePart} />
-                {/each} -->
-            </div>
+            <div id="texture-parts"> </div>
 
         {/if}
     </div> 
 
     <div class='tab-content' class:active={activeTab==='feedback'} id="feedback">   
         <h3> Feedback </h3>
-        <select bind:value={selected_obj} on:change={() => updatePartInformation()}>
+        <select bind:value={selected_obj} on:change={() => updateAndDisplayPartPairs()}>
             {#each objects as obj}
                 <option value={obj}>
                     {obj}
@@ -151,7 +185,8 @@
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
             </div>
         {:else}
-            {#each partpairs_infos as partpair_info, i}
+            <div id="part-pairs"> </div>
+            <!-- {#each partpairs_infos as partpair_info, i}
                 <PartPairs bind:this={partpairs[i]} 
                     bind:obj={selected_obj} 
                     bind:child_part={partpair_info.child_part} 
@@ -164,7 +199,7 @@
                     bind:parent_mat_finish={current_texture_parts[selected_obj][partpair_info.parent_part]['mat_finish']}
                     bind:parent_mat_url={current_texture_parts[selected_obj][partpair_info.parent_part]['mat_image_texture']}
                 />
-            {/each}
+            {/each} -->
         {/if}
     </div>
 </div>
