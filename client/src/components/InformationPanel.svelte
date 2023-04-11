@@ -88,7 +88,7 @@
         partpairs_div.innerHTML='';
         for (let i = 0; i < partpairs_infos.length; i++) {
             let partpair = new PartPairs({
-                target: document.getElementById("part-pairs"),
+                target: partpairs_div,
                 props: {
                     obj: selected_obj,
                     child_part: partpairs_infos[i]["child_part"],
@@ -116,11 +116,14 @@
         is_loading=true;
         selected_parts = Object.keys(current_texture_parts[selected_obj]);
         
+        updateAndDisplayPartPairs();
+        displayTextureParts();
+        
         for (let i = 0; i < textureparts.length; i++) {
             textureparts[i].updateImage();
         }
 
-        updateAndDisplayPartPairs();
+        // updateAndDisplayPartPairs();
         
         for (let j = 0; j < partpairs.length; j++) {
             partpairs[j].updateImages();
@@ -162,6 +165,7 @@
         {#if is_loading}
             <div class="images-placeholder">
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+                <div id="texture-parts"> </div>
             </div>
         {:else}
 
@@ -184,6 +188,7 @@
             <div class="images-placeholder">
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
             </div>
+            <div id="part-pairs"> </div>
         {:else}
             <div id="part-pairs"> </div>
             <!-- {#each partpairs_infos as partpair_info, i}
