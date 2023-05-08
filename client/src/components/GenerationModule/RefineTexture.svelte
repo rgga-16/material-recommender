@@ -3,6 +3,7 @@
     
     import DynamicImage from "../DynamicImage.svelte";
     import NumberSpinner from "svelte-number-spinner";
+    import RangeSlider from "svelte-range-slider-pips";
     import { Circle } from 'svelte-loading-spinners';
     import { onMount } from "svelte";
     import {actions_panel_tab} from "../../stores.js";
@@ -75,7 +76,8 @@
     $: y_scale = scale;
 
     let material_finish;
-    let material_finish_val=0.5;
+    // let material_finish_val=0.5;
+    let material_finish_val=[0.5];
     let psbdf_settings = {
         "Specular": 0.5,
         "Roughness": 0.5,
@@ -136,18 +138,20 @@
     async function applyFinish() {
         is_loading=true; 
 
+        let mat_finish_val = material_finish_val[0];
+
         for (let setting in psbdf_settings) {
             if (setting=="Specular" || setting=="Clearcoat") {
-                psbdf_settings[setting]=material_finish_val;
+                psbdf_settings[setting]=mat_finish_val;
             } else if (setting=="Roughness" || setting=="Clearcoat Roughness") {
-                psbdf_settings[setting]=1.0-material_finish_val;
+                psbdf_settings[setting]=1.0-mat_finish_val;
             } else {
                 psbdf_settings[setting]=0.5;
             }
         }
 
         // TEMPORARY CODE
-        if(material_finish_val >= 0.5) {
+        if(mat_finish_val >= 0.5) {
             material_finish = "Glossy";
         } else {
             material_finish = "Matte";
@@ -285,7 +289,8 @@
     <!-- {#if material_finish=='glossy' || material_finish=='matte'} -->
         <div class="control">
             <span>Matte</span>
-            <NumberSpinner bind:value={material_finish_val} min=0.0 max=1.0 step=0.01 decimals=2 precision=0.01/>
+            <!-- <NumberSpinner bind:value={material_finish_val} min=0.0 max=1.0 step=0.01 decimals=2 precision=0.01/> -->
+            <RangeSlider bind:values={material_finish_val} min=0 max=10 step=1/>
             <span>Glossy</span>
         </div>
     <!-- {/if} -->
