@@ -24,22 +24,21 @@ fabrics = ['cotton', 'wool', 'silk','linen', 'cashmere', 'mohair', 'alpaca', 'an
 
 
 glossy = {
-    'Subsurface':0.0,
     'Specular':1.0,
-    'Roughness':0.05,
-    'Sheen Tint':0.5,
+    'Roughness':0.00,
+    # 'Sheen Tint':0.5,
     'Clearcoat':1.0,
     'Clearcoat Roughness':0.05,
-    'IOR':1.47,
+    # 'IOR':1.47,
 }
 
 matte = {
-    'Subsurface':0.0,
     'Specular':0.5,
     'Roughness':0.5,
-    'Sheen Tint':0.5,
+    # 'Sheen Tint':0.5,
     'Clearcoat':0.0,
-    'IOR':1.47,
+    'Clearcoat Roughness':0.95,
+    # 'IOR':1.47,
 }
 
 mat_finish_settings = {
@@ -92,11 +91,13 @@ def isin_materials(input_material_type,materials_list):
             return True 
     return False
 
-def setup_material(principled_node: bpy.types.Node, mat_node_tree, image_texture_node: bpy.types.Node, material_type:str, material_finish:str='glossy' ):
+def setup_material(principled_node: bpy.types.Node, mat_node_tree, image_texture_node: bpy.types.Node, material_type:str, material_finish:str='glossy',material_finish_settings:dict=None):
     material_type=material_type.lower()
 
     # Do another pass here on the type of finish. For now, default finish is "glossy"
-    set_pbsdf_settings(principled_node,material_finish)
+    set_pbsdf_settings_by_str(principled_node,material_finish)
+    if material_finish_settings is not None: 
+        set_pbsdf_settings_by_dict(principled_node,material_finish_settings)
     
     if isin_materials(material_type,metals):
         setup_metal(principled_node,mat_node_tree)
@@ -117,8 +118,14 @@ def setup_material(principled_node: bpy.types.Node, mat_node_tree, image_texture
         print(f'ERROR: Material type {material_type} unknown')
     return
 
+def set_pbsdf_settings_by_dict(principled_node: bpy.types.Node, material_finish_settings:dict):
+    for k in material_finish_settings.keys():
+        print(f"ADJUSTING {k}")
+        principled_node.inputs[k].default_value = material_finish_settings[k]
+    return
 
-def set_pbsdf_settings(principled_node: bpy.types.Node, material_finish:str):
+
+def set_pbsdf_settings_by_str(principled_node: bpy.types.Node, material_finish:str):
     if material_finish:
         material_finish = material_finish.lower()
         for k in mat_finish_settings.keys():
@@ -168,22 +175,14 @@ def hex_to_rgb(h,alpha=1):
 
 
 def add_color_finish(rgb_node, hex_code:str):
-    print(f'HEX: {hex_code}')
+    # print(f'HEX: {hex_code}')
     hex_code_with_0x = hex(int(hex_code[1:], 16))
     hex_code_with_0x = int(hex_code_with_0x, 16)
-    print(f'HEX_WITH_0x: {hex_code_with_0x}')
-    print(f'TYPE of HEX_WITH_0x: {type(hex_code_with_0x)}')
+    # print(f'HEX_WITH_0x: {hex_code_with_0x}')
+    # print(f'TYPE of HEX_WITH_0x: {type(hex_code_with_0x)}')
     rgb = hex_to_rgb(hex_code_with_0x)
-    print(f'RGB: {rgb}')
-
-    # rgb = tuple(int(hex_code.lstrip("#")[i:i+2], 16) for i in (0, 2, 4))
-    # rgb_relative = tuple(int(hex_code.lstrip("#")[i:i+2], 16)/255 for i in (0, 2, 4))
     # print(f'RGB: {rgb}')
-    # print(f'RGB_RELATIVE: {rgb_relative}')
-
     rgb_node.outputs['Color'].default_value = rgb
-    # rgb_node.outputs['Color'].default_value = (rgb[0]/255, rgb[1]/255, rgb[2]/255, 1.0)
-    # rgb_node.outputs['Color'].default_value = tuple(int(hex_code[i:i+2], 16)/255 for i in (1, 3, 5))
     return 
 
 def transform_material(mapping_node:bpy.types.Node, transforms:dict):
@@ -340,7 +339,8 @@ class Renderer():
         bpy.ops.object.editmode_toggle()
         return
     
-    def apply_texture(self,obj,unwrap_method_,texture_path,texture_name, material_finish, material_transforms=None, material_color=None):
+    def apply_texture(self,obj,unwrap_method_,texture_path,texture_name, material_finish, 
+                    material_transforms=None, material_color=None, material_finish_settings=None):
         self.set_gpu("CYCLES")
         bpy.context.scene.cycles.device = 'GPU'
         obj.select_set(True)
@@ -378,7 +378,7 @@ class Renderer():
         mat.node_tree.links.new(mix_node.outputs['Color'],bsdf.inputs['Base Color'])
         mat.node_tree.links.new(bsdf.inputs['Alpha'],image_texture_node.outputs['Alpha'])
 
-        setup_material(bsdf,mat.node_tree,image_texture_node,material_type=texture_name,material_finish=material_finish)
+        setup_material(bsdf,mat.node_tree,image_texture_node,material_type=texture_name,material_finish=material_finish,material_finish_settings=material_finish_settings)
 
         # Add some function here to adjust the values of the  mapping node
         if material_transforms:
@@ -490,6 +490,10 @@ def main():
             part_material_finish = texture_object_parts[model_key][part]["mat_finish"]
             part_material_transforms = None
             part_material_color = None
+            part_material_finish_settings = None
+
+            if "mat_finish_settings" in texture_object_parts[model_key][part].keys():
+                part_material_finish_settings = texture_object_parts[model_key][part]["mat_finish_settings"]
 
             if "mat_transforms" in texture_object_parts[model_key][part].keys(): 
                 part_material_transforms = texture_object_parts[model_key][part]["mat_transforms"]
@@ -500,7 +504,7 @@ def main():
             part_path = os.path.join(models_dir,model_key, f'{part}.obj')
             obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
             renderer.recalculate_normals(obj)
-            renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish, part_material_transforms, part_material_color)
+            renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish, part_material_transforms, part_material_color,part_material_finish_settings)
     renderer.render(out_path=args.out_path)
     
 if __name__=="__main__":

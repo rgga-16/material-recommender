@@ -60,6 +60,7 @@ def add_finish_to_rendering():
     obj = form_data["selected_obj"]
     part = form_data["selected_part"]
     texture_parts[obj][part]["mat_finish"] = form_data["finish"]
+    texture_parts[obj][part]["mat_finish_settings"] = form_data["psbdf_settings"]
 
     with open(textureparts_path,"w") as f:
         json.dump(texture_parts,f)

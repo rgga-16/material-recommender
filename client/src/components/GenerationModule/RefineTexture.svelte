@@ -75,6 +75,13 @@
     $: y_scale = scale;
 
     let material_finish;
+    let material_finish_val=0.5;
+    let psbdf_settings = {
+        "Specular": 0.5,
+        "Roughness": 0.5,
+        "Clearcoat": 0.5,
+        "Clearcoat Roughness": 0.5,
+    }
 
     let palettes=[]; 
     let selected_palette_idx=0;
@@ -128,6 +135,24 @@
 
     async function applyFinish() {
         is_loading=true; 
+
+        for (let setting in psbdf_settings) {
+            if (setting=="Specular" || setting=="Clearcoat") {
+                psbdf_settings[setting]=material_finish_val;
+            } else if (setting=="Roughness" || setting=="Clearcoat Roughness") {
+                psbdf_settings[setting]=1.0-material_finish_val;
+            } else {
+                psbdf_settings[setting]=0.5;
+            }
+        }
+
+        // TEMPORARY CODE
+        if(material_finish_val >= 0.5) {
+            material_finish = "Glossy";
+        } else {
+            material_finish = "Matte";
+        }
+        
         const response = await fetch("/add_finish_to_rendering", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -137,7 +162,8 @@
                 "selected_textureparts": rendering_texture_pairs[selected_index].info,
                 "selected_textureparts_path": rendering_texture_pairs[selected_index].info_path,
                 "selected_rendering": rendering_texture_pairs[selected_index].rendering,
-                "finish": material_finish
+                "finish": material_finish,
+                "psbdf_settings": psbdf_settings
             }),
         });
         const json = await response.json();
@@ -246,7 +272,7 @@
     <div id="mat-finish">
         <!-- This is where the material finish of the product part will be dynamically displayed -->
     </div>
-
+<!-- 
     <label>
         Material finishes:
         <select bind:value={material_finish}>
@@ -254,7 +280,36 @@
             <option value="glossy"> Glossy </option>
             <option value="matte"> Matte </option>
         </select>
-    </label>
+    </label> -->
+
+    <!-- {#if material_finish=='glossy' || material_finish=='matte'} -->
+        <div class="control">
+            <span>Matte</span>
+            <NumberSpinner bind:value={material_finish_val} min=0.0 max=1.0 step=0.01 decimals=2 precision=0.01/>
+            <span>Glossy</span>
+        </div>
+    <!-- {/if} -->
+
+    <!-- 
+        If Glossy, 
+        - Increase Specular, Clearcoat,  (directly proportional)
+        - Decrease Roughness, Clearcoat Roughness, (indirectly proportional)
+
+        If Matte,
+        - Increase Roughness, Clearcoat Roughness (indirectly proportional)
+        - Decrease Specular, Clearcoat (directly proportional)
+
+        Settings to adjust in the PSBDF:
+            'Subsurface':0.0,
+            'Specular':0.5,
+            'Roughness':0.5,
+            'Sheen Tint':0.5,
+            'Clearcoat':0.0,
+            'Clearcoat Roughness':0.95,
+            'IOR':1.47,
+    -->
+
+
     <button on:click|preventDefault={()=>applyFinish()}> Apply finish </button>
 
 </div> 
@@ -332,10 +387,9 @@
     <label>
         {selected_obj} part:
         <select bind:value={selected_part}>
-            {#each selected_objs_and_parts_dict[selected_obj] as part} <option value={part}> {part} </option> {/each}
-            <!-- {#each objs_and_parts[selected_obj]['parts']['names'] as part} 
+            {#each selected_objs_and_parts_dict[selected_obj] as part} 
                 <option value={part}> {part} </option> 
-            {/each} -->
+            {/each}
         </select>
     </label>
 
