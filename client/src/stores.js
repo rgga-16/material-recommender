@@ -16,5 +16,7 @@ export const saved_color_palettes = writable([
     }
 ]);
 
-export const actions_panel_tab = writable("generate");
-export const information_panel_tab = writable("information");
+export const actions_panel_tab = writable("generate"); //Keeps track of which tab is currently selected in the actions panel
+export const information_panel_tab = writable("information"); //Keeps track of which tab is currently selected in the information panel
+
+export const generate_tab_page = writable(0); //Keeps track of which page is currently selected in the generate tab

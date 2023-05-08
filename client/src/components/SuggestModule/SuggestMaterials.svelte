@@ -2,7 +2,9 @@
     import MaterialCard from "./MaterialCard.svelte";
     import { Circle } from 'svelte-loading-spinners';
     import {actions_panel_tab} from '../../stores.js';
+    import {generate_tab_page} from '../../stores.js';
     import {createEventDispatcher} from 'svelte';
+
 
     const dispatch = createEventDispatcher();
 
@@ -44,8 +46,13 @@
         actions_panel_tab.set(tab);
     }
 
+    function switchGenerateTabPage(page_num) {
+        generate_tab_page.set(page_num);
+    }
+
     function proceed_to_generate(material_name) {
         switchActionPanelTab('generate');
+        switchGenerateTabPage(0);
         dispatch('proceedToGenerate', material_name);
     }
 
