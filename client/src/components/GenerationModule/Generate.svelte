@@ -9,6 +9,7 @@
     import {curr_texture_parts} from '../../stores.js';
 	import {curr_textureparts_path} from '../../stores.js';
     import {actions_panel_tab} from '../../stores.js';
+    import {generate_tab_page} from '../../stores.js';
 
     export let onCallUpdateCurrentRendering
     function callUpdateCurrentRendering() {
@@ -119,11 +120,13 @@
     }
 
     const n_pages = 4;
-    let current_page = 0;
 
-    function reset_page() {
-        current_page=0;
-    }
+    let current_page = 0;
+    generate_tab_page.subscribe(value=> {
+        current_page=value;
+    });
+
+    
 
     function next_page() {
         current_page+=1;
@@ -142,6 +145,20 @@
     let active_obj_id=0;
     function switchObjectTab(id) {
         active_obj_id=id;
+    }
+
+    //This function reverts back to the first page of the Generation module.
+    export function reset_page() {
+        current_page=0;
+        generate_tab_page.set(0);
+
+        generated_textures=[];
+        rendering_texture_pairs=[];
+        selected_textures = [];
+        switchObjectTab(0);
+        selected_object_parts=[];
+        selected_index=undefined;
+
     }
 
 </script>

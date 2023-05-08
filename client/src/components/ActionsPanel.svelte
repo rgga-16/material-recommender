@@ -15,6 +15,7 @@
     actions_panel_tab.subscribe(value => {
         activeTab = value;
     });
+
     function switchTab(tab) {
       actions_panel_tab.set(tab);
     }
@@ -34,7 +35,10 @@
   </div> 
 
   <div class='tab-content' class:active={activeTab==='suggest_materials'} id="suggest_materials">
-    <SuggestMaterials on:proceedToGenerate={arg => generate.generate_textures(arg.detail)}/>
+    <SuggestMaterials on:proceedToGenerate={arg => {
+      generate.generate_textures(arg.detail);
+      generate.reset_page();
+    }}/>
   </div>
 
   <div class='tab-content' class:active={activeTab==='suggest_colors'} id="suggest_colors">
