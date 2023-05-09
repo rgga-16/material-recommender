@@ -3,6 +3,8 @@
     
     import DynamicImage from "../DynamicImage.svelte";
     import NumberSpinner from "svelte-number-spinner";
+
+
     import RangeSlider from "svelte-range-slider-pips";
     import { Circle } from 'svelte-loading-spinners';
     import { onMount } from "svelte";
@@ -48,7 +50,7 @@
     function updateDisplayedMatFinish() {
         let mat_finish_div = document.getElementById("mat-finish");
         mat_finish_div.innerHTML='';
-        mat_finish_div.innerHTML = "Current Material Finish: " + rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"];
+        mat_finish_div.innerHTML = "Current finish: " + rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_finish"];
     }
 
 
@@ -76,7 +78,7 @@
     $: y_scale = scale;
 
     let material_finish;
-    // let material_finish_val=0.5;
+    // let material_finish_val=5;
     let material_finish_val=[0.5];
     let psbdf_settings = {
         "Specular": 0.5,
@@ -139,6 +141,7 @@
         is_loading=true; 
 
         let mat_finish_val = material_finish_val[0];
+        // let mat_finish_val = material_finish_val;
 
         for (let setting in psbdf_settings) {
             if (setting=="Specular" || setting=="Clearcoat") {
@@ -238,9 +241,6 @@
 
 <h5> Refine material textures</h5> 
 <select bind:value={selected_obj} on:change={()=> resetDisplayedInfo()}>
-    <!-- {#each Object.keys(objs_and_parts) as obj} 
-        <option value={obj}> {obj} </option> 
-    {/each} -->
     {#each Object.keys(selected_objs_and_parts_dict) as obj} 
         <option value={obj}> {obj} </option> 
     {/each}
@@ -261,39 +261,42 @@
 </div>
 
 <div class='tab-content'  class:active={activeTab==='add-finish'} id="add-finish">
-    <label>
-        {selected_obj} part:
-        <select bind:value={selected_part} on:change={()=> updateDisplayedMatFinish()}>
-            {#each selected_objs_and_parts_dict[selected_obj] as part} 
-                <option value={part}> {part} </option> 
-            {/each}
-            <!-- {#each objs_and_parts[selected_obj]['parts']['names'] as part} 
-                <option value={part}> {part} </option> 
-            {/each} -->
-        </select>
-    </label>
 
-    <div id="mat-finish">
-        <!-- This is where the material finish of the product part will be dynamically displayed -->
+    <div class="control"> 
+        <label>
+            {selected_obj} part:
+            <select bind:value={selected_part} on:change={()=> updateDisplayedMatFinish()}>
+                {#each selected_objs_and_parts_dict[selected_obj] as part} 
+                    <option value={part}> {part} </option> 
+                {/each}
+            </select>
+        </label>
+
+        <div id="mat-finish">
+            <!-- This is where the material finish of the product part will be dynamically displayed -->
+        </div>
     </div>
-<!-- 
-    <label>
-        Material finishes:
-        <select bind:value={material_finish}>
-            <option value={null}> None </option>
-            <option value="glossy"> Glossy </option>
-            <option value="matte"> Matte </option>
-        </select>
-    </label> -->
+
+    <!-- 
+        <label>
+            Material finishes:
+            <select bind:value={material_finish}>
+                <option value={null}> None </option>
+                <option value="glossy"> Glossy </option>
+                <option value="matte"> Matte </option>
+            </select>
+        </label> 
+    -->
 
     <!-- {#if material_finish=='glossy' || material_finish=='matte'} -->
-        <div class="control">
-            <span>Matte</span>
-            <!-- <NumberSpinner bind:value={material_finish_val} min=0.0 max=1.0 step=0.01 decimals=2 precision=0.01/> -->
-            <RangeSlider bind:values={material_finish_val} min=0 max=10 step=1/>
-            <span>Glossy</span>
-        </div>
+    <div class="control">
+        Matte
+        <div style="width:50%; align-items:inherit; justify-content:inherit;"> <RangeSlider bind:values={material_finish_val} min={0.0} max={1.0} step={0.1} float={true} pips/> </div>
+        Glossy
+    </div>
     <!-- {/if} -->
+
+    <button on:click|preventDefault={()=>applyFinish()}> Apply finish </button>
 
     <!-- 
         If Glossy, 
@@ -303,19 +306,7 @@
         If Matte,
         - Increase Roughness, Clearcoat Roughness (indirectly proportional)
         - Decrease Specular, Clearcoat (directly proportional)
-
-        Settings to adjust in the PSBDF:
-            'Subsurface':0.0,
-            'Specular':0.5,
-            'Roughness':0.5,
-            'Sheen Tint':0.5,
-            'Clearcoat':0.0,
-            'Clearcoat Roughness':0.95,
-            'IOR':1.47,
     -->
-
-
-    <button on:click|preventDefault={()=>applyFinish()}> Apply finish </button>
 
 </div> 
 
@@ -398,8 +389,8 @@
         </select>
     </label>
 
-    <div class="transforms">
-        <div class="transform">
+    <div class="transforms" style="border: 1px solid black;">
+        <div class="transform" style="border: 1px solid black;">
             Location
             <div class="control">
                 <span>X:</span>
@@ -412,7 +403,7 @@
             </div>
         </div>
 
-        <div class="transform">
+        <div class="transform" style="border: 1px solid black;">
             Rotation
             <div class="control">
                 <span>Z:</span>
@@ -420,7 +411,7 @@
             </div>
         </div>
 
-        <div class="transform">
+        <div class="transform" style="border: 1px solid black;">
             Scale
             <div class="control">
                 <span>X & Y:</span> 
@@ -574,25 +565,28 @@
         justify-content: center;
     }
 
-    .tab-content .transforms{
+    .transforms{
         display:flex; 
         flex-direction: row;
         align-items: center;
         justify-content: center;
-        border: 1px solid black;
     }
 
-    .tab-content .transforms .transform {
-        border: 1px solid black;
+    .transform {
+        display: flex;
+        flex-direction: column;
         padding: 5px;
         margin: 5px;
         width: 100%;
         height: 100%;
     }
 
-    .transform .control {
+    .control {
         display:flex; 
+        flex-direction: row;
         align-items: center;
+        justify-content: center;
+        gap: 5px;
     }
 
   
