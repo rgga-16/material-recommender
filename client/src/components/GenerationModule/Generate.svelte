@@ -1,7 +1,7 @@
 <script>
     import {onMount} from 'svelte';
     import { Circle } from 'svelte-loading-spinners';
-
+    import NumberSpinner from "svelte-number-spinner";
     import GeneratedRenderings from './GeneratedRenderings.svelte';
     import GeneratedTextures from './GeneratedTextures.svelte';
     import RefineTexture from './RefineTexture.svelte';
@@ -30,6 +30,8 @@
 
     let selected_index;
 
+    let n_textures = 8;
+
     onMount(async () => {
         const obj_and_part_resp= await fetch('./get_objects_and_parts');
         const obj_and_part_json = await obj_and_part_resp.json(); 
@@ -45,7 +47,7 @@
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 "texture_string": texture_str,
-                "n":4,
+                "n":n_textures,
                 "imsize":448,
             }),
         });
@@ -89,7 +91,6 @@
     }
 
     async function apply_to_curr_rendering(index) {
-        
         if(index==undefined) {
             alert("Please select one of the options"); 
             return;
@@ -125,8 +126,6 @@
     generate_tab_page.subscribe(value=> {
         current_page=value;
     });
-
-    
 
     function next_page() {
         current_page+=1;
@@ -168,13 +167,21 @@
 
     <div class="page" class:hidden={current_page!=0} id="generate_materials">
         <form on:submit|preventDefault={generate_textures(input_material)}>
-            <input name="material_name" type="text" bind:value={input_material} placeholder="Type in a material texture..." required/>
-            <button> Generate Material </button>
+            <div class="row">
+                <input name="material_name" type="text" bind:value={input_material} placeholder="Type in a material texture..." required/>
+                <button> Generate Material </button>
+            </div>
+            
+            <div >
+                <span> No. of texture maps: </span>
+                <NumberSpinner bind:value={n_textures} min={1} max={20} step=1/>
+            </div>
+
         </form>
         {#if generated_textures.length > 0}
                 <p> Texture map results for: {input_material}</p>
                 <GeneratedTextures pairs= {generated_textures} bind:selected_texturepaths={selected_textures}/>
-                <p> {selected_textures.length}/4 textures selected. {#if selected_textures.length<=0} Please select at least 1 texture map to proceed.{/if}</p>
+                <p> {selected_textures.length}/{n_textures} textures selected. {#if selected_textures.length<=0} Please select at least 1 texture map to proceed.{/if}</p>
         {:else if is_loading==true}
             <div class="images-placeholder">
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
@@ -239,7 +246,7 @@
         {/if}
         
         <div class="carousel-nav-btns">
-            <button on:click|preventDefault={()=>prev_page()}> Prev </button>
+            <button on:click|preventDefault={()=>prev_page()}> Back </button>
             <button disabled={!(selected_index!=undefined && rendering_texture_pairs.length > 0)} on:click|preventDefault={()=>next_page()}> Next </button>
         </div>
     </div>
@@ -253,7 +260,7 @@
         {/if}
         
         <div class="carousel-nav-btns">
-            <button on:click|preventDefault={()=>prev_page()}> Previous </button>
+            <button on:click|preventDefault={()=>prev_page()}> Back </button>
             <button on:click|preventDefault={()=>apply_to_curr_rendering(selected_index)}> Apply to current rendering </button>
         </div>
     </div>
@@ -299,6 +306,23 @@
         /* overflow: hidden; */
         text-align: center;
     }
+
+    .row {
+        display:flex; 
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+
     
     .material_generator div.page{
         text-align: center;
