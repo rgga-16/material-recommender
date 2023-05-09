@@ -8,6 +8,32 @@ import yake
 kw_extractor = yake.KeywordExtractor(lan='en',n=3,top=20,dedupLim=0.9)
 
 
+system_prompt = '''
+    I want you to act as an interior and furniture design expert with expert knowledge of materials. Your role is to:
+
+    1) Suggest materials and color palettes when asked, depending on the criteria to suggest them.
+    2) Provide feedback on materials when asked, depending on the criteria to provide feedback.
+
+    Now, introduce yourself to the user.
+'''
+
+n_material_suggestion_prompts=3
+materials_suggestion_prompt = f'''
+    Brainstorm prompts that the user can ask you to suggest materials. 
+    Make sure that these prompts of suggesting materials are based on criteria to suggest materials such as 
+    price (relatively expensive, relatively low-cost), a specific interior design style (e.g. Scandinavian, Contemporary), 
+    environmental sustainability, durability, setting (e.g. outdoor, indoor, coastal, tropical), local availability in a certain city, state, or province etc.
+    Make the prompts short and concise.
+    Return {n_material_suggestion_prompts} prompts.
+'''
+
+message_history = []
+init_history = [{"role":"system", "content":system_prompt}]
+
+def get_message_history():
+    return message_history
+
+
 def parse_into_list(string):
     items = []
     for match in re.findall(r'\d+\.\s+(.*)', string):
@@ -15,6 +41,25 @@ def parse_into_list(string):
     for match in re.findall(r'[-•]+\s+(.*)', string):
         items.append(match.strip())
     return items 
+
+def init_query():
+    response = query(system_prompt,"system")
+    return response
+
+def query(prompt,role="user"):
+    global message_history
+    message_history.append({"role":role, "content":prompt})
+
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=message_history,
+        temperature=0.1
+    )
+
+    response_msg = response["choices"][0]["message"]["content"]
+    message_history.append({"role":response["choices"][0]["message"]["role"], "content":response_msg})
+
+    return response_msg
 
 def feedback_on_assembly(object, child_part, child_material, parent_part, parent_material,n=3):
     recommendation_prompt = f'''

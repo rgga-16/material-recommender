@@ -21,6 +21,17 @@ app = Flask(__name__, static_folder="./client/public")
 def get_static_dir():
     return STATIC_IMDIR
 
+@app.route("/query", methods=['POST'])
+def query():
+    form_data = request.get_json()
+    response = gpt3.query(form_data["prompt"],form_data["role"])
+    return jsonify({"response":response,"role":"assistant"})
+
+@app.route("/init_query", methods=['GET'])
+def init_query():
+    response = gpt3.init_query()
+    return jsonify({"response":response,"role":"assistant"})
+
 @app.route("/get_feedback_on_assembly", methods=['POST'])
 def feedback_on_assembly():
     form_data = request.get_json()

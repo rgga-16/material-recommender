@@ -570,11 +570,15 @@
         flex-direction: row;
         align-items: center;
         justify-content: center;
+        gap: 5px;
     }
 
     .transform {
         display: flex;
         flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
         padding: 5px;
         margin: 5px;
         width: 100%;

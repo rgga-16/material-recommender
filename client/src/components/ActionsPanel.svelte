@@ -2,6 +2,7 @@
     import Generate from "./GenerationModule/Generate.svelte";
     import SuggestMaterials from "./SuggestModule/SuggestMaterials.svelte";
     import SuggestColors from "./SuggestModule/SuggestColors.svelte";
+    import ChatBot from "./ChatBotModule/ChatBot.svelte";
     import {actions_panel_tab} from '../stores.js';
 
     export let onCallUpdateCurrentRendering;
@@ -28,6 +29,7 @@
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='generate'} on:click={()=>switchTab('generate')} id="generate-btn">Generate</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_materials'} on:click={()=>switchTab('suggest_materials')} id="suggest-materials-btn">Suggest Materials</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_colors'} on:click={()=>switchTab('suggest_colors')} id="suggest-colors-btn">Suggest Colors</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='chatbot'} on:click={()=>switchTab('chatbot')} id="suggest-colors-btn">ChatBot</button>
   </div>
   
   <div class='tab-content'  class:active={activeTab==='generate'} id="generate">
@@ -45,6 +47,10 @@
     <SuggestColors />
   </div>
 
+  <div class="tab-content" class:active={activeTab==='chatbot'} id="chatbot">
+    <ChatBot />
+  </div>
+
 </div>
       
   <style>
@@ -55,8 +61,14 @@
     height: inherit;
   }
 
+  .tabs{
+    display:flex; 
+    flex-direction: row;
+  }
+
   .tab-btn {
     height:100%;
+    border: black 1px solid;
   }
 
 	.tab-btn.active {
