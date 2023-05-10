@@ -34,6 +34,7 @@
       border: 1px solid #ccc;
       border-radius: 5px;
       padding: 20px;
+      background-color: inherit;
     }
   
     .card h3 {
