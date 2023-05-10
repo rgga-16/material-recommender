@@ -23,11 +23,12 @@ materials_suggestion_prompt = f'''
     Make sure that these prompts of suggesting materials are based on criteria to suggest materials such as 
     price (relatively expensive, relatively low-cost), a specific interior design style (e.g. Scandinavian, Contemporary), 
     environmental sustainability, durability, setting (e.g. outdoor, indoor, coastal, tropical), local availability in a certain city, state, or province etc.
-    Make the prompts short and concise.
+    Make the prompts concise.
     Return {n_material_suggestion_prompts} prompts.
 '''
 
 message_history = []
+temperature=0.0
 init_history = [{"role":"system", "content":system_prompt}]
 
 def get_message_history():
@@ -53,13 +54,28 @@ def query(prompt,role="user"):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=message_history,
-        temperature=0.1
+        temperature=temperature
     )
 
     response_msg = response["choices"][0]["message"]["content"]
     message_history.append({"role":response["choices"][0]["message"]["role"], "content":response_msg})
 
     return response_msg
+
+def suggest_materials(prompt,role="user"):
+    refined_prompt = f"{prompt}"
+    initial_response = query(refined_prompt,role)
+
+    intro_text = initial_response.split('\n')[0].strip()
+
+    python_dict_prompt= "Now, return the suggested materials and their reasons as a Python dictionary. Do not say anything else apart from the dictionary."
+    python_dict_response = query(python_dict_prompt,role)
+
+    suggestions = ast.literal_eval(python_dict_response)
+
+    return intro_text, suggestions
+
+
 
 def feedback_on_assembly(object, child_part, child_material, parent_part, parent_material,n=3):
     recommendation_prompt = f'''
@@ -89,19 +105,21 @@ def feedback_on_assembly(object, child_part, child_material, parent_part, parent
 def extract_keywords(text):
     return kw_extractor.extract_keywords(text)
 
+
 def suggest_materials_by_style(style,material_type,n_materials=5,object=None,part=None):
     prompt=f'''
     What examples of {material_type} materials are of {style} interior design style?
-
     For each example, give your reason. Separate the example and reason by a | . Return in bullet points.
     '''
 
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=prompt,
+    # Using ChatGPT
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role":"user", "content":prompt}],
         max_tokens=512,
         temperature=0.7,
     )
+
 
     items = parse_into_list(response["choices"][0]["text"])
 
