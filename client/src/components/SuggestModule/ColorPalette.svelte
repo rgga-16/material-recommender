@@ -7,16 +7,12 @@
 
 </script>
 
-
     {name}
     <div bind:this={palette} class="color-palette">
         {#each color_codes as cc, i}
             <input type="color" bind:value={cc} />
         {/each}
     </div>
-
-
-
 
 <style>
     .color-palette {

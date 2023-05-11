@@ -49,7 +49,20 @@ def suggest_materials():
             "filepath":savepath
         })
 
-    return jsonify({"intro_text":intro_text,"role":"assistant","suggested_materials":suggested_materials})
+    return jsonify({"intro_text":intro_text,"role":"assistant","suggested_materials":suggested_materials})\
+
+@app.route("suggest_colors", methods=['POST'])
+def suggest_colors():
+    form_data = request.get_json()
+
+    
+    return 
+
+@app.route("/brainstorm_material_queries", methods=['GET'])
+def brainstorm_material_queries():
+    # form_data = request.get_json()
+    prompts = gpt3.brainstorm_material_queries()
+    return jsonify({"prompts":prompts,"role":"assistant"})
 
 @app.route("/get_feedback_on_assembly", methods=['POST'])
 def feedback_on_assembly():

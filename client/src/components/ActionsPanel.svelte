@@ -27,9 +27,9 @@
 <div class="actions-panel">
   <div class="w3-bar w3-grey tabs">
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='generate'} on:click={()=>switchTab('generate')} id="generate-btn">Generate</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='chatbot'} on:click={()=>switchTab('chatbot')} id="suggest-colors-btn">ChatBot</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_materials'} on:click={()=>switchTab('suggest_materials')} id="suggest-materials-btn">Suggest Materials</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_colors'} on:click={()=>switchTab('suggest_colors')} id="suggest-colors-btn">Suggest Colors</button>
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='chatbot'} on:click={()=>switchTab('chatbot')} id="suggest-colors-btn">ChatBot</button>
   </div>
   
   <div class='tab-content'  class:active={activeTab==='generate'} id="generate">
@@ -48,7 +48,10 @@
   </div>
 
   <div class="tab-content" class:active={activeTab==='chatbot'} id="chatbot">
-    <ChatBot />
+    <ChatBot on:proceedToGenerate={arg => {
+      generate.generate_textures(arg.detail);
+      generate.reset_page();
+    }}/>
   </div>
 
 </div>

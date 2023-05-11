@@ -1,8 +1,15 @@
 <script>
     import {onMount} from 'svelte';
+
     import MaterialCard from '../SuggestModule/MaterialCard.svelte';
+    import ColorPalette from '../SuggestModule/ColorPalette.svelte';
+
     import {actions_panel_tab} from '../../stores.js';
     import {generate_tab_page} from '../../stores.js';
+    import {createEventDispatcher} from 'svelte';
+
+
+    const dispatch = createEventDispatcher();
 
     let inputMessage = '';
     let messages = [];
@@ -16,18 +23,30 @@
     }
     */
 
-    async function suggest_materials() {
+    let suggested_material_queries = [
+        "What are some wood materials that are generally low-cost?",
+        "What materials would you suggest that are eco-friendly and sustainable?",
+        "What materials do you recommend for a modern-style interior bedroom?",
+        "Can you suggest materials that are durable in a high-traffic commercial space?",
+        "Can you suggest materials that can be locally sourced in [location]?"
+    ];
 
+    let expanded_suggested_questions=false;
+    function expand() {
+        expanded_suggested_questions = !expanded_suggested_questions;
+    }
+
+    async function suggest_materials() {
+        if (inputMessage.trim() === '') {
+            alert("Please enter a query.");
+            return;
+        }
         messages.push({
             "message": inputMessage,
             "role": "user",
             "type": "regular"
         });
         messages = messages;
-
-        if (inputMessage.trim() === '') {
-            return;
-        }
 
         const response = await fetch("/suggest_materials", {
             method: "POST",
@@ -38,13 +57,13 @@
             }),
         });
         const json = await response.json();
+        inputMessage = '';
 
         let intro_text = json["intro_text"];
         let role = json["role"];
         let suggested_materials = json["suggested_materials"];
         console.log(suggested_materials);
 
-        // HOW TO DISPLAY THE SUGGESTED MATERIALS AND IMAGES AAAA
         let message_type = "suggested_materials";
         messages.push({
             "message": intro_text,
@@ -53,9 +72,22 @@
             "content": suggested_materials
         });
         messages = messages;
+    }
 
-        // console.log(messages);
-        inputMessage = '';
+    async function suggest_color_palettes() {
+        if (inputMessage.trim() === '') {
+            alert("Please enter a query.");
+            return;
+        }
+
+        messages.push({
+            "message": inputMessage,
+            "role": "user",
+            "type": "regular"
+        });
+        messages = messages;
+
+
     }
 
     async function query() {
@@ -111,6 +143,26 @@
 
     }
 
+    function handleInput(event) {
+        inputMessage = event.target.innerText;
+        const textarea = document.getElementById("textarea");
+        textarea.value=event.target.innerText;
+    }
+    
+    async function brainstorm_material_queries() {
+        const response = await fetch('./brainstorm_material_queries');
+        const json = await response.json(); 
+
+        suggested_material_queries = json['prompts']
+        console.log(suggested_material_queries)
+    }
+
+    function generate(material_name) {
+        actions_panel_tab.set("generate");
+        generate_tab_page.set(0);
+        dispatch('proceedToGenerate',material_name)
+    }
+
     onMount(async () => {
         await init_query();
     });
@@ -122,13 +174,17 @@
         <div class="message">
             <div class="{message.role}">
                 <strong>{message.role}: </strong>
-                <p>
-                    {message.message}
-                </p>
+                <p> {message.message} </p>
                 {#if message.type == "suggested_materials"}
                     {#each message.content as m, i}
                         <MaterialCard material_path={m["filepath"]} material_name={m["name"]} material_info={m["reason"]} index={i}/>
-                        <!-- <button on:click={()=>proceed_to_generate(suggested_materials[selected_material_index]["name"] + " " + selected_material_type)}> Generate </button> -->
+                        <button 
+                            on:click|preventDefault={()=> generate(m["name"])}
+                            style="align-items: center; justify-content: center; cursor: pointer;"
+                        >
+                            Generate
+                            <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
+                        </button>
                     {/each}
                 {/if}
 
@@ -144,21 +200,112 @@
     {/each}
 </div>
 
+
+
 <div class="message-input">
-    <input type="text" bind:value="{inputMessage}" on:keydown="{e => e.key === 'Enter' && query()}" placeholder="Type a message"> 
+    <div class="floating-div" class:expanded={expanded_suggested_questions===true}>
+        <div class=header> 
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <strong on:click={() => expand()} style="cursor:pointer;"> Suggested Questions </strong> 
+            
+            {#if expanded_suggested_questions===true}
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <img on:click={() => expand()}  src="./logos/down-arrow-svgrepo-com.svg" style="width:25px; height: 25px;cursor:pointer;" alt="Collapse">
+            {:else}
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <img on:click={() => expand()} src="./logos/up-arrow-svgrepo-com.svg" style="width:25px; height: 25px;cursor:pointer;" alt="Expand">
+            {/if}
+        </div>
+
+        {#if expanded_suggested_questions===false}
+                {suggested_material_queries[0].slice(0, 20)}... + {suggested_material_queries.length-1} more
+        {:else}
+            <div class="body">
+                <ul>
+                    {#each suggested_material_queries as query}
+                        <!-- svelte-ignore a11y-click-events-have-key-events -->   
+                        <li on:click={handleInput} style="cursor:pointer;"> {query} </li>
+                    {/each}
+                </ul>
+            </div>
+
+            <div class="footer">
+                <button on:click|preventDefault={()=>brainstorm_material_queries()}> Brainstorm questions! </button>
+            </div>
+        {/if}
+    </div>
+    <textarea style="width:100%;" bind:value="{inputMessage}" on:keydown="{e => e.key === 'Enter' && suggest_materials()}" placeholder="Type your queries for materials or color palettes here.." id="textarea"></textarea>
     <button on:click|preventDefault={()=>suggest_materials()}>Send</button>    
 </div>
 
 
 <style>
 
+    .floating-div {
+        padding: 10px;
+        position: absolute;
+        display:flex; 
+        flex-direction: column;
+        top: -160px;
+        right: 0;
+        left: 0;
+        bottom:0;
+        margin: auto;
+        width: 90%;
+        height: 60px;
+        background-color: white;
+        border: 1px solid #E0E0E0;
+        border-radius: 20px;
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        z-index: 1;
+        gap: 5px;
+    }
+
+    .floating-div .header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        /* height: 10%; */
+    }
+
+    .floating-div .body {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        overflow-y: scroll;
+    }
+
+    .body li:hover {
+        color: blue;
+    }
+
+    .floating-div .footer {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .floating-div.expanded {
+        /* overflow-y: scroll; */
+        top: -360px;
+        height: 300%;
+    }
+
     .message-input {
+        position: relative;
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
         padding: 10px;
         width: 100%;
+        height: 10%;
     }
 
 
@@ -166,7 +313,7 @@
         background-color: white;
         display: flex;
         flex-direction: column;
-        height: 100%;
+        height: 90%;
         width: 100%;
         overflow-y: scroll;
         padding: 10px;
