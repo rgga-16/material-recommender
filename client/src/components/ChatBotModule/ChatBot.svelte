@@ -87,7 +87,30 @@
         });
         messages = messages;
 
+        const response = await fetch("/suggest_colors", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                "prompt": inputMessage,
+                "role":"user",
+            }),
+        });
+        const json = await response.json();
+        inputMessage = '';
 
+        let intro_text = json["intro_text"];
+        let role = json["role"];
+        let suggested_color_palettes = json["suggested_color_palettes"];
+        console.log(suggested_color_palettes);
+
+        let message_type = "suggested_color_palettes";
+        messages.push({
+            "message": intro_text,
+            "role": role,
+            "type": message_type,
+            "content": suggested_color_palettes
+        });
+        messages = messages;
     }
 
     async function query() {
@@ -186,6 +209,14 @@
                             <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
                         </button>
                     {/each}
+                
+                {:else if message.type=="suggested_color_palettes"}
+                    <ol>
+                        {#each message.content as m,i}
+                            <li> {m["name"]} - {m["description"]} - {m["codes"]}</li>
+                        {/each}
+                    </ol>
+                    
                 {/if}
 
                 <!-- {#if message.type == "suggested_color palettes"}
@@ -235,7 +266,8 @@
         {/if}
     </div>
     <textarea style="width:100%;" bind:value="{inputMessage}" on:keydown="{e => e.key === 'Enter' && suggest_materials()}" placeholder="Type your queries for materials or color palettes here.." id="textarea"></textarea>
-    <button on:click|preventDefault={()=>suggest_materials()}>Send</button>    
+    <button on:click|preventDefault={()=>suggest_materials()}>Suggest Materials</button>    
+    <button on:click|preventDefault={()=>suggest_color_palettes()}>Suggest Colors</button>   
 </div>
 
 

@@ -51,12 +51,14 @@ def suggest_materials():
 
     return jsonify({"intro_text":intro_text,"role":"assistant","suggested_materials":suggested_materials})\
 
-@app.route("suggest_colors", methods=['POST'])
+@app.route("/suggest_colors", methods=['POST'])
 def suggest_colors():
     form_data = request.get_json()
 
-    
-    return 
+    intro_text, suggested_color_palettes = gpt3.suggest_color_palettes(form_data["prompt"],role=form_data["role"])
+
+
+    return jsonify({"intro_text":intro_text,"role":"assistant","suggested_color_palettes":suggested_color_palettes})
 
 @app.route("/brainstorm_material_queries", methods=['GET'])
 def brainstorm_material_queries():

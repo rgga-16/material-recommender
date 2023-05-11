@@ -78,14 +78,43 @@ def suggest_materials(prompt,role="user"):
     return intro_text, suggestions
 
 def suggest_color_palettes(prompt, role="user"):
-    refined_prompt = f"{prompt}. Return as hex color themes."
+    refined_prompt = f'''{prompt}. 
+    Suggest color palettes that contain hex codes using the following format:
+
+    - Color Palette #1 Name
+    Textual explanation of color palette
+    HEX codes: HEXCODE1, #HEXCODE2, #HEXCODE3,... #HEXCODEN
+
+    - Color Palette #2 Name
+    Textual explanation of color palette
+    HEX codes: HEXCODE1, #HEXCODE2, #HEXCODE3,... #HEXCODEN
+
+    .....
+
+    - Color Palette #N Name
+    Textual explanation of color palette
+    HEX codes: HEXCODE1, #HEXCODE2, #HEXCODE3,... #HEXCODEN
+
+    Now, suggest 5 color palettes.
+    '''
+
     initial_response = query(refined_prompt,role)
     intro_text = initial_response.split('\n')[0].strip()
 
-    python_list_prompt= "Now, return the suggested color palettes as a Python list. Do not say anything else apart from the list."
-    
+    python_list_prompt= '''
+        Now, return them as a list of dictionaries in Python. 
+        Each dictionary should contain the following keys: name, description, codes. 
+    '''
 
-    return 
+    python_list_response = query(python_list_prompt,role)
+
+    pattern = r"```\n(.*?)```"
+    matches = re.findall(pattern, python_list_response, re.DOTALL)
+    assert len(matches) == 1
+
+    python_list = ast.literal_eval(matches[0])
+
+    return intro_text, python_list
 
 def brainstorm_material_queries(): 
     global init_history
@@ -154,19 +183,14 @@ def suggest_materials_by_style(style,material_type,n_materials=5,object=None,par
         max_tokens=512,
         temperature=0.7,
     )
-
-
     items = parse_into_list(response["choices"][0]["text"])
-
     materials = []
     for item in items:
         name = item.split("|")[0].strip()
         reason = item.split("|")[1].strip()
         keywords = extract_keywords(reason)
         materials.append({"name":name,"reason":reason, "keywords":keywords})
-
     return materials
-
 
 def suggest_color_by_style(style,n_themes=5):
     prompt=f'''
@@ -181,6 +205,7 @@ def suggest_color_by_style(style,n_themes=5):
         messages=[{"role":"user", "content":prompt}],
     )
     response_msg = response["choices"][0]["message"]["content"]
+
     color_palettes = ast.literal_eval(response_msg)
 
     return color_palettes
