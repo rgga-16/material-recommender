@@ -52,7 +52,7 @@
 
     function proceed_to_generate(material_name) {
         switchActionPanelTab('generate');
-        switchGenerateTabPage(0);
+        // switchGenerateTabPage(0);
         dispatch('proceedToGenerate', material_name);
     }
 

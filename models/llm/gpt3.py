@@ -1,5 +1,5 @@
 
-import os 
+import os, copy
 import openai
 openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
 import re , ast
@@ -17,7 +17,7 @@ system_prompt = '''
     Now, introduce yourself to the user.
 '''
 
-n_material_suggestion_prompts=3
+n_material_suggestion_prompts=5
 materials_suggestion_prompt = f'''
     Brainstorm prompts that the user can ask you to suggest materials. 
     Make sure that these prompts of suggesting materials are based on criteria to suggest materials such as 
@@ -27,8 +27,10 @@ materials_suggestion_prompt = f'''
     Return {n_material_suggestion_prompts} prompts.
 '''
 
+
+
 message_history = []
-temperature=0.0
+temperature=0.1
 init_history = [{"role":"system", "content":system_prompt}]
 
 def get_message_history():
@@ -75,6 +77,40 @@ def suggest_materials(prompt,role="user"):
 
     return intro_text, suggestions
 
+def suggest_color_palettes(prompt, role="user"):
+    refined_prompt = f"{prompt}. Return as hex color themes."
+    initial_response = query(refined_prompt,role)
+    intro_text = initial_response.split('\n')[0].strip()
+
+    python_list_prompt= "Now, return the suggested color palettes as a Python list. Do not say anything else apart from the list."
+    
+
+    return 
+
+def brainstorm_material_queries(): 
+    global init_history
+    init_history_clone = copy.deepcopy(init_history)
+    init_history_clone.append({"role":"user", "content":materials_suggestion_prompt})
+
+    initial_response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=init_history_clone,
+        temperature=0.7
+    )
+    
+    init_history_clone.append({"role":"assistant", "content":initial_response["choices"][0]["message"]["content"]})
+    python_list_prompt = "Now, return the brainstormed prompts as a Python list. Do not say anything else apart from the list."
+    init_history_clone.append({"role":"user", "content":python_list_prompt})
+
+    python_list_response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=init_history_clone,
+        temperature=0.0
+    )
+
+    prompts = ast.literal_eval(python_list_response["choices"][0]["message"]["content"])
+
+    return prompts
 
 
 def feedback_on_assembly(object, child_part, child_material, parent_part, parent_material,n=3):
@@ -98,7 +134,6 @@ def feedback_on_assembly(object, child_part, child_material, parent_part, parent
         reason = item.split("|")[1].strip()
         keywords = extract_keywords(reason)
         attachments.append({"name":name,"reason":reason, "keywords":keywords})
-
 
     return attachments
 
