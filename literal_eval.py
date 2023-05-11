@@ -49,6 +49,41 @@ prompts=[
     "I'm on a tight budget, can you suggest some affordable materials for my kitchen countertop?"
 ]
 
-suggest_materials(prompt)
+# suggest_materials(prompts[0])
 
+string = '''
+    Sure, here is the list of dictionaries:
+
+```
+[
+    {
+        "name": "Minimalist Monochrome",
+        "description": "This palette features a minimalistic black and white color scheme that is timeless and modern. It works well with natural materials like wood and stone.",
+        "codes": ["#FFFFFF", "#000000"]
+    },
+    {
+        "name": "Serene Neutrals",
+        "description": "This palette features soft neutral tones that create a calming and serene environment. It works well with organic materials like linen and wool.",
+        "codes": ["#F7F7F7", "#E5E5E5", "#D2D2D2", "#BABABA", "#A2A2A2"]
+    },
+    {
+        "name": "Bold Accents",
+        "description": "This palette features a neutral base with bold accent colors that add a pop of color and personality. It works well with metallic materials like brass and copper.",
+        "codes": ["#FFFFFF", "#000000", "#FFC857", "#E9724C", "#C5283D"]
+    },
+    {
+        "name": "Earthy Tones",
+        "description": "This palette features rich earthy tones that create a warm and inviting atmosphere. It works well with natural materials like leather and rattan.",
+        "codes": ["#D6C9A9", "#8D6E63", "#4E342E", "#A1887F", "#EFE0CE"]
+    },
+    {
+        "name": "Moody Blues",
+        "description": "This palette features deep blues and grays that create a moody and sophisticated atmosphere. It works well with materials like velvet and marble.",
+        "codes": ["#1C1C1E", "#3A3A3C", "#5C5C5E", "#8A8A8D", "#B8B8BB"]
+    }
+]
+```
+
+'''
+thing = ast.literal_eval(string)
 print()
