@@ -3,6 +3,7 @@
 
     import MaterialCard from '../SuggestModule/MaterialCard.svelte';
     import ColorPalette from '../SuggestModule/ColorPalette.svelte';
+    import {saved_color_palettes} from '../../stores.js';
 
     import {actions_panel_tab} from '../../stores.js';
     import {generate_tab_page} from '../../stores.js';
@@ -113,6 +114,15 @@
         messages = messages;
     }
 
+    function saveColorPalette(color_palette) {
+        let dict = {
+            name: color_palette["name"],
+            palette: color_palette["codes"]
+        }
+        saved_color_palettes.update(lst => lst.concat(dict));
+        alert("Color palette saved!");
+    }
+
     async function query() {
 
         if (inputMessage.trim() === '') {
@@ -213,7 +223,13 @@
                 {:else if message.type=="suggested_color_palettes"}
                     <ol>
                         {#each message.content as m,i}
-                            <li> {m["name"]} - {m["description"]} - {m["codes"]}</li>
+                            <li> 
+                                <div class="color-card">
+                                    <ColorPalette name={m["name"]} color_codes={m["codes"]} />
+                                </div>
+                                <button on:click={()=>saveColorPalette(m)}> Save Palette </button>
+                                <p> {m["description"]} </p>
+                            </li>
                         {/each}
                     </ol>
                     
@@ -366,6 +382,14 @@
         justify-content: space-between;
         align-items: center;
         gap: 5px;
+    }
+
+    .color-card {
+        border: 1px solid black;
+        padding: 5px;
+        height: 180%;
+        width: 100%;
+        margin-bottom: 5px;
     }
 
 </style>

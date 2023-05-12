@@ -30,7 +30,7 @@ materials_suggestion_prompt = f'''
 
 
 message_history = []
-temperature=0.1
+temperature=0.5
 init_history = [{"role":"system", "content":system_prompt}]
 
 def get_message_history():
@@ -102,18 +102,18 @@ def suggest_color_palettes(prompt, role="user"):
     intro_text = initial_response.split('\n')[0].strip()
 
     python_list_prompt= '''
-        Now, return them as a list of dictionaries in Python. 
+        Now, return them as a list of dictionaries. 
         Each dictionary should contain the following keys: name, description, codes. 
+        RETURN THE LIST ONLY. Do not say anything else (ex. "Here are the color palettes you requested, return as a list of dictionaries.") apart from the list.
     '''
 
     python_list_response = query(python_list_prompt,role)
 
-    pattern = r"```\n(.*?)```"
-    matches = re.findall(pattern, python_list_response, re.DOTALL)
-    assert len(matches) == 1
+    # pattern = r"```\n(.*?)```"
+    # matches = re.findall(pattern, python_list_response, re.DOTALL)
+    # assert len(matches) == 1
 
-    python_list = ast.literal_eval(matches[0])
-
+    python_list = ast.literal_eval(python_list_response)
     return intro_text, python_list
 
 def brainstorm_material_queries(): 
