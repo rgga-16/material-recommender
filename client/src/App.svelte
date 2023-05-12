@@ -2,7 +2,7 @@
 	import { Circle } from 'svelte-loading-spinners';
 	
 	import ActionsPanel from "./components/ActionsPanel.svelte";
-	import RenderingDisplay from "../../archive/RenderingDisplay.svelte";
+	import ThreeDDisplay from './components/ThreeDDisplay.svelte';
 	import DynamicImage from "./components/DynamicImage.svelte";
 	import Information from "./components/InformationPanel.svelte";
 	import {curr_rendering_path} from './stores.js';
@@ -15,8 +15,6 @@
 	let current_rendering_path;
 	let current_texture_parts;
 	let current_textureparts_path;
-
-
 
 	let saved_renderings = [];
 	let selected_saved_rendering_idx; 
@@ -112,7 +110,6 @@
 		
 	}
 
-
 	curr_rendering_path.subscribe(value => {
 		current_rendering_path = value;
 	});
@@ -136,6 +133,12 @@
 	const promise = getInitialRendering();
 
 
+	let activeDisplayTab='rendering_display';
+	function switchDisplayTab(tab) {
+        activeDisplayTab=tab;
+    }
+
+
 
 	onMount(async function () {
 		const response = await fetch("/get_static_dir");
@@ -157,24 +160,41 @@
 
 		<!-- Middle Section  -->
 		<div class="renderings">
-			<!-- Display of current rendering -->
-			<div class="rendering-display">
-				{#if is_loading}
-					<div class="images-placeholder">
-						<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
-					</div>
-				{:else}
-					{#await promise}
-						<pre> Loading rendering. Please wait. </pre>
-					{:then data} 
-						<h3>Current Rendering</h3>
-						<div class="image">
-							<DynamicImage bind:this={current_rendering} imagepath={current_rendering_path} alt="Current rendering" size={"90%"}/>
+
+			<div class="display-panel">
+				<div class="w3-bar w3-grey tabs">
+					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='rendering_display'} on:click={()=>switchDisplayTab('rendering_display')} id="rendering-display-btn">Rendering View</button>
+					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='3d_display'} on:click={()=>switchDisplayTab('3d_display')} id="suggest-colors-btn">3D View</button>
+				</div>
+
+				<!-- Display rendering -->
+				<div class="tab-content rendering-display" class:active={activeDisplayTab==='rendering_display'}>
+					{#if is_loading}
+						<div class="images-placeholder">
+							<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
 						</div>
-						<button on:click|preventDefault={saveRendering}> Save rendering </button>
-					{/await}
-				{/if}
+					{:else}
+						{#await promise}
+							<pre> Loading rendering. Please wait. </pre>
+						{:then data} 
+							<div class="image">
+								<DynamicImage bind:this={current_rendering} imagepath={current_rendering_path} alt="Current rendering" size={"80%"}/>
+								<button on:click|preventDefault={saveRendering}> Save rendering </button>
+							</div>
+							
+						{/await}
+					{/if}
+				</div>
+
+				<!-- Display 3D model/s -->
+				<div class="tab-content threed-display" class:active={activeDisplayTab==='3d_display'}>
+					<ThreeDDisplay />
+
+				</div>
 			</div>
+
+
+			
 
 			<!-- Display of saved renderings -->
 			<div class="saved-renderings">
@@ -245,20 +265,28 @@
 		padding: 5px;
 	}
 
-	.rendering-display {
+	.display-panel {
 		justify-content: center;
 		align-items: center;
 		background-color: lightgray;
 		border: 2px solid black;
 		display:flex;
 		flex-direction: column;
-		padding:5px;
+		padding:0px 0px 0px 0px;
 		margin-bottom: 5px;
 		height: 65%;
 	}
 
+	.rendering-display {
+		justify-content: center;
+		align-items: center;
+		display:flex;
+		flex-direction: column;
+	}
+
 	.rendering-display .image {
 		display:flex;
+		flex-direction: column;
 		width:100%;
         height: 100%;
         object-fit: cover;
@@ -337,6 +365,36 @@
 
 	.collapsed {
 		display:none;
+	}
+
+	.tabs   {
+        display:flex; 
+        flex-direction: row;
+    }
+
+	.tab-btn {
+        height:100%;
+        border: black 1px solid;
+    }
+
+	.tab-btn.active {
+		background-color: rgb(89, 185, 218);
+	}
+
+    .tab-btn.active:hover {
+		background-color: rgb(89, 185, 218);
+	}
+
+	.tab-content {
+		display: none;
+	}
+
+	.tab-content.active {
+		display: flex;
+        flex-direction: column;
+        height: 100%;
+        width:100%;
+        padding: 5px;
 	}
   </style>
   
