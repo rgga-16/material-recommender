@@ -37,7 +37,6 @@ def query():
 def suggest_materials():
     form_data = request.get_json()
     intro_text, suggested_materials_dict = gpt3.suggest_materials(form_data["prompt"],role=form_data["role"])
-
     suggested_materials = []
     for sm in suggested_materials_dict:
         image, filename = generate_textures(sm,n=1, imsize=448); image=image[0]; filename=filename[0]
@@ -48,16 +47,12 @@ def suggest_materials():
             "reason":suggested_materials_dict[sm],
             "filepath":savepath
         })
-
     return jsonify({"intro_text":intro_text,"role":"assistant","suggested_materials":suggested_materials})\
 
 @app.route("/suggest_colors", methods=['POST'])
 def suggest_colors():
     form_data = request.get_json()
-
     intro_text, suggested_color_palettes = gpt3.suggest_color_palettes(form_data["prompt"],role=form_data["role"])
-
-
     return jsonify({"intro_text":intro_text,"role":"assistant","suggested_color_palettes":suggested_color_palettes})
 
 @app.route("/brainstorm_material_queries", methods=['GET'])
