@@ -13,7 +13,8 @@
     import {curr_rendering_path} from '../stores.js';
 	import {curr_texture_parts} from '../stores.js';
 	import {curr_textureparts_path} from '../stores.js';
-    import { onMount } from 'svelte';
+    import { onMount, createEventDispatcher} from 'svelte';
+    const dispatch = createEventDispatcher();
 
     let camera, scene, renderer, controls;
 
@@ -37,6 +38,9 @@
     const glbUrls = [
         'models/glb/floor.glb'
     ]
+    const textureAlternative= textureUrls[1];
+
+    let obj;
 
     function add_glb_objects() {
         for (let i = 0; i < glbUrls.length; i++) {
@@ -44,10 +48,31 @@
             gltfLoader.load(glbUrl, (gltf) => {
                 console.log('GLTF loaded: ' + gltf);
                 console.log(gltf);
-                scene.add(gltf.scene);
+                let model = gltf.scene
+                scene.add(model);
+                obj = model;
             })
         }
     }
+
+    function changeTexture(object, url) {
+        object.traverse((node) => {
+                if (node.isMesh) {
+                    console.log("material changed")
+                    const material = node.material;
+                    if (Array.isArray(material)) {
+                        material.forEach((mat) => {
+                        mat.map = new THREE.TextureLoader().load(textureAlternative);
+                        mat.needsUpdate = true;
+                        });
+                    } else {
+                        material.map = new THREE.TextureLoader().load(textureAlternative);
+                        material.needsUpdate = true;
+                    }
+                }
+        });
+    }
+
 
     function add_objects() {
         
@@ -131,11 +156,17 @@
         }
 
         animate();
-    })
+    });
+
 
 </script>
 
 <div id="3d-viewer"></div>
+
+<div>
+    <!-- <input type="text" bind:value={texturePath} placeholder="Enter image texture path" /> -->
+    <button on:click|preventDefault={() => changeTexture(obj,textureAlternative)}>Change Texture</button>
+</div>
 
 <style>
 
