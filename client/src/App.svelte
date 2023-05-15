@@ -181,7 +181,6 @@
 								<DynamicImage bind:this={current_rendering} imagepath={current_rendering_path} alt="Current rendering" size={"80%"}/>
 								<button on:click|preventDefault={saveRendering}> Save rendering </button>
 							</div>
-							
 						{/await}
 					{/if}
 				</div>
@@ -189,7 +188,6 @@
 				<!-- Display 3D model/s -->
 				<div class="tab-content threed-display" class:active={activeDisplayTab==='3d_display'}>
 					<ThreeDDisplay />
-
 				</div>
 			</div>
 
