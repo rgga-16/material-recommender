@@ -19,21 +19,17 @@
     "rollup-plugin-terser": "^7.0.0",
     "svelte": "^3.0.0",
     "svelte-loading-spinners": "^0.3.4",
-    "svelte-range-slider-pips": "^2.1.1"
+    "svelte-range-slider-pips": "^2.1.1",
+    "three": "^0.152.2"
   },
   "dependencies": {
-    "@dimforge/rapier3d-compat": "^0.11.2",
-    "@theatre/core": "^0.6.0",
-    "@theatre/studio": "^0.6.0",
     "@threlte/core": "^6.0.0-next.7",
     "@threlte/extras": "^5.0.0-next.12",
     "@threlte/rapier": "^1.0.0-next.2",
     "@threlte/theatre": "^0.1.0-next.1",
-    "@types/three": "^0.152.0",
     "npm-watch": "^0.11.0",
     "sirv-cli": "^2.0.0",
-    "svelte-number-spinner": "^0.8.0",
-    "three": "^0.152.2"
+    "svelte-number-spinner": "^0.8.0"
   },
   "watch": {
     "build": {
