@@ -39,19 +39,19 @@
         'models/fabric_mattress.png'
     ]
 
-    let objs_and_parts = {}
+
     const url = 'models/glb';
     let glbUrls = [];
     async function get_objects() {
         const obj_resp= await fetch('./get_objects_and_parts');
         const obj_json = await obj_resp.json(); 
-        objs_and_parts = obj_json;
+        let objs_and_parts = obj_json;
 
-        for (const key in objs_and_parts) {
-            let o = objs_and_parts[key];
+        for (const obj in objs_and_parts) {
+            let o = objs_and_parts[obj];
 
             for (const part of o["parts"]["names"]) {
-                glbUrls.push(url+'/'+key+'/'+part+'.glb');
+                glbUrls.push(url+'/'+obj+'/'+part+'.glb');
                 glbUrls=glbUrls;
             }
         }
@@ -75,6 +75,15 @@
         if (highlightedObject) {
             alert('You clicked on the highlighted object: ' + highlightedObject.name);
             selected_object_name.set(highlightedObject.name);
+
+            /**
+             * TODO: When I click on a highlighted object, I should be able to display the following to the Information Panel:
+             * 1) Name of the object part that's highlighted (ex. blanket)
+             * 2) Name of the bigger object it is a part of (ex. bed)
+             * 3) The material used in that part (access this in the curr_texture_parts dict using the object name and part name)
+             * 4) The finish used in that part (access this in the curr_rendering dict using the object name and part name)
+             * 5) The color finish used in that part (access this in the curr_rendering dict using the object name and part name)
+            */
         }
 
         
@@ -87,7 +96,7 @@
         );
 
         raycaster.setFromCamera(mouse, camera);
-        // const intersects = raycaster.intersectObjects(scene.children, true);
+
         const intersects = raycaster.intersectObjects(objects, true);
 
         if (intersects.length > 0) {
@@ -111,7 +120,9 @@
     }
 
     const textureAlternative= textureUrls[1];
+
     let objects=[];
+    let object_infos = []
     function add_glb_objects() {
         for (let i = 0; i < glbUrls.length; i++) {
             let glbUrl = glbUrls[i];
@@ -121,6 +132,8 @@
                 scene.add(model);
                 objects.push(model);
                 objects=objects;
+
+
             })
         }
         console.log(objects);
