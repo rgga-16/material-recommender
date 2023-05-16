@@ -13,15 +13,19 @@
     import {curr_rendering_path} from '../stores.js';
 	import {curr_texture_parts} from '../stores.js';
 	import {curr_textureparts_path} from '../stores.js';
+    import {selected_object_name} from '../stores.js';
+
+
     import { onMount, createEventDispatcher} from 'svelte';
     const dispatch = createEventDispatcher();
 
-    let camera, scene, renderer, controls;
+    let camera, scene, renderer, controls, raycaster;
 
     const objLoader = new OBJLoader();
     const textureLoader = new TextureLoader();
+
     const gltfLoader = new GLTFLoader();
-    const objects=[];
+
 
     const objUrls = [
         'models/bedframe.obj',
@@ -35,24 +39,91 @@
         'models/fabric_mattress.png'
     ]
 
-    const glbUrls = [
-        'models/glb/floor.glb'
-    ]
+    let objs_and_parts = {}
+    const url = 'models/glb';
+    let glbUrls = [];
+    async function get_objects() {
+        const obj_resp= await fetch('./get_objects_and_parts');
+        const obj_json = await obj_resp.json(); 
+        objs_and_parts = obj_json;
+
+        for (const key in objs_and_parts) {
+            let o = objs_and_parts[key];
+
+            for (const part of o["parts"]["names"]) {
+                glbUrls.push(url+'/'+key+'/'+part+'.glb');
+                glbUrls=glbUrls;
+            }
+        }
+        console.log(glbUrls);
+    }
+
+    
+
+    const highlightMaterial = new THREE.MeshBasicMaterial({
+        color:0x0000ff,
+        emissive: 0x0000ff,
+        transparent:true,
+        opacity: 0.5
+    });
+    let highlightedObject = null;
+    let originalMaterial= null
+
+    function onClick(event) {
+        event.preventDefault();
+
+        if (highlightedObject) {
+            alert('You clicked on the highlighted object: ' + highlightedObject.name);
+            selected_object_name.set(highlightedObject.name);
+        }
+
+        
+    }
+
+    function onMouseMove(event) {
+        const mouse = new THREE.Vector2(
+            (event.clientX / window.innerWidth) * 2 - 1,
+            -(event.clientY / window.innerHeight) * 2 + 1
+        );
+
+        raycaster.setFromCamera(mouse, camera);
+        // const intersects = raycaster.intersectObjects(scene.children, true);
+        const intersects = raycaster.intersectObjects(objects, true);
+
+        if (intersects.length > 0) {
+            const object = intersects[0].object;
+            if (object !== highlightedObject) {
+                if (highlightedObject) {
+                    highlightedObject.material = originalMaterial;
+                }
+                highlightedObject = object;
+                originalMaterial = object.material;
+                object.material = highlightMaterial;
+
+            }
+        } else {
+            if (highlightedObject) {
+                highlightedObject.material = originalMaterial;
+                highlightedObject = null;
+            }
+        }
+
+    }
+
     const textureAlternative= textureUrls[1];
-
-    let obj;
-
+    let objects=[];
     function add_glb_objects() {
         for (let i = 0; i < glbUrls.length; i++) {
             let glbUrl = glbUrls[i];
             gltfLoader.load(glbUrl, (gltf) => {
-                console.log('GLTF loaded: ' + gltf);
-                console.log(gltf);
+                // console.log('GLTF loaded: ' + gltf);
                 let model = gltf.scene
                 scene.add(model);
-                obj = model;
+                objects.push(model);
+                objects=objects;
             })
         }
+        console.log(objects);
     }
 
     function changeTexture(object, url) {
@@ -75,7 +146,6 @@
 
 
     function add_objects() {
-        
         for (let i=0; i < objUrls.length; i++) {
             let objUrl = objUrls[i];
             let textureUrl = textureUrls[i];
@@ -97,7 +167,6 @@
                     scene.add(obj);
                 })
             })
-            
         }
     }
 
@@ -111,13 +180,17 @@
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000); // Set the background to black
         camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-
+        
+        
+        raycaster = new THREE.Raycaster();
+        renderer.domElement.addEventListener('mousemove', onMouseMove);
+        renderer.domElement.addEventListener('click', onClick);
 
 
         // add_objects();
         add_glb_objects();
 
-        const light = new THREE.AmbientLight(0xffffff, 0.7);
+        const light = new THREE.AmbientLight(0xffffff, 0.4);
         scene.add(light);
 
         const environment = new RoomEnvironment();
@@ -140,14 +213,11 @@
 
     }
 
+    
 
-
-    onMount(() => {
-
+    onMount(async () => {
+        await get_objects();
         init();
-        
-        
-        // document.body.appendChild( renderer.domElement );
 
         function animate() {
             requestAnimationFrame( animate );
