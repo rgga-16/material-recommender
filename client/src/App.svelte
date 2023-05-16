@@ -11,7 +11,6 @@
 	import {get} from 'svelte/store';
 	import {onMount} from "svelte";	
 
-
 	let current_rendering_path;
 	let current_texture_parts;
 	let current_textureparts_path;

@@ -3,6 +3,7 @@
     // import {createComponent} from 'svelte';
     import {get} from 'svelte/store';
     import {curr_texture_parts} from '../stores.js';
+    import {selected_object_name} from '../stores.js';
     import TexturePart from './TexturePart.svelte';
     import PartPairs from './PartPairs.svelte';
     import {onMount} from 'svelte';
@@ -10,6 +11,11 @@
     import {information_panel_tab} from '../stores.js';
     
     let current_texture_parts = get(curr_texture_parts);
+    let selected_object=''; 
+
+    selected_object_name.subscribe(value => {
+		selected_object = value;
+	});
     
     let objects = Object.keys(current_texture_parts);
 
@@ -149,6 +155,7 @@
     <div class="w3-bar w3-grey tabs">
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='information'} on:click={()=>switchTab('information')} id="information-btn">Information</button>
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='feedback'} on:click={()=>switchTab('feedback')}  id="feedback-btn">Feedback</button>
+        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='details'} on:click={()=>switchTab('details')}  id="details-btn">Details</button>
     </div>
 
     <div class='tab-content'  class:active={activeTab==='information'} id="information">
@@ -207,6 +214,17 @@
             {/each} -->
         {/if}
     </div>
+
+    <div class="tab-content" class:active={activeTab==='details'} id="details">
+        <h3> Object Details </h3>
+        {#if selected_object !== ""} 
+            {selected_object}
+        {:else }
+            <div class="images-placeholder">
+                No object selected. Please select an object in the 3D View.
+            </div>
+        {/if}
+    </div>
 </div>
 
 <style>
@@ -247,7 +265,7 @@
 
     .images-placeholder {
         width: 100%;
-        height: 500px;
+        height: 50%;
         border: 1px dashed black;
         display: flex;
         align-items: center;

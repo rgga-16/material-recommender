@@ -235,13 +235,6 @@
                     
                 {/if}
 
-                <!-- {#if message.type == "suggested_color palettes"}
-                    {#each message.content as color_palette}
-                        <ColorPaletteCard color_palette_path={color_palette.color_palette_path} color_palette_name={color_palette.color_palette_name} color_palette_info={color_palette.color_palette_info} index={color_palette.index}/>
-                    {/each}
-                    
-                {/if} -->
-
             </div>
         </div>
     {/each}
