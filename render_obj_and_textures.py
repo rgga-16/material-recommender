@@ -310,7 +310,6 @@ class Renderer():
     def load_object(self,mesh_path, loc=(0.0,0.0,2.636), rot=(90,0,0), scale=(1.0,1.0,1.0), axis_forward='-Z', axis_up='Y'):
         bpy.ops.import_scene.obj(filepath=mesh_path, axis_forward=axis_forward, axis_up=axis_up)
 
-
         mesh_file = os.path.basename(mesh_path)
         selected = bpy.context.selected_objects
         obj = bpy.context.selected_objects.pop()
@@ -319,6 +318,20 @@ class Renderer():
                             math.radians(rot[1]),
                             math.radians(rot[2]))
         obj.scale = scale
+        self.objects.append(obj)
+        return obj 
+    
+    def load_object_gltf(self,mesh_path, loc=(0.0,0.0,2.636), rot=(90,0,0), scale=(1.0,1.0,1.0), axis_forward='-Z', axis_up='Y'):
+        bpy.ops.import_scene.gltf(filepath=mesh_path)
+
+        mesh_file = os.path.basename(mesh_path)
+        selected = bpy.context.selected_objects
+        obj = bpy.context.selected_objects.pop()
+        # obj.location = loc
+        # obj.rotation_euler = (math.radians(rot[0]),
+        #                     math.radians(rot[1]),
+        #                     math.radians(rot[2]))
+        # obj.scale = scale
         self.objects.append(obj)
         return obj 
     
@@ -501,8 +514,10 @@ def main():
             if "mat_color" in texture_object_parts[model_key][part].keys():
                 part_material_color = texture_object_parts[model_key][part]["mat_color"]
             
-            part_path = os.path.join(models_dir,model_key, f'{part}.obj')
-            obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
+            # part_path = os.path.join(models_dir,model_key, f'{part}.obj')
+            # obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
+            part_path = os.path.join(models_dir,model_key, f'{part}.glb')
+            obj = renderer.load_object_gltf(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
             renderer.recalculate_normals(obj)
             renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish, part_material_transforms, part_material_color,part_material_finish_settings)
     renderer.render(out_path=args.out_path)
