@@ -186,7 +186,7 @@
 
 				<!-- Display 3D model/s -->
 				<div class="tab-content threed-display" class:active={activeDisplayTab==='3d_display'}>
-					<ThreeDDisplay />
+					<ThreeDDisplay bind:information_panel={information_panel} />
 				</div>
 			</div>
 

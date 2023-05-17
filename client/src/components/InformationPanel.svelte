@@ -13,12 +13,12 @@
     
     let current_texture_parts = get(curr_texture_parts);
 
-    let selected_part=''; 
+    let selected_part=null; 
     selected_part_name.subscribe(value => {
 		selected_part = value;
 	});
 
-    let selected_object='';
+    let selected_object=null;
     selected_obj_name.subscribe(value => {
         selected_object = value;
     });
@@ -44,6 +44,26 @@
         information_panel_tab.set(tab);
     }
 
+    export function displayTexturePart() {
+        let mat_name = current_texture_parts[selected_object][selected_part]["mat_name"];
+        let material_url = current_texture_parts[selected_object][selected_part]["mat_image_texture"];
+        let material_finish = current_texture_parts[selected_object][selected_part]["mat_finish"];
+
+        const textureparts_div = document.getElementById("texture-part-details");
+        textureparts_div.innerHTML='';
+
+        let texturepart = new TexturePart({
+            target: document.getElementById("texture-part-details"),
+            props: {
+                part_name: selected_part,
+                material_name: mat_name,
+                material_url: material_url,
+                material_finish: material_finish,
+            }
+        });
+
+    }
+
     
 
     function displayTextureParts() {
@@ -65,8 +85,12 @@
         }
     }
 
+    export function test() {
+        alert("test");
+    }
+
     function updatePartPairs() {
-        console.log(current_texture_parts);
+        
         selected_parts = Object.keys(current_texture_parts[selected_obj]);
         partpairs_infos = [];
 
@@ -152,7 +176,7 @@
     onMount(async () => {
         updateAndDisplayPartPairs();
         displayTextureParts();
-        console.log("Information Panel Mounted");
+        console.log(current_texture_parts);
     });
 
 </script>
@@ -223,13 +247,16 @@
 
     <div class="tab-content" class:active={activeTab==='details'} id="details">
         <h3> Object Details </h3>
-        {#if selected_object !== ""} 
+        {#if selected_object !== null} 
             Selected Part: {selected_part}
+            <br>
             {selected_part} is a component of the {selected_object}.
+            <div id="texture-part-details"> </div>
         {:else }
             <div class="images-placeholder">
                 No object selected. Please select an object in the 3D View.
             </div>
+            <div id="texture-part-details"> </div>
         {/if}
     </div>
 </div>
