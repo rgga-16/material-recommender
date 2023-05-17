@@ -8,7 +8,6 @@
 
     import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-
     import { spring } from 'svelte/motion'
     import {curr_rendering_path} from '../stores.js';
 	import {curr_texture_parts} from '../stores.js';
@@ -45,10 +44,6 @@
      */
     let part_infos = []; //List of all parts loaded from objs_and_parts including their parent object
     
-    // let glbUrls = [];
-
-    // let objects=[]; //List of all 3D models loaded from glb_url in part_infos. This is what we will be displaying in the 3D view.
-    
 
     async function get_objects() {
         const obj_resp= await fetch('./get_objects_and_parts');
@@ -73,37 +68,60 @@
         console.log(part_infos);
     }
 
-    
-
     const highlightMaterial = new THREE.MeshBasicMaterial({
-        color:0x0000ff,
+        color:0x62A8E9,
+        // side: THREE.BackSide,
+        wireframe: true,
+        // emissive: 0x0000ff,
+        transparent:true,
+        opacity: 0.3
+    });
+
+    const selectedMaterial = new THREE.MeshBasicMaterial({
+        color: 0x0000ff,
         emissive: 0x0000ff,
         transparent:true,
-        opacity: 0.5
-    });
+        opacity: 0.3
+    })
 
 
     let highlightedPart = null;
-    let originalMaterial= null
+    let selectedPart = null; 
+    let originalMaterial= null;
+
+    let originalSelectedMaterial=null; 
 
     function onClick(event) {
         event.preventDefault();
 
         if (highlightedPart) {
+
+            if (selectedPart) {
+                selectedPart.model.children[0].material = originalSelectedMaterial;
+                selectedPart =null;
+            }
+
+            selectedPart = highlightedPart;
+            originalSelectedMaterial=originalMaterial;
+            selectedPart.model.children[0].material = selectedMaterial;
             // console.log(highlightedPart);
             // alert('You clicked on the highlighted part: ' + highlightedPart.name);
-            selected_part_name.set(highlightedPart.name);
-            selected_obj_name.set(highlightedPart.parent);
+            selected_part_name.set(selectedPart.name);
+            selected_obj_name.set(selectedPart.parent);
             information_panel.displayTexturePart();
 
             /**
              * TODO: When I click on a highlighted object, I should be able to display the following to the Information Panel:
              * 1) Name of the object part that's highlighted (ex. blanket). ok 
              * 2) Name of the bigger object it is a part of (ex. bed). ok 
-             * 3) The material used in that part (access this in the curr_texture_parts dict using the object name and part name)
-             * 4) The finish used in that part (access this in the curr_rendering dict using the object name and part name)
+             * 3) The material used in that part (access this in the curr_texture_parts dict using the object name and part name) ok 
+             * 4) The finish used in that part (access this in the curr_rendering dict using the object name and part name) ok
              * 5) The color finish used in that part (access this in the curr_rendering dict using the object name and part name)
             */
+        } else {
+            selectedPart.model.children[0].material = originalSelectedMaterial;
+            highlightedPart = null;
+            selectedPart = null; 
         }
 
         
@@ -122,6 +140,9 @@
 
         if (intersects.length > 0) {
             const object = intersects[0].object;
+            if (object == selectedPart) {
+                return; 
+            }
             if (object !== highlightedPart) {
                 if (highlightedPart) {
                     // highlightedPart.material = originalMaterial;
@@ -134,13 +155,6 @@
                 originalMaterial = object.material;
                 highlightedPart.model.children[0].material = highlightMaterial;
                 // object.material = highlightMaterial;
-
-                // console.log('Intersected object: ' + object);
-                // console.log(object);
-                // console.log('Original index: ' + index);
-
-                
-
             }
         } else {
             if (highlightedPart) {
@@ -150,11 +164,14 @@
             }
         }
 
+        if (selectedPart && selectedPart !== highlightedPart) {
+            selectedPart.model.children[0].material = selectedMaterial;
+            // selectedPart = null;
+        }
+
     }
 
     function add_glb_objects() {
-
-
         for (let i = 0; i < part_infos.length; i++) {
             let glbUrl = part_infos[i]["glb_url"];
             gltfLoader.load(glbUrl, (gltf) => {
@@ -170,19 +187,51 @@
 
     function changeTexture(object, url) {
         object.traverse((node) => {
-                if (node.isMesh) {
-                    console.log("material changed")
-                    const material = node.material;
-                    if (Array.isArray(material)) {
-                        material.forEach((mat) => {
-                            mat.map = new THREE.TextureLoader().load(url);
-                            mat.needsUpdate = true;
-                        });
-                    } else {
-                        material.map = new THREE.TextureLoader().load(url);
-                        material.needsUpdate = true;
-                    }
+            if (node.isMesh) {
+                console.log("material changed");
+                console.log(node);
+                const material = node.material;
+                if (Array.isArray(material)) {
+                    material.forEach((mat) => {
+                        const texturemap = new THREE.TextureLoader().load(url);
+                        texturemap.wrapS = THREE.RepeatWrapping;
+                        texturemap.wrapT = THREE.RepeatWrapping;
+                        
+                        var bbox = new THREE.Box3().setFromObject(object);
+                        console.log(bbox);
+                        const size = new THREE.Vector3();
+                        bbox.getSize(size);
+                        const length = size.x;
+                        const width = size.z; 
+                        console.log(length);
+                        console.log(width);
+                        texturemap.repeat.set(length, width);
+
+                        mat.map = texturemap;
+                        mat.needsUpdate = true;
+                    });
+                } else {
+                    const texturemap = new THREE.TextureLoader().load(url);
+                    texturemap.wrapS = THREE.RepeatWrapping;
+                    texturemap.wrapT = THREE.RepeatWrapping;
+
+                    var bbox = new THREE.Box3().setFromObject(object);
+                    console.log(bbox);
+                    const size = new THREE.Vector3();
+                    bbox.getSize(size);
+                    const length = size.x;
+                    const width = size.z; 
+                    console.log(length);
+                    console.log(width);
+                    // const size = new THREE.Vector3();
+                    // node.computeBoundingBox();
+                    // node.boundingBox.getSize(size);
+                    texturemap.repeat.set(length, width);
+
+                    material.map = texturemap;
+                    material.needsUpdate = true;
                 }
+            }
         });
     }
 
@@ -232,8 +281,10 @@
 
     transferred_texture_url.subscribe(value=> {
         console.log("transferred_texture_url changed");
-        if (highlightedPart) {
-            changeTexture(highlightedPart.model, value);
+        if (selectedPart) {
+            selectedPart.model.children[0].material = originalSelectedMaterial;
+            changeTexture(selectedPart.model, value);
+            selectedPart=null;
         }
     });
 
