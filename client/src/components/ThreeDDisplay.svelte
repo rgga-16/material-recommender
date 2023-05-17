@@ -19,7 +19,8 @@
 
 
     import { onMount, createEventDispatcher} from 'svelte';
-    const dispatch = createEventDispatcher();
+    
+    export let information_panel;
 
     let camera, scene, renderer, controls, raycaster;
 
@@ -88,10 +89,11 @@
         event.preventDefault();
 
         if (highlightedPart) {
-            console.log(highlightedPart);
-            alert('You clicked on the highlighted part: ' + highlightedPart.name);
+            // console.log(highlightedPart);
+            // alert('You clicked on the highlighted part: ' + highlightedPart.name);
             selected_part_name.set(highlightedPart.name);
             selected_obj_name.set(highlightedPart.parent);
+            information_panel.displayTexturePart();
 
             /**
              * TODO: When I click on a highlighted object, I should be able to display the following to the Information Panel:

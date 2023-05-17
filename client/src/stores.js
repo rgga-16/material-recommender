@@ -7,8 +7,8 @@ export const curr_texture_parts = writable({});
 export const models_setup_path = writable("");
 export const models_setup = writable({});
 
-export const selected_obj_name = writable(""); //Keeps track of the selected part's object in the 3D view
-export const selected_part_name = writable(""); //Keeps track of the name of the currently selected part in the 3D view
+export const selected_obj_name = writable(null); //Keeps track of the selected part's object in the 3D view
+export const selected_part_name = writable(null); //Keeps track of the name of the currently selected part in the 3D view
 
 
 export const saved_color_palettes = writable([
