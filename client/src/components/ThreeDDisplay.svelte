@@ -13,7 +13,9 @@
     import {curr_rendering_path} from '../stores.js';
 	import {curr_texture_parts} from '../stores.js';
 	import {curr_textureparts_path} from '../stores.js';
-    import {selected_object_name} from '../stores.js';
+
+    import {selected_part_name} from '../stores.js'; 
+    import {selected_obj_name} from '../stores.js';
 
 
     import { onMount, createEventDispatcher} from 'svelte';
@@ -21,41 +23,52 @@
 
     let camera, scene, renderer, controls, raycaster;
 
-    const objLoader = new OBJLoader();
-    const textureLoader = new TextureLoader();
 
     const gltfLoader = new GLTFLoader();
 
 
-    const objUrls = [
-        'models/bedframe.obj',
-        'models/blanket.obj',
-        'models/mattress.obj'
-    ]
-
-    const textureUrls = [
-        'models/wood.png',
-        'models/fabric_blanket.png',
-        'models/fabric_mattress.png'
-    ]
-
 
     const url = 'models/glb';
-    let glbUrls = [];
+    let objs_and_parts = {}; //Dictionary of objects and their parts
+    
+    /**
+     * part_infos = [
+     *  {
+     *      "name":"bedframe",
+     *      "parent":"bed",
+     *      "glb_url":"models/glb/bed/bedframe.glb"
+     *  }....
+     * 
+     * ]
+     */
+    let part_infos = []; //List of all parts loaded from objs_and_parts including their parent object
+    
+    // let glbUrls = [];
+
+    // let objects=[]; //List of all 3D models loaded from glb_url in part_infos. This is what we will be displaying in the 3D view.
+    
+
     async function get_objects() {
         const obj_resp= await fetch('./get_objects_and_parts');
         const obj_json = await obj_resp.json(); 
-        let objs_and_parts = obj_json;
+        objs_and_parts = obj_json;
 
         for (const obj in objs_and_parts) {
             let o = objs_and_parts[obj];
 
             for (const part of o["parts"]["names"]) {
-                glbUrls.push(url+'/'+obj+'/'+part+'.glb');
-                glbUrls=glbUrls;
+
+                part_infos.push({
+                    "name":part,
+                    "parent":obj,
+                    "glb_url":url+'/'+obj+'/'+part+'.glb'
+                });
+                part_infos=part_infos;
+                // glbUrls.push(url+'/'+obj+'/'+part+'.glb');
+                // glbUrls=glbUrls;
             }
         }
-        console.log(glbUrls);
+        console.log(part_infos);
     }
 
     
@@ -66,20 +79,24 @@
         transparent:true,
         opacity: 0.5
     });
-    let highlightedObject = null;
+
+
+    let highlightedPart = null;
     let originalMaterial= null
 
     function onClick(event) {
         event.preventDefault();
 
-        if (highlightedObject) {
-            alert('You clicked on the highlighted object: ' + highlightedObject.name);
-            selected_object_name.set(highlightedObject.name);
+        if (highlightedPart) {
+            console.log(highlightedPart);
+            alert('You clicked on the highlighted part: ' + highlightedPart.name);
+            selected_part_name.set(highlightedPart.name);
+            selected_obj_name.set(highlightedPart.parent);
 
             /**
              * TODO: When I click on a highlighted object, I should be able to display the following to the Information Panel:
-             * 1) Name of the object part that's highlighted (ex. blanket)
-             * 2) Name of the bigger object it is a part of (ex. bed)
+             * 1) Name of the object part that's highlighted (ex. blanket). ok 
+             * 2) Name of the bigger object it is a part of (ex. bed). ok 
              * 3) The material used in that part (access this in the curr_texture_parts dict using the object name and part name)
              * 4) The finish used in that part (access this in the curr_rendering dict using the object name and part name)
              * 5) The color finish used in that part (access this in the curr_rendering dict using the object name and part name)
@@ -97,46 +114,58 @@
 
         raycaster.setFromCamera(mouse, camera);
 
+        let objects = part_infos.map(item => item.model);
         const intersects = raycaster.intersectObjects(objects, true);
 
         if (intersects.length > 0) {
             const object = intersects[0].object;
-            if (object !== highlightedObject) {
-                if (highlightedObject) {
-                    highlightedObject.material = originalMaterial;
+            if (object !== highlightedPart) {
+                if (highlightedPart) {
+                    // highlightedPart.material = originalMaterial;
+                    highlightedPart.model.children[0].material=originalMaterial;
                 }
-                highlightedObject = object;
+                const index = part_infos.findIndex(item => item.model.children[0] == object); //ASSUME that the first child of the model is the mesh
+
+                // highlightedPart = object;
+                highlightedPart = part_infos[index];
                 originalMaterial = object.material;
-                object.material = highlightMaterial;
+                highlightedPart.model.children[0].material = highlightMaterial;
+                // object.material = highlightMaterial;
+
+                // console.log('Intersected object: ' + object);
+                // console.log(object);
+                // console.log('Original index: ' + index);
+
+                
 
             }
         } else {
-            if (highlightedObject) {
-                highlightedObject.material = originalMaterial;
-                highlightedObject = null;
+            if (highlightedPart) {
+                // highlightedPart.material = originalMaterial;
+                highlightedPart.model.children[0].material=originalMaterial;
+                highlightedPart = null;
             }
         }
 
     }
 
-    const textureAlternative= textureUrls[1];
+    // const textureAlternative= textureUrls[1];
 
-    let objects=[];
-    let object_infos = []
+    
     function add_glb_objects() {
-        for (let i = 0; i < glbUrls.length; i++) {
-            let glbUrl = glbUrls[i];
+
+
+        for (let i = 0; i < part_infos.length; i++) {
+            let glbUrl = part_infos[i]["glb_url"];
             gltfLoader.load(glbUrl, (gltf) => {
                 // console.log('GLTF loaded: ' + gltf);
                 let model = gltf.scene
                 scene.add(model);
-                objects.push(model);
-                objects=objects;
-
-
+                part_infos[i]["model"] = model;
+                part_infos=part_infos;
             })
         }
-        console.log(objects);
+        console.log(part_infos);
     }
 
     function changeTexture(object, url) {
@@ -157,31 +186,6 @@
         });
     }
 
-
-    function add_objects() {
-        for (let i=0; i < objUrls.length; i++) {
-            let objUrl = objUrls[i];
-            let textureUrl = textureUrls[i];
-
-            objLoader.load(objUrl, (obj) => { 
-                console.log('OBJ loaded: ' + obj);
-                console.log(obj);
-
-                textureLoader.load(textureUrl, (texture)=> {
-                    console.log('Texture loaded: ' + texture);
-                    obj.traverse( (child) => { 
-                        if (child instanceof THREE.Mesh) {
-                            console.log('Found mesh: ' + child);
-                            console.log(texture);
-                            child.material.map = texture;
-                            child.material.needsUpdate = true;
-                        }
-                    });
-                    scene.add(obj);
-                })
-            })
-        }
-    }
 
     function init() {
         renderer = new THREE.WebGLRenderer({ alpha: true });
@@ -259,3 +263,58 @@
     }
 
 </style>
+
+<!-- 
+DUMP
+
+<script> 
+
+
+    const objLoader = new OBJLoader();
+    const textureLoader = new TextureLoader();
+
+    const objUrls = [
+        'models/bedframe.obj',
+        'models/blanket.obj',
+        'models/mattress.obj'
+    ]
+
+    const textureUrls = [
+        'models/wood.png',
+        'models/fabric_blanket.png',
+        'models/fabric_mattress.png'
+    ]
+
+
+    function add_objects() {
+        for (let i=0; i < objUrls.length; i++) {
+            let objUrl = objUrls[i];
+            let textureUrl = textureUrls[i];
+
+            objLoader.load(objUrl, (obj) => { 
+                console.log('OBJ loaded: ' + obj);
+                console.log(obj);
+
+                textureLoader.load(textureUrl, (texture)=> {
+                    console.log('Texture loaded: ' + texture);
+                    obj.traverse( (child) => { 
+                        if (child instanceof THREE.Mesh) {
+                            console.log('Found mesh: ' + child);
+                            console.log(texture);
+                            child.material.map = texture;
+                            child.material.needsUpdate = true;
+                        }
+                    });
+                    scene.add(obj);
+                })
+            })
+        }
+    }
+
+
+
+</script>
+
+
+
+-->
