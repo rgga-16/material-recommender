@@ -3,7 +3,8 @@
     // import {createComponent} from 'svelte';
     import {get} from 'svelte/store';
     import {curr_texture_parts} from '../stores.js';
-    import {selected_object_name} from '../stores.js';
+    import {selected_part_name} from '../stores.js';
+    import {selected_obj_name} from '../stores.js';
     import TexturePart from './TexturePart.svelte';
     import PartPairs from './PartPairs.svelte';
     import {onMount} from 'svelte';
@@ -11,11 +12,16 @@
     import {information_panel_tab} from '../stores.js';
     
     let current_texture_parts = get(curr_texture_parts);
-    let selected_object=''; 
 
-    selected_object_name.subscribe(value => {
-		selected_object = value;
+    let selected_part=''; 
+    selected_part_name.subscribe(value => {
+		selected_part = value;
 	});
+
+    let selected_object='';
+    selected_obj_name.subscribe(value => {
+        selected_object = value;
+    });
     
     let objects = Object.keys(current_texture_parts);
 
@@ -218,7 +224,8 @@
     <div class="tab-content" class:active={activeTab==='details'} id="details">
         <h3> Object Details </h3>
         {#if selected_object !== ""} 
-            {selected_object}
+            Selected Part: {selected_part}
+            {selected_part} is a component of the {selected_object}.
         {:else }
             <div class="images-placeholder">
                 No object selected. Please select an object in the 3D View.
