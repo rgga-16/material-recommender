@@ -16,6 +16,7 @@
 
     import {selected_part_name} from '../stores.js'; 
     import {selected_obj_name} from '../stores.js';
+    import {transferred_texture_url} from '../stores.js';
 
 
     import { onMount, createEventDispatcher} from 'svelte';
@@ -151,9 +152,6 @@
 
     }
 
-    // const textureAlternative= textureUrls[1];
-
-    
     function add_glb_objects() {
 
 
@@ -177,11 +175,11 @@
                     const material = node.material;
                     if (Array.isArray(material)) {
                         material.forEach((mat) => {
-                        mat.map = new THREE.TextureLoader().load(textureAlternative);
-                        mat.needsUpdate = true;
+                            mat.map = new THREE.TextureLoader().load(url);
+                            mat.needsUpdate = true;
                         });
                     } else {
-                        material.map = new THREE.TextureLoader().load(textureAlternative);
+                        material.map = new THREE.TextureLoader().load(url);
                         material.needsUpdate = true;
                     }
                 }
@@ -232,6 +230,13 @@
 
     }
 
+    transferred_texture_url.subscribe(value=> {
+        console.log("transferred_texture_url changed");
+        if (highlightedPart) {
+            changeTexture(highlightedPart.model, value);
+        }
+    });
+
     
 
     onMount(async () => {
@@ -254,7 +259,7 @@
 
 <div>
     <!-- <input type="text" bind:value={texturePath} placeholder="Enter image texture path" /> -->
-    <button on:click|preventDefault={() => changeTexture(obj,textureAlternative)}>Change Texture</button>
+    <!-- <button on:click|preventDefault={() => changeTexture(obj,textureAlternative)}>Change Texture</button> -->
 </div>
 
 <style>
