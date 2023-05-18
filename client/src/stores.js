@@ -30,3 +30,6 @@ export const actions_panel_tab = writable("chatbot"); //Keeps track of which tab
 export const information_panel_tab = writable("details"); //Keeps track of which tab is currently selected in the information panel
 
 export const generate_tab_page = writable(0); //Keeps track of which page is currently selected in the generate tab
+
+export const displayWidth =writable(0); //Keeps track of the width of the display div which contains the Rendering View and 3D View
+export const displayHeight = writable(0); //Keeps track of the height of the display div which contains the Rendering View and 3D View

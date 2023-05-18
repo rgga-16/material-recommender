@@ -17,17 +17,34 @@
     import {selected_obj_name} from '../stores.js';
     import {transferred_texture_url} from '../stores.js';
 
+    import {displayWidth} from '../stores.js';
+    import {displayHeight} from '../stores.js';
 
-    import { onMount, createEventDispatcher} from 'svelte';
+
+    import { onMount } from 'svelte';
     
     export let information_panel;
 
+    let width;
+    let height; 
+    const widthOffset = 15;
+    const heightOffset = 15;
+
+    displayWidth.subscribe(value => {
+        width = value;
+    });
+
+    displayHeight.subscribe(value => {
+        height = value;
+    });
+
+
     let camera, scene, renderer, controls, raycaster;
+    const pointer = new THREE.Vector2();
+    const radius = 100;
 
 
     const gltfLoader = new GLTFLoader();
-
-
 
     const url = 'models/glb';
     let objs_and_parts = {}; //Dictionary of objects and their parts
@@ -61,46 +78,94 @@
                     "glb_url":url+'/'+obj+'/'+part+'.glb'
                 });
                 part_infos=part_infos;
-                // glbUrls.push(url+'/'+obj+'/'+part+'.glb');
-                // glbUrls=glbUrls;
             }
         }
         console.log(part_infos);
     }
 
-    const highlightMaterial = new THREE.MeshBasicMaterial({
-        color:0x62A8E9,
-        // side: THREE.BackSide,
-        wireframe: true,
-        // emissive: 0x0000ff,
-        transparent:true,
-        opacity: 0.3
-    });
-
-    const selectedMaterial = new THREE.MeshBasicMaterial({
-        color: 0x0000ff,
-        emissive: 0x0000ff,
-        transparent:true,
-        opacity: 0.3
-    })
-
-
-    let highlightedPart = null;
-    let selectedPart = null; 
-    let originalMaterial= null;
+    // let highlightedPart = null;
+    // let selectedPart = null; 
+    // let originalMaterial= null;
 
     let originalSelectedMaterial=null; 
 
+    let HIGHLIGHTED; 
+    let HIGHLIGHTED_INFO; 
+
+    let SELECTEDS = [];
+    let SELECTED_INFOS = [];
+
+    function onPointerClick(event) {
+        event.preventDefault();
+
+        raycaster.setFromCamera(pointer, camera);
+
+        let objects = part_infos.map(item => item.model);
+        const intersects = raycaster.intersectObjects(objects, true); 
+
+        if (intersects.length > 0) {
+            if(!(intersects.some(element => element ===undefined))) {
+
+                const clicked_object = intersects[0].object; //This is the object clicked on. 
+                
+                const index = SELECTEDS.indexOf(clicked_object);
+
+                if (index === -1) {//If clicked object hasn't been selected yet, select it.
+
+                    //If the clicked object hasn't been selected but there's another selected object.
+                    if (SELECTEDS.length > 0 && SELECTEDS[0]==clicked_object) {
+                        
+                        SELECTEDS[0].material.emissive.setHex(0x000000);
+                        SELECTEDS.splice(0, 1);
+                        SELECTED_INFOS.splice(0, 1);
+                        // selected_part_name.set(null);
+                        // selected_obj_name.set(null);
+                    }
+
+                    clicked_object.material.emissive.setHex(0x00ff00);
+                    SELECTEDS[0] = clicked_object;
+                    const index = part_infos.findIndex(item => item.model.children[0] == clicked_object);
+                    SELECTED_INFOS[0] = part_infos[index];
+                    selected_part_name.set(SELECTED_INFOS[0].name);
+                    selected_obj_name.set(SELECTED_INFOS[0].parent);
+
+                    information_panel.displayTexturePart();
+                    
+
+                } else {//If clicked object has already been selected, deselect it. 
+                    SELECTEDS[0].material.emissive.setHex(0x000000);
+                    SELECTEDS.splice(index, 1);
+                    SELECTED_INFOS.splice(index, 1);
+                    selected_part_name.set(null);
+                    selected_obj_name.set(null);
+                }
+                SELECTEDS=SELECTEDS;    
+                SELECTED_INFOS=SELECTED_INFOS;
+            }
+        } else {// If the user clicks on an empty space, then we want to deselect the selected object.
+            if (SELECTEDS.length > 0) {
+                SELECTEDS[0].material.emissive.setHex(0x000000);
+                SELECTEDS = [];
+                SELECTED_INFOS = [];
+                selected_part_name.set(null);
+                selected_obj_name.set(null);
+            }
+        }
+
+        console.log(SELECTEDS[0]);
+    }
+
+    // onClick event if the user clicks anywhere on the 3D display.
     function onClick(event) {
         event.preventDefault();
 
-        if (highlightedPart) {
+        // If a selected part already exists, then we need to reset the material of the selected part
+        if (selectedPart) {
+            selectedPart.model.children[0].material = originalSelectedMaterial;
+            selectedPart =null;
+        }
 
-            if (selectedPart) {
-                selectedPart.model.children[0].material = originalSelectedMaterial;
-                selectedPart =null;
-            }
-
+        if (highlightedPart) { //If a highlighted part exists, then we need to set the selected part to the highlighted part
             selectedPart = highlightedPart;
             originalSelectedMaterial=originalMaterial;
             selectedPart.model.children[0].material = selectedMaterial;
@@ -110,14 +175,6 @@
             selected_obj_name.set(selectedPart.parent);
             information_panel.displayTexturePart();
 
-            /**
-             * TODO: When I click on a highlighted object, I should be able to display the following to the Information Panel:
-             * 1) Name of the object part that's highlighted (ex. blanket). ok 
-             * 2) Name of the bigger object it is a part of (ex. bed). ok 
-             * 3) The material used in that part (access this in the curr_texture_parts dict using the object name and part name) ok 
-             * 4) The finish used in that part (access this in the curr_rendering dict using the object name and part name) ok
-             * 5) The color finish used in that part (access this in the curr_rendering dict using the object name and part name)
-            */
         } else {
             selectedPart.model.children[0].material = originalSelectedMaterial;
             highlightedPart = null;
@@ -127,10 +184,59 @@
         
     }
 
+    function highlightObject() {
+        raycaster.setFromCamera(pointer, camera);
+
+        let objects = part_infos.map(item => item.model);
+        const intersects = raycaster.intersectObjects(objects, true); //intersects is a list of objects pointed by the mouse
+        
+        if (intersects.length > 0) { //if intersects has elements 
+            if (!(intersects.some(element => element===undefined))) { //if intersects does not have undefined elements
+
+                //HIGHLIGHTED is the object that is highlighted in red
+
+                //if there was already highlighted object is not the same as the one pointed by the mouse
+                if (HIGHLIGHTED != intersects[0].object) { 
+
+                    if (HIGHLIGHTED) {  //if there is a highlighted object
+                        //reset the color of the highlighted object
+                        HIGHLIGHTED.material.emissive.setHex(0x000000);
+                    }
+
+                    HIGHLIGHTED = intersects[0].object; //set the highlighted object to the one pointed by the mouse
+                    HIGHLIGHTED.currentHex = HIGHLIGHTED.material.emissive.getHex();//save the color of object before it is highlighted
+                    HIGHLIGHTED.material.emissive.setHex(0xff0000);//set the color of the highlighted object to red
+
+                }
+            } else {
+                if (HIGHLIGHTED) {
+                    HIGHLIGHTED.material.emissive.setHex(0x000000);//reset the color of the highlighted object
+                    HIGHLIGHTED = null;
+                    HIGHLIGHTED_INFO = null;
+                }
+            }
+            // console.log(HIGHLIGHTED);
+        }
+
+    }
+
+    function onWindowResize() {
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+    }
+
+    function onPointerMove(event) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        pointer.x = ((event.clientX-rect.left) / width) * 2 - 1;
+        pointer.y = -((event.clientY-rect.top) / height) * 2 + 1;
+    }
+
     function onMouseMove(event) {
+
         const mouse = new THREE.Vector2(
-            (event.clientX / window.innerWidth) * 2 - 1,
-            -(event.clientY / window.innerHeight) * 2 + 1
+            (event.clientX / width) * 2  - 1,
+            -(event.clientY / height) *2   + 1
         );
 
         raycaster.setFromCamera(mouse, camera);
@@ -203,8 +309,6 @@
                         bbox.getSize(size);
                         const length = size.x;
                         const width = size.z; 
-                        console.log(length);
-                        console.log(width);
                         texturemap.repeat.set(length, width);
 
                         mat.map = texturemap;
@@ -216,16 +320,10 @@
                     texturemap.wrapT = THREE.RepeatWrapping;
 
                     var bbox = new THREE.Box3().setFromObject(object);
-                    console.log(bbox);
                     const size = new THREE.Vector3();
                     bbox.getSize(size);
                     const length = size.x;
                     const width = size.z; 
-                    console.log(length);
-                    console.log(width);
-                    // const size = new THREE.Vector3();
-                    // node.computeBoundingBox();
-                    // node.boundingBox.getSize(size);
                     texturemap.repeat.set(length, width);
 
                     material.map = texturemap;
@@ -235,25 +333,25 @@
         });
     }
 
-
     function init() {
         renderer = new THREE.WebGLRenderer({ alpha: true });
-        renderer.setSize( window.innerWidth/2, window.innerHeight/2); 
+        // renderer.setSize( window.innerWidth/2, window.innerHeight/2); 
+        renderer.setSize( width, height); 
         
         const container = document.getElementById("3d-viewer");
         container.appendChild( renderer.domElement );
 
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000); // Set the background to black
-        camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-        
+
+        camera = new THREE.PerspectiveCamera( 70, width/height, 1, 10000 );
         
         raycaster = new THREE.Raycaster();
-        renderer.domElement.addEventListener('mousemove', onMouseMove);
-        renderer.domElement.addEventListener('click', onClick);
 
+        renderer.domElement.addEventListener('mousemove', onPointerMove);
+        window.addEventListener('resize', onWindowResize);
+        renderer.domElement.addEventListener('click', onPointerClick);
 
-        // add_objects();
         add_glb_objects();
 
         const light = new THREE.AmbientLight(0xffffff, 0.4);
@@ -266,58 +364,68 @@
         scene.environment = pmremGenerator.fromScene( environment ).texture;
 
         controls = new OrbitControls( camera, renderer.domElement );
-        controls.enableDamping = true;
+        controls.mouseButtons = {
+            LEFT: null,
+            MIDDLE: THREE.MOUSE.PAN,
+            RIGHT: THREE.MOUSE.ROTATE
+        }
+        // controls.enableDamping = true;
         controls.minDistance = 1;
         controls.maxDistance = 10;
         controls.target.set( 0, 0.35, 0 );
         controls.update();
-
-
         camera.position.z = 5;
-
-
-
     }
 
     transferred_texture_url.subscribe(value=> {
         console.log("transferred_texture_url changed");
-        if (selectedPart) {
-            selectedPart.model.children[0].material = originalSelectedMaterial;
-            changeTexture(selectedPart.model, value);
-            selectedPart=null;
+        if (SELECTEDS.length > 0) {
+            // SELECTEDS[0].material = originalSelectedMaterial;
+            changeTexture(SELECTEDS[0], value);
+            // selectedPart=null;
+            value=null;
         }
     });
-
-    
 
     onMount(async () => {
         await get_objects();
+
         init();
 
-        function animate() {
-            requestAnimationFrame( animate );
+        function render() {
+            requestAnimationFrame( render );
             controls.update(); // required if damping enabled
+
+            camera.updateMatrixWorld();
+
+            //   //If there is a selected object, highlight it green.  
+            // if (SELECTEDS.length > 0) {
+            //     for (let i = 0; i < SELECTEDS.length; i++) {
+            //         SELECTEDS[i].material.emissive.setHex(0x00ff00);
+            //     }
+            // }
+
+            highlightObject();
+            
+
             renderer.render( scene, camera );
         }
-
-        animate();
+        render();
     });
+
+    
 
 
 </script>
 
 <div id="3d-viewer"></div>
 
-<div>
-    <!-- <input type="text" bind:value={texturePath} placeholder="Enter image texture path" /> -->
-    <!-- <button on:click|preventDefault={() => changeTexture(obj,textureAlternative)}>Change Texture</button> -->
-</div>
 
 <style>
 
     #3d-viewer {
-        width: 100%;
-        height: 100%;
+        width: inherit;
+        height: inherit;
     }
 
 </style>
