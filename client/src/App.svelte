@@ -8,6 +8,8 @@
 	import {curr_rendering_path} from './stores.js';
 	import {curr_texture_parts} from './stores.js';
 	import {curr_textureparts_path} from './stores.js';
+	import {displayWidth} from './stores.js';
+	import {displayHeight} from './stores.js';
 	import {get} from 'svelte/store';
 	import {onMount} from "svelte";	
 
@@ -138,11 +140,19 @@
     }
 
 
-
 	onMount(async function () {
 		const response = await fetch("/get_static_dir");
 		const data = await response.text();	
+
+		const threediv = document.getElementById("display");
+		displayWidth.set(threediv.offsetWidth);
+		displayHeight.set(threediv.offsetHeight);
+
+
+		
 	});
+
+	
 
 
 </script>
@@ -160,7 +170,7 @@
 		<!-- Middle Section  -->
 		<div class="renderings">
 
-			<div class="display-panel">
+			<div class="display-panel" id="display">
 				<div class="w3-bar w3-grey tabs">
 					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='rendering_display'} on:click={()=>switchDisplayTab('rendering_display')} id="rendering-display-btn">Rendering View</button>
 					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='3d_display'} on:click={()=>switchDisplayTab('3d_display')} id="suggest-colors-btn">3D View</button>
@@ -185,13 +195,10 @@
 				</div>
 
 				<!-- Display 3D model/s -->
-				<div class="tab-content threed-display" class:active={activeDisplayTab==='3d_display'}>
-					<ThreeDDisplay bind:information_panel={information_panel} />
+				<div class="tab-content threed-display" class:active={activeDisplayTab==='3d_display'} id="threed_display_parent">
+					<ThreeDDisplay bind:information_panel={information_panel} {displayHeight} {displayWidth} />
 				</div>
 			</div>
-
-
-			
 
 			<!-- Display of saved renderings -->
 			<div class="saved-renderings">
@@ -225,6 +232,7 @@
 
 	</div>
 </main>
+
 
 <style>
 	main{

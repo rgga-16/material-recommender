@@ -17,7 +17,7 @@
     <h3> {material_name} </h3>
     <div class="card-body">
         <div class="image-container">
-            <DynamicImage imagepath={material_path} alt={material_name} />
+            <DynamicImage imagepath={material_path} alt={material_name} is_draggable={true} />
         </div>
         <div class="text-container">
             <p>{material_info}</p>
