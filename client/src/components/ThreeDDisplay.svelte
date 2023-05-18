@@ -28,21 +28,18 @@
     let width;
     let height; 
     const widthOffset = 15;
-    const heightOffset = 15;
+    const heightOffset = 55;
 
     displayWidth.subscribe(value => {
-        width = value;
+        width = value - widthOffset;
     });
 
     displayHeight.subscribe(value => {
-        height = value;
+        height = value - heightOffset;
     });
-
 
     let camera, scene, renderer, controls, raycaster;
     const pointer = new THREE.Vector2();
-    const radius = 100;
-
 
     const gltfLoader = new GLTFLoader();
 
@@ -60,7 +57,7 @@
      * ]
      */
     let part_infos = []; //List of all parts loaded from objs_and_parts including their parent object
-    
+    let dragged_texture_url = null;
 
     async function get_objects() {
         const obj_resp= await fetch('./get_objects_and_parts');
@@ -83,17 +80,13 @@
         console.log(part_infos);
     }
 
-    // let highlightedPart = null;
-    // let selectedPart = null; 
-    // let originalMaterial= null;
-
-    let originalSelectedMaterial=null; 
-
     let HIGHLIGHTED; 
     let HIGHLIGHTED_INFO; 
 
     let SELECTEDS = [];
     let SELECTED_INFOS = [];
+
+    let mouseDown=false;
 
     function onPointerClick(event) {
         event.preventDefault();
@@ -155,35 +148,6 @@
         console.log(SELECTEDS[0]);
     }
 
-    // onClick event if the user clicks anywhere on the 3D display.
-    function onClick(event) {
-        event.preventDefault();
-
-        // If a selected part already exists, then we need to reset the material of the selected part
-        if (selectedPart) {
-            selectedPart.model.children[0].material = originalSelectedMaterial;
-            selectedPart =null;
-        }
-
-        if (highlightedPart) { //If a highlighted part exists, then we need to set the selected part to the highlighted part
-            selectedPart = highlightedPart;
-            originalSelectedMaterial=originalMaterial;
-            selectedPart.model.children[0].material = selectedMaterial;
-            // console.log(highlightedPart);
-            // alert('You clicked on the highlighted part: ' + highlightedPart.name);
-            selected_part_name.set(selectedPart.name);
-            selected_obj_name.set(selectedPart.parent);
-            information_panel.displayTexturePart();
-
-        } else {
-            selectedPart.model.children[0].material = originalSelectedMaterial;
-            highlightedPart = null;
-            selectedPart = null; 
-        }
-
-        
-    }
-
     function highlightObject() {
         raycaster.setFromCamera(pointer, camera);
 
@@ -196,26 +160,21 @@
                 //HIGHLIGHTED is the object that is highlighted in red
 
                 //if there was already highlighted object is not the same as the one pointed by the mouse
-                if (HIGHLIGHTED != intersects[0].object) { 
-
+                if (HIGHLIGHTED != intersects[0].object) {
                     if (HIGHLIGHTED) {  //if there is a highlighted object
                         //reset the color of the highlighted object
                         HIGHLIGHTED.material.emissive.setHex(0x000000);
                     }
-
                     HIGHLIGHTED = intersects[0].object; //set the highlighted object to the one pointed by the mouse
                     HIGHLIGHTED.currentHex = HIGHLIGHTED.material.emissive.getHex();//save the color of object before it is highlighted
                     HIGHLIGHTED.material.emissive.setHex(0xff0000);//set the color of the highlighted object to red
-
                 }
             } else {
                 if (HIGHLIGHTED) {
                     HIGHLIGHTED.material.emissive.setHex(0x000000);//reset the color of the highlighted object
                     HIGHLIGHTED = null;
-                    HIGHLIGHTED_INFO = null;
                 }
             }
-            // console.log(HIGHLIGHTED);
         }
 
     }
@@ -226,57 +185,64 @@
         renderer.setSize(width, height);
     }
 
-    function onPointerMove(event) {
+    function isMouseOver3DScene(event) {
         const rect = renderer.domElement.getBoundingClientRect();
-        pointer.x = ((event.clientX-rect.left) / width) * 2 - 1;
-        pointer.y = -((event.clientY-rect.top) / height) * 2 + 1;
+        return (event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom);
     }
 
-    function onMouseMove(event) {
+    function onPointerMove(event) {
 
-        const mouse = new THREE.Vector2(
-            (event.clientX / width) * 2  - 1,
-            -(event.clientY / height) *2   + 1
-        );
+        if (isMouseOver3DScene) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            pointer.x = ((event.clientX-rect.left) / width) * 2 - 1;
+            pointer.y = -((event.clientY-rect.top) / height) * 2 + 1;
 
-        raycaster.setFromCamera(mouse, camera);
+            if (mouseDown) { //If the mouse is being held down
+                
+                // Problem: when the user clicks outside the canvas and drags into the canvas, the mouseDown while moving is not detected.
 
-        let objects = part_infos.map(item => item.model);
-        const intersects = raycaster.intersectObjects(objects, true);
-
-        if (intersects.length > 0) {
-            const object = intersects[0].object;
-            if (object == selectedPart) {
-                return; 
+                /**
+                 * Tasks for dragging and dropping texture.
+                 * 1) Get highlighted object. - ok
+                 * 2) Check if you're currently dragging a texture.  
+                 * 3) If you are, change the texture map of the highlighted object to the texture you're dragging. for preview.
+                 * 4) But if you hover away, you revert back to the original texture map. 
+                 * 
+                */
             }
-            if (object !== highlightedPart) {
-                if (highlightedPart) {
-                    // highlightedPart.material = originalMaterial;
-                    highlightedPart.model.children[0].material=originalMaterial;
-                }
-                const index = part_infos.findIndex(item => item.model.children[0] == object); //ASSUME that the first child of the model is the mesh
-
-                // highlightedPart = object;
-                highlightedPart = part_infos[index];
-                originalMaterial = object.material;
-                highlightedPart.model.children[0].material = highlightMaterial;
-                // object.material = highlightMaterial;
-            }
-        } else {
-            if (highlightedPart) {
-                // highlightedPart.material = originalMaterial;
-                highlightedPart.model.children[0].material=originalMaterial;
-                highlightedPart = null;
-            }
-        }
-
-        if (selectedPart && selectedPart !== highlightedPart) {
-            selectedPart.model.children[0].material = selectedMaterial;
-            // selectedPart = null;
         }
 
     }
 
+    function onMouseDown(event) {
+        if (event.button === 0) {
+            mouseDown = true;
+        }
+    }
+
+    function onMouseUp(event) {
+        if(event.button===0) {
+            mouseDown = false;
+
+            if (isMouseOver3DScene) {
+                const rect = renderer.domElement.getBoundingClientRect();
+                pointer.x = ((event.clientX-rect.left) / width) * 2 - 1;
+                pointer.y = -((event.clientY-rect.top) / height) * 2 + 1;
+
+                console.log("Highlighted object: " + HIGHLIGHTED.name);
+                /**
+                 * Get highlighted object - ok
+                 * After mouseup, change the texture. - ok ?
+                 * BUG: after i dragged and dropped it, when i click on other things even if I'm not dragging, it changes to that texture.
+                */
+
+                changeTexture(HIGHLIGHTED, dragged_texture_url);
+
+            }
+        }
+    }
+
+    
     function add_glb_objects() {
         for (let i = 0; i < part_infos.length; i++) {
             let glbUrl = part_infos[i]["glb_url"];
@@ -348,7 +314,9 @@
         
         raycaster = new THREE.Raycaster();
 
-        renderer.domElement.addEventListener('mousemove', onPointerMove);
+        window.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mouseup', onMouseUp);
+        window.addEventListener('mousemove', onPointerMove);
         window.addEventListener('resize', onWindowResize);
         renderer.domElement.addEventListener('click', onPointerClick);
 
@@ -369,7 +337,7 @@
             MIDDLE: THREE.MOUSE.PAN,
             RIGHT: THREE.MOUSE.ROTATE
         }
-        // controls.enableDamping = true;
+
         controls.minDistance = 1;
         controls.maxDistance = 10;
         controls.target.set( 0, 0.35, 0 );
@@ -379,12 +347,13 @@
 
     transferred_texture_url.subscribe(value=> {
         console.log("transferred_texture_url changed");
-        if (SELECTEDS.length > 0) {
-            // SELECTEDS[0].material = originalSelectedMaterial;
-            changeTexture(SELECTEDS[0], value);
-            // selectedPart=null;
-            value=null;
-        }
+        dragged_texture_url = value;
+        // if (SELECTEDS.length > 0) {
+        //     // SELECTEDS[0].material = originalSelectedMaterial;
+        //     changeTexture(SELECTEDS[0], value);
+        //     // selectedPart=null;
+        //     value=null;
+        // }
     });
 
     onMount(async () => {
@@ -398,15 +367,7 @@
 
             camera.updateMatrixWorld();
 
-            //   //If there is a selected object, highlight it green.  
-            // if (SELECTEDS.length > 0) {
-            //     for (let i = 0; i < SELECTEDS.length; i++) {
-            //         SELECTEDS[i].material.emissive.setHex(0x00ff00);
-            //     }
-            // }
-
             highlightObject();
-            
 
             renderer.render( scene, camera );
         }
@@ -476,6 +437,81 @@ DUMP
             })
         }
     }
+
+    function onMouseMove(event) {
+
+        const mouse = new THREE.Vector2(
+            (event.clientX / width) * 2  - 1,
+            -(event.clientY / height) *2   + 1
+        );
+
+        raycaster.setFromCamera(mouse, camera);
+
+        let objects = part_infos.map(item => item.model);
+        const intersects = raycaster.intersectObjects(objects, true);
+
+        if (intersects.length > 0) {
+            const object = intersects[0].object;
+            if (object == selectedPart) {
+                return; 
+            }
+            if (object !== highlightedPart) {
+                if (highlightedPart) {
+                    // highlightedPart.material = originalMaterial;
+                    highlightedPart.model.children[0].material=originalMaterial;
+                }
+                const index = part_infos.findIndex(item => item.model.children[0] == object); //ASSUME that the first child of the model is the mesh
+
+                // highlightedPart = object;
+                highlightedPart = part_infos[index];
+                originalMaterial = object.material;
+                highlightedPart.model.children[0].material = highlightMaterial;
+                // object.material = highlightMaterial;
+            }
+        } else {
+            if (highlightedPart) {
+                // highlightedPart.material = originalMaterial;
+                highlightedPart.model.children[0].material=originalMaterial;
+                highlightedPart = null;
+            }
+        }
+
+        if (selectedPart && selectedPart !== highlightedPart) {
+            selectedPart.model.children[0].material = selectedMaterial;
+            // selectedPart = null;
+        }
+
+    }
+
+    // onClick event if the user clicks anywhere on the 3D display.
+    function onClick(event) {
+        event.preventDefault();
+
+        // If a selected part already exists, then we need to reset the material of the selected part
+        if (selectedPart) {
+            selectedPart.model.children[0].material = originalSelectedMaterial;
+            selectedPart =null;
+        }
+
+        if (highlightedPart) { //If a highlighted part exists, then we need to set the selected part to the highlighted part
+            selectedPart = highlightedPart;
+            originalSelectedMaterial=originalMaterial;
+            selectedPart.model.children[0].material = selectedMaterial;
+            // console.log(highlightedPart);
+            // alert('You clicked on the highlighted part: ' + highlightedPart.name);
+            selected_part_name.set(selectedPart.name);
+            selected_obj_name.set(selectedPart.parent);
+            information_panel.displayTexturePart();
+
+        } else {
+            selectedPart.model.children[0].material = originalSelectedMaterial;
+            highlightedPart = null;
+            selectedPart = null; 
+        }
+
+        
+    }
+
 
 
 
