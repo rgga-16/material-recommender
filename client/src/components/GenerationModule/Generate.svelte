@@ -10,6 +10,8 @@
 	import {curr_textureparts_path} from '../../stores.js';
     import {actions_panel_tab} from '../../stores.js';
     import {generate_tab_page} from '../../stores.js';
+    import {generated_texture_name} from '../../stores.js';
+    import { get } from 'svelte/store';
 
     export let onCallUpdateCurrentRendering
     function callUpdateCurrentRendering() {
@@ -55,6 +57,8 @@
         const results_json = await results_response.json();
         generated_textures = results_json["results"];
         is_loading=false;
+
+        generated_texture_name.set(texture_str);
         
     }
 
@@ -179,7 +183,7 @@
 
         </form>
         {#if generated_textures.length > 0}
-                <p> Texture map results for: {input_material}</p>
+                <p> Texture map results for: {get(generated_texture_name)}</p>
                 <GeneratedTextures pairs= {generated_textures} bind:selected_texturepaths={selected_textures}/>
                 <p> {selected_textures.length}/{n_textures} textures selected. {#if selected_textures.length<=0} Please select at least 1 texture map to proceed.{/if}</p>
         {:else if is_loading==true}

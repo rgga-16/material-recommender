@@ -7,10 +7,17 @@ export const curr_texture_parts = writable({});
 export const models_setup_path = writable("");
 export const models_setup = writable({});
 
+export const selected_objs_and_parts =writable ([]); //Keeps track of the selected parts and their parent objects in the 3D view
 export const selected_obj_name = writable(null); //Keeps track of the selected part's object in the 3D view
 export const selected_part_name = writable(null); //Keeps track of the name of the currently selected part in the 3D view
 
-export const transferred_texture_url = writable(""); //Keeps track of the URL of the image texture that is being dragged and transferred
+//Keeps track of the URL of the image texture that is being dragged and transferred. 
+// This URL is used to display the texture map in the 3D view.
+export const transferred_texture_url = writable(""); 
+
+// Keeps track of the URL of the image texture being dragged and transferred.
+// This URL is used to display the texture map as an image in HTML.
+export const transferred_textureimg_url =writable("");
 
 
 export const saved_color_palettes = writable([
@@ -33,3 +40,6 @@ export const generate_tab_page = writable(0); //Keeps track of which page is cur
 
 export const displayWidth =writable(0); //Keeps track of the width of the display div which contains the Rendering View and 3D View
 export const displayHeight = writable(0); //Keeps track of the height of the display div which contains the Rendering View and 3D View
+
+export const isDraggingImage = writable(false); //Keeps track of whether an image is currently being dragged and transferred or not
+export const generated_texture_name = writable(""); //Keeps track of the name of the generated texture

@@ -5,6 +5,7 @@
     import {curr_texture_parts} from '../stores.js';
     import {selected_part_name} from '../stores.js';
     import {selected_obj_name} from '../stores.js';
+    import {selected_objs_and_parts} from '../stores.js';
     import TexturePart from './TexturePart.svelte';
     import PartPairs from './PartPairs.svelte';
     import {onMount} from 'svelte';
@@ -21,6 +22,11 @@
     let selected_object=null;
     selected_obj_name.subscribe(value => {
         selected_object = value;
+    });
+
+    let sel_objs_and_parts = null; 
+    selected_objs_and_parts.subscribe(value => {
+        sel_objs_and_parts = value;
     });
     
     let objects = Object.keys(current_texture_parts);
@@ -45,6 +51,35 @@
     }
 
     export function displayTexturePart() {
+        // (SELECTED_INFOS[0].name);
+        // selected_obj_name.set(SELECTED_INFOS[0].parent);
+        // let textureparts_=[];
+        // const textureparts_div = document.getElementById("texture-part-details");
+        // textureparts_div.innerHTML='';
+        // for (const sel_obj_and_part in sel_objs_and_parts) {
+        //     console.log(current_texture_parts);
+        //     let selected_object = sel_obj_and_part.parent; 
+        //     let selected_part = sel_obj_and_part.name;
+
+        //     let mat_name = current_texture_parts[selected_object][selected_part]["mat_name"];
+          
+        //     let material_url = current_texture_parts[selected_object][selected_part]["mat_image_texture"];
+        //     let material_finish = current_texture_parts[selected_object][selected_part]["mat_finish"];
+        //     let texturepart = new TexturePart({
+        //         target: document.getElementById("texture-part-details"),
+        //         props: {
+        //             part_name: selected_part,
+        //             material_name: mat_name,
+        //             material_url: material_url,
+        //             material_finish: material_finish,
+        //         }
+        //     });
+        //     textureparts_.push(texturepart);
+        //     textureparts_=textureparts_;
+
+        // }
+
+
         let mat_name = current_texture_parts[selected_object][selected_part]["mat_name"];
         let material_url = current_texture_parts[selected_object][selected_part]["mat_image_texture"];
         let material_finish = current_texture_parts[selected_object][selected_part]["mat_finish"];
@@ -247,6 +282,15 @@
 
     <div class="tab-content" class:active={activeTab==='details'} id="details">
         <h3> Object Details </h3>
+        <!-- {#if sel_objs_and_parts.length > 0}
+            <div id="texture-part-details"> </div>
+        {:else }
+            <div class="images-placeholder">
+                No object selected. Please select an object in the 3D View.
+            </div>
+            <div id="texture-part-details"> </div>
+        {/if} -->
+
         {#if selected_object !== null} 
             Selected Part: {selected_part}
             <br>

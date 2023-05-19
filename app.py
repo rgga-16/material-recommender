@@ -233,7 +233,7 @@ def generate_textures_():
     texture_string = form_data["texture_string"]
     n = form_data["n"]
     imsize = form_data["imsize"]
-    emptydir(SERVER_IMDIR,delete_dirs=False)
+    # emptydir(SERVER_IMDIR,delete_dirs=False)
 
     #################### Generating the textures ################
     
@@ -441,6 +441,7 @@ if __name__ == "__main__":
     
     ######################################
     texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
+    emptydir(SERVER_IMDIR,delete_dirs=False)
 
     products = [
         "nightstand_family",

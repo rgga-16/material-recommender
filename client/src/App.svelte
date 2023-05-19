@@ -134,7 +134,7 @@
 	const promise = getInitialRendering();
 
 
-	let activeDisplayTab='rendering_display';
+	let activeDisplayTab='3d_display';
 	function switchDisplayTab(tab) {
         activeDisplayTab=tab;
     }
