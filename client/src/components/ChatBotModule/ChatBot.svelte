@@ -196,9 +196,9 @@
         dispatch('proceedToGenerate',material_name)
     }
 
-    // onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
-    //     await init_query();
-    // });
+    onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
+        await init_query();
+    });
 
 </script>
 

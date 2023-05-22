@@ -51,55 +51,42 @@
     }
 
     export function displayTexturePart() {
-        // (SELECTED_INFOS[0].name);
-        // selected_obj_name.set(SELECTED_INFOS[0].parent);
-        // let textureparts_=[];
-        // const textureparts_div = document.getElementById("texture-part-details");
-        // textureparts_div.innerHTML='';
-        // for (const sel_obj_and_part in sel_objs_and_parts) {
-        //     console.log(current_texture_parts);
-        //     let selected_object = sel_obj_and_part.parent; 
-        //     let selected_part = sel_obj_and_part.name;
-
-        //     let mat_name = current_texture_parts[selected_object][selected_part]["mat_name"];
-          
-        //     let material_url = current_texture_parts[selected_object][selected_part]["mat_image_texture"];
-        //     let material_finish = current_texture_parts[selected_object][selected_part]["mat_finish"];
-        //     let texturepart = new TexturePart({
-        //         target: document.getElementById("texture-part-details"),
-        //         props: {
-        //             part_name: selected_part,
-        //             material_name: mat_name,
-        //             material_url: material_url,
-        //             material_finish: material_finish,
-        //         }
-        //     });
-        //     textureparts_.push(texturepart);
-        //     textureparts_=textureparts_;
-
-        // }
-
-
-        let mat_name = current_texture_parts[selected_object][selected_part]["mat_name"];
-        let material_url = current_texture_parts[selected_object][selected_part]["mat_image_texture"];
-        let material_finish = current_texture_parts[selected_object][selected_part]["mat_finish"];
-
+        let textureparts=[];
         const textureparts_div = document.getElementById("texture-part-details");
         textureparts_div.innerHTML='';
 
-        let texturepart = new TexturePart({
-            target: document.getElementById("texture-part-details"),
-            props: {
-                part_name: selected_part,
-                material_name: mat_name,
-                material_url: material_url,
-                material_finish: material_finish,
+        // let mat_name = current_texture_parts[selected_object][selected_part]["mat_name"];
+        // let material_url = current_texture_parts[selected_object][selected_part]["mat_image_texture"];
+        // let material_finish = current_texture_parts[selected_object][selected_part]["mat_finish"];
+
+        for(let i=0; i < sel_objs_and_parts.length; i++) {
+            let selected_part_parent = sel_objs_and_parts[i].parent; 
+            let selected_part = sel_objs_and_parts[i].name;
+            // let selected_part_material = sel_objs_and_parts[i].model.children[0].material;
+            
+            let mat_name = current_texture_parts[selected_part_parent][selected_part]["mat_name"];
+            let material_url = current_texture_parts[selected_part_parent][selected_part]["mat_image_texture"];
+            let material_finish = current_texture_parts[selected_part_parent][selected_part]["mat_finish"];
+
+            let material_color = null;
+            if(current_texture_parts.hasOwnProperty('mat_color')) {
+                material_color = current_texture_parts[selected_part_parent][selected_part]["mat_color"];
             }
-        });
+            let texturepart = new TexturePart({
+                target: textureparts_div,
+                props: {
+                    index:i,
+                    part_name: selected_part,
+                    material_name: mat_name,
+                    material_url: material_url,
+                    material_finish: material_finish,
+                }
+            });
+            textureparts.push(texturepart);
+            textureparts=textureparts;
+        }
 
     }
-
-    
 
     function displayTextureParts() {
         textureparts=[];
@@ -282,20 +269,8 @@
 
     <div class="tab-content" class:active={activeTab==='details'} id="details">
         <h3> Object Details </h3>
-        <!-- {#if sel_objs_and_parts.length > 0}
-            <div id="texture-part-details"> </div>
-        {:else }
-            <div class="images-placeholder">
-                No object selected. Please select an object in the 3D View.
-            </div>
-            <div id="texture-part-details"> </div>
-        {/if} -->
-
-        {#if selected_object !== null} 
-            Selected Part: {selected_part}
-            <br>
-            {selected_part} is a component of the {selected_object}.
-            <div id="texture-part-details"> </div>
+        {#if sel_objs_and_parts.length > 0}
+            <div id="texture-part-details">  </div>
         {:else }
             <div class="images-placeholder">
                 No object selected. Please select an object in the 3D View.
