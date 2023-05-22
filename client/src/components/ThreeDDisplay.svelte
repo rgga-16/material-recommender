@@ -43,6 +43,11 @@
     displayHeight.subscribe(value => {
         height = value - heightOffset;
     });
+    
+    selected_objs_and_parts.subscribe(value => {
+        console.log("selected_objs_and_parts changed");
+        console.log(value);
+    });
 
     let camera, scene, renderer, controls, raycaster;
     const pointer = new THREE.Vector2();
@@ -104,8 +109,10 @@
 
     let HIGHLIGHTED; 
 
-    let SELECTEDS = [];
+    
     let SELECTED_INFOS = [];
+    // let SELECTEDS = [];
+    $: SELECTEDS = SELECTED_INFOS.map(item => item.model.children[0]);
 
     let mouseDown=false;
     let shiftPressed=false;
@@ -133,11 +140,11 @@
 
                     let selected_idx = 0; 
                     // let sel_objs_and_parts = get(selected_objs_and_parts)
-                    if (shiftPressed) {
+                    if (shiftPressed) { //If shift is held, want to select multiple objects
                         SELECTEDS.push(clicked_object);
                         const index = part_infos.findIndex(item => item.model.children[0] == clicked_object);
                         SELECTED_INFOS.push(part_infos[index]);
-                    } else {
+                    } else { //If shift is not held, want to select only one object
                         SELECTEDS = [];
                         SELECTED_INFOS = [];
                         SELECTEDS[0] = clicked_object;
@@ -145,10 +152,9 @@
                         SELECTED_INFOS[0] = part_infos[index];
                     }
                     
-
                     selected_part_name.set(SELECTED_INFOS[0].name);
                     selected_obj_name.set(SELECTED_INFOS[0].parent);
-                    information_panel.displayTexturePart();
+                    
                 } else {//If clicked object has already been selected, deselect it. 
                     SELECTEDS[0].material.emissive.setHex(0x000000);
                     SELECTEDS.splice(index, 1);
@@ -159,8 +165,7 @@
                 SELECTEDS=SELECTEDS;    
                 SELECTED_INFOS=SELECTED_INFOS;
                 selected_objs_and_parts.set(SELECTED_INFOS);
-                console.log(SELECTEDS);
-                console.log(SELECTED_INFOS);
+                // console.log(get(selected_objs_and_parts));
             }
         } else {// If the user clicks on an empty space, then we want to deselect the selected object.
             if (SELECTEDS.length > 0) {
@@ -172,6 +177,8 @@
                 selected_obj_name.set(null);
             }
         }
+        console.log(get(selected_objs_and_parts));
+        information_panel.displayTexturePart();
     }
 
     function getPointedObject() {
