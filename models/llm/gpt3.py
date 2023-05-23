@@ -27,6 +27,24 @@ materials_suggestion_prompt = f'''
     Return {n_material_suggestion_prompts} prompts.
 '''
 
+texture_map_keywords_prompt = '''
+I am using DALL-E to create an image texture map of bamboo by typing in a textual description.
+
+Brainstorm example keywords I can append to the textual description in order to make a detailed and more accurate image texture map of bamboo. 
+I want you to answer only as a Python list.
+
+'''
+
+texture_map_keywords_prompt_with_3d_model_context= '''
+I am using DALL-E to create an image texture map of bamboo by typing in a textual description. I intend to use this texture map for a 3D model of a basket.
+
+Brainstorm example keywords or key phrases I can append to the textual description that can satisfy both of the following conditions:
+
+1) Make a detailed and more accurate image texture map of bamboo material. 
+2) The texture map is visually appropriate to use for a 3D model of a basket.
+
+I want you to return the keywords only as a Python list.
+'''
 
 
 message_history = []
