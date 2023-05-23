@@ -35,7 +35,7 @@ class TextureDiffusion():
         self.pipe.to(self.device)
     
     def text2texture(self, texture_str,n=4, gen_imsize=512):
-        prompt = f'{texture_str} texture map, 4k'
+        prompt = f'{texture_str}'
         print(f"PROMPT: {prompt}")
         images = []
         for _ in range(n):
