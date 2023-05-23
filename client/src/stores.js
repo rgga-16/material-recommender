@@ -7,6 +7,8 @@ export const curr_texture_parts = writable({});
 export const models_setup_path = writable("");
 export const models_setup = writable({});
 
+export const chatbot_input_message = writable(""); //Keeps track of the input message in the chatbot
+
 // selected_objs_and_parts = [
 //     { part_name: "part1", 
 //       obj_name: "obj1",
@@ -34,7 +36,6 @@ export const transferred_texture_url = writable("");
 // Keeps track of the URL of the image texture being dragged and transferred.
 // This URL is used to display the texture map as an image in HTML.
 export const transferred_textureimg_url =writable("");
-
 
 export const saved_color_palettes = writable([
     {

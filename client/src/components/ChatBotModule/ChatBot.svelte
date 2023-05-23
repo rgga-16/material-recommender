@@ -4,6 +4,7 @@
     import MaterialCard from '../SuggestModule/MaterialCard.svelte';
     import ColorPalette from '../SuggestModule/ColorPalette.svelte';
     import {saved_color_palettes} from '../../stores.js';
+    import {chatbot_input_message} from '../../stores.js';
 
     import {actions_panel_tab} from '../../stores.js';
     import {generate_tab_page} from '../../stores.js';
@@ -13,6 +14,7 @@
     const dispatch = createEventDispatcher();
 
     let inputMessage = '';
+    
     let messages = [];
     /*
     Let the message dictionary format be:
@@ -198,6 +200,13 @@
 
     onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
         await init_query();
+
+        // If the chatbot_input_message, a global store, is updated, update the inputMessage variable and the text in the textbox message area.
+        chatbot_input_message.subscribe(value => {
+            inputMessage = value;
+            const textarea = document.getElementById("textarea");
+            textarea.value=inputMessage;
+        });
     });
 
 </script>
