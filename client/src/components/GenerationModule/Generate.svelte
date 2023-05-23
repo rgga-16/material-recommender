@@ -44,6 +44,15 @@
         input_material=texture_str;
         is_loading=true; 
         generated_textures=[];
+
+        if(selected_prompt_keywords.length > 0) {
+            for (let i = 0; i < selected_prompt_keywords.length; i++) {
+                texture_str += ", " + selected_prompt_keywords[i];
+            }
+        }
+
+        texture_str += ",  texture map, 4k";
+
         const results_response = await fetch("/generate_textures", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -164,6 +173,26 @@
 
     }
 
+    let brainstormed_prompt_keywords = [];
+    let selected_prompt_keywords = [];
+
+    async function brainstorm_prompt_keywords() {
+        if (input_material.trim() === '') {
+            alert("Please type in a material.");
+            return;
+        }
+        brainstormed_prompt_keywords=[];
+        selected_prompt_keywords=[];
+        const response = await fetch("/brainstorm_prompt_keywords", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                "texture_string": input_material,
+            }),
+        });
+        const json = await response.json();
+        brainstormed_prompt_keywords = json["brainstormed_prompt_keywords"];
+    }
 </script>
 
 <div class="material_generator">
@@ -176,9 +205,26 @@
                 <button> Generate Material </button>
             </div>
             
-            <div >
+            <div class="row">
                 <span> No. of texture maps: </span>
                 <NumberSpinner bind:value={n_textures} min={1} max={20} step=1/>
+            </div>
+
+            <div class="collapsible row" id="prompt_keywords" style="border: solid 1px black; margin-bottom: 5px; margin-top: 5px;">
+                <button on:click|preventDefault={brainstorm_prompt_keywords} style="margin-right: 10px;"> 
+                    Brainstorm keywords for "{input_material}" 
+                </button>
+                {#if brainstormed_prompt_keywords.length > 0}
+                    <br>
+                    {#each brainstormed_prompt_keywords  as keyword}
+                        <label class="tag" class:selected={selected_prompt_keywords.includes(keyword)}>
+                            <input type="checkbox" value={keyword} bind:group={selected_prompt_keywords} />
+                            +"{keyword}"
+                        </label>
+                    {/each}
+                {:else}
+                    <p> No brainstormed keywords yet. </p>
+                {/if}
             </div>
 
         </form>
@@ -317,6 +363,8 @@
         align-items: center;
         justify-content: center;
         gap: 5px;
+        flex-wrap: wrap;
+        padding: 5px;
     }
 
     .column {
@@ -325,6 +373,7 @@
         align-items: center;
         justify-content: center;
         gap: 5px;
+        padding: 5px;
     }
 
     
@@ -378,6 +427,29 @@
         align-items: center;
         justify-content: center;
         text-align: center;
+    }
+
+    .tag {
+        background-color:lightgreen;
+    }
+
+    .tag input[type="checkbox"] {
+        opacity: 0;
+        position: fixed;
+        width:0; 
+    } 
+
+    .selected {
+        border: 2.5px solid blue;
+    }
+
+    .selected:hover {
+        border: 2.5px solid blue;
+    }
+
+    .tag:hover{
+        cursor:pointer;
+        border: 2px solid grey;
     }
 
 

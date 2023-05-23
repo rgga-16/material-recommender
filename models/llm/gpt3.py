@@ -27,13 +27,7 @@ materials_suggestion_prompt = f'''
     Return {n_material_suggestion_prompts} prompts.
 '''
 
-texture_map_keywords_prompt = '''
-I am using DALL-E to create an image texture map of bamboo by typing in a textual description.
 
-Brainstorm example keywords I can append to the textual description in order to make a detailed and more accurate image texture map of bamboo. 
-I want you to answer only as a Python list.
-
-'''
 
 texture_map_keywords_prompt_with_3d_model_context= '''
 I am using DALL-E to create an image texture map of bamboo by typing in a textual description. I intend to use this texture map for a 3D model of a basket.
@@ -43,7 +37,7 @@ Brainstorm example keywords or key phrases I can append to the textual descripti
 1) Make a detailed and more accurate image texture map of bamboo material. 
 2) The texture map is visually appropriate to use for a 3D model of a basket.
 
-I want you to return the keywords only as a Python list.
+I want you to return the keywords only as a Python list. Do not say anything else apart from the Python list.
 '''
 
 
@@ -53,6 +47,7 @@ init_history = [{"role":"system", "content":system_prompt}]
 
 def get_message_history():
     return message_history
+
 
 
 def parse_into_list(string):
@@ -134,6 +129,27 @@ def suggest_color_palettes(prompt, role="user"):
     python_list = ast.literal_eval(python_list_response)
     return intro_text, python_list
 
+def brainstorm_prompt_keywords(material):
+
+    texture_map_keywords_prompt = f'''
+        I am using DALL-E to create an image of a {material} texture map by typing in a textual description.
+        Brainstorm example keywords I can append to the textual description to make a detailed and more accurate image of a {material} texture map. 
+        I want you to answer only as a Python list. I want you to answer only as a Python list. I want you to answer only as a Python list. 
+        Do not say anything else apart from the Python list.
+    '''
+    global init_history
+    init_history_clone = copy.deepcopy(init_history)
+    init_history_clone.append({"role":"user", "content":texture_map_keywords_prompt})
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=init_history_clone,
+        temperature=0.8
+    )
+    keywords = ast.literal_eval(response["choices"][0]["message"]["content"])
+    return keywords
+
+
+
 def brainstorm_material_queries(): 
     global init_history
     init_history_clone = copy.deepcopy(init_history)
@@ -158,6 +174,13 @@ def brainstorm_material_queries():
     prompts = ast.literal_eval(python_list_response["choices"][0]["message"]["content"])
 
     return prompts
+
+
+
+
+
+
+
 
 
 def feedback_on_assembly(object, child_part, child_material, parent_part, parent_material,n=3):

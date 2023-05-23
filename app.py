@@ -55,6 +55,15 @@ def suggest_colors():
     intro_text, suggested_color_palettes = gpt3.suggest_color_palettes(form_data["prompt"],role=form_data["role"])
     return jsonify({"intro_text":intro_text,"role":"assistant","suggested_color_palettes":suggested_color_palettes})
 
+@app.route("/brainstorm_prompt_keywords", methods=['POST']) 
+def brainstorm_prompt_keywords():
+    form_data = request.get_json()
+    material_prompt = form_data["texture_string"]
+
+    brainstormed_prompt_keywords = gpt3.brainstorm_prompt_keywords(material_prompt)
+    return jsonify({"brainstormed_prompt_keywords":brainstormed_prompt_keywords,"role":"assistant"})
+
+
 @app.route("/brainstorm_material_queries", methods=['GET'])
 def brainstorm_material_queries():
     # form_data = request.get_json()
