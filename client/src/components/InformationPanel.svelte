@@ -10,6 +10,9 @@
     import PartPairs from './PartPairs.svelte';
     import {onMount} from 'svelte';
 
+    import {actions_panel_tab} from '../stores.js';
+    import {generate_tab_page} from '../stores.js';
+
     import {information_panel_tab} from '../stores.js';
     
     let current_texture_parts = get(curr_texture_parts);
@@ -55,10 +58,6 @@
         const textureparts_div = document.getElementById("texture-part-details");
         textureparts_div.innerHTML='';
 
-        // let mat_name = current_texture_parts[selected_object][selected_part]["mat_name"];
-        // let material_url = current_texture_parts[selected_object][selected_part]["mat_image_texture"];
-        // let material_finish = current_texture_parts[selected_object][selected_part]["mat_finish"];
-
         for(let i=0; i < sel_objs_and_parts.length; i++) {
             let selected_part_parent = sel_objs_and_parts[i].parent; 
             let selected_part = sel_objs_and_parts[i].name;
@@ -76,10 +75,12 @@
                 target: textureparts_div,
                 props: {
                     index:i,
+                    part_parent_name: selected_part_parent,
                     part_name: selected_part,
                     material_name: mat_name,
                     material_url: material_url,
                     material_finish: material_finish,
+                    material_color: material_color,
                 }
             });
             textureparts.push(texturepart);
@@ -105,10 +106,6 @@
             });
             textureparts.push(texturepart);
         }
-    }
-
-    export function test() {
-        alert("test");
     }
 
     function updatePartPairs() {

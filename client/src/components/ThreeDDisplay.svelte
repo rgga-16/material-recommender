@@ -43,7 +43,7 @@
     displayHeight.subscribe(value => {
         height = value - heightOffset;
     });
-    
+
     selected_objs_and_parts.subscribe(value => {
         console.log("selected_objs_and_parts changed");
         console.log(value);
@@ -337,7 +337,6 @@
                 part_infos=part_infos;
             })
         }
-        // console.log(part_infos);
     }
 
     function changeTexture(object, url) {

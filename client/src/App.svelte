@@ -163,7 +163,6 @@
 		<!-- Left Section -->
 		<div class="actions-panel" class:collapsed={ui_collapsed}>
 			<ActionsPanel onCallUpdateCurrentRendering={updateCurrentRendering}/> 
-			<!-- <ActionsPanel/> -->
 			<!-- <button on:click={()=>collapseDiv(ui_collapsed)}> Hide </button> -->
 		</div>
 
