@@ -406,7 +406,7 @@
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000); // Set the background to black
 
-        camera = new THREE.PerspectiveCamera( 70, width/height, 1, 10000 );
+        camera = new THREE.PerspectiveCamera( 70, width/height, 0.1, 10000 );
         
         raycaster = new THREE.Raycaster();
 
