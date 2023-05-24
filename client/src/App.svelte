@@ -10,8 +10,12 @@
 	import {curr_textureparts_path} from './stores.js';
 	import {displayWidth} from './stores.js';
 	import {displayHeight} from './stores.js';
+	import {objects_3d} from './stores.js';
 	import {get} from 'svelte/store';
 	import {onMount} from "svelte";	
+
+	import * as THREE from 'three';
+	import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 
 	let current_rendering_path;
 	let current_texture_parts;
@@ -50,7 +54,7 @@
 		curr_textureparts_path.set(await data["textureparts_path"]);
 
 		// updateCurrentRenderingDisplay();
-		information_panel.updatePartInformation();
+		// information_panel.updatePartInformation();
 		is_loading=false;
 	}
 	
@@ -139,6 +143,64 @@
         activeDisplayTab=tab;
     }
 
+	function exportGLB(model, path) {
+		const exporter = new GLTFExporter();
+
+		 // Export the mesh as a GLB file
+		exporter.parse(model, function (glb) {
+			fs.writeFileSync(path, glb);
+		});
+
+	}
+
+	function render() {
+		/**
+		 * WIP
+		 */
+		// Needs 3D objects 
+		const obj3d = get(objects_3d);
+
+		const current_texture_parts_ = get(curr_texture_parts);
+
+		for (const obj in obj3d) {
+			exportGLB(obj["model"], obj["glb_url"])
+		}
+
+		console.log("done!");
+
+		// const response = await fetch("/save_3d_models", {
+		// 	method: "POST",
+		// 	headers: {"Content-Type": "application/json"},
+		// 	body: JSON.stringify({
+		// 		"models_3d": obj3d,
+		// 		"texture_parts": current_texture_parts_
+		// 	}),
+		// });
+
+		// const response = await fetch("/apply_to_current_rendering", {
+        //     method: "POST",
+        //     headers: {"Content-Type": "application/json"},
+        //     body: JSON.stringify({
+        //         "rendering_path": selected_rendering_path,
+        //         "texture_parts":selected_rendering_info,
+        //         "textureparts_path": selected_info_path
+        //     }),
+        // });
+
+        // const json = await response.json();
+        // curr_rendering_path.set(json["rendering_path"]);
+        // curr_texture_parts.set(await json["texture_parts"]);
+		// curr_textureparts_path.set(await json["textureparts_path"]);
+
+        // callUpdateCurrentRendering();
+
+		/**
+		 * 1) for each obj in obj3d, save obj[model] as obj[glb_url]
+		 * 2) get current_texture_parts
+		 * 3) do render
+		*/
+	}
+
 
 	onMount(async function () {
 		const response = await fetch("/get_static_dir");
@@ -168,13 +230,11 @@
 
 		<!-- Middle Section  -->
 		<div class="renderings">
-
 			<div class="display-panel" id="display">
 				<div class="w3-bar w3-grey tabs">
 					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='rendering_display'} on:click={()=>switchDisplayTab('rendering_display')} id="rendering-display-btn">Rendering View</button>
 					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='3d_display'} on:click={()=>switchDisplayTab('3d_display')} id="suggest-colors-btn">3D View</button>
 				</div>
-
 				<!-- Display rendering -->
 				<div class="tab-content rendering-display" class:active={activeDisplayTab==='rendering_display'}>
 					{#if is_loading}
@@ -192,10 +252,15 @@
 						{/await}
 					{/if}
 				</div>
-
 				<!-- Display 3D model/s -->
 				<div class="tab-content threed-display" class:active={activeDisplayTab==='3d_display'} id="threed_display_parent">
-					<ThreeDDisplay bind:information_panel={information_panel} {displayHeight} {displayWidth} />
+
+					{#await promise}
+						<pre> Loading 3D viewer. Please wait. </pre>
+					{:then data}
+						<ThreeDDisplay current_texture_parts={get(curr_texture_parts)} bind:information_panel={information_panel} {displayHeight} {displayWidth} />
+						<button on:click|preventDefault={render}> Render </button>
+					{/await}
 				</div>
 			</div>
 

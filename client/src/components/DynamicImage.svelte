@@ -14,22 +14,28 @@ let imagesource; //Returned image
 
 let is_loading=false;
 
+
 export async function getImage() {
-    // console.log("updating image!");
-    await fetch("/get_image", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            "image_path": imagepath,
-        }),
-    }).then(response => response.blob())
-    .then(blob => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            imagesource = reader.result;
-        };
-        reader.readAsDataURL(blob);
-    }).catch(error => console.error(error));
+    is_loading=true; 
+    // const start = performance.now();
+    try {   
+        const response = await fetch("/get_image", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                "image_path": imagepath,
+            }),
+        });
+        const blob = await response.blob();
+        imagesource = URL.createObjectURL(blob);
+    } catch (error) {
+        console.error(error);
+    } finally {
+        is_loading=false;
+        // const end = performance.now();
+        // console.log("New getImage() took " + (end - start) + " milliseconds.");
+    }
+
 }
 
 function dragStart(event) {
@@ -41,8 +47,6 @@ function dragStart(event) {
     event.dataTransfer.setData("text/plain", event.target.src);
     transferred_texture_url.set(imagesource);
     transferred_textureimg_url.set(imagepath);
-    // event.dataTransfer.setData("text/plain", event.target.src);
-    // transferred_texture_url.set(event.target.src);
 }
 
 $: getImage();
@@ -50,19 +54,43 @@ $: getImage();
 onMount(getImage);
 
 </script>
-
-
     {#if is_loading}
         <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
     {:else}
         <img src={imagesource} alt={alt ? alt:"Image"} style="max-width: {size}; max-height:{size}" draggable={is_draggable} on:dragstart={dragStart}>
-        <!-- <img src={imagesource} alt={alt ? alt:"Image"}>  -->
     {/if}
-
-
 <style>
     img {
         width: 100%;
         height: 100%;
     }
 </style>
+
+
+
+<!-- 
+    DUMP. OLD CODE.
+<script>
+    export async function getImage2() {
+        is_loading=true;
+        const start = performance.now();
+        await fetch("/get_image", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                "image_path": imagepath,
+            }),
+        }).then(response => response.blob())
+        .then(blob => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                imagesource = reader.result;
+                is_loading=false;
+                const end = performance.now();
+                console.log("Old getImage() took " + (end - start) + " milliseconds.");
+            };
+            reader.readAsDataURL(blob);
+        }).catch(error => console.error(error));
+    }
+
+</script> -->

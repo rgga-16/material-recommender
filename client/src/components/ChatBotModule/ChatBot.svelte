@@ -164,18 +164,14 @@
     async function init_query() {
         const response = await fetch('./init_query');
         const json = await response.json();
-
         let message = json["response"];
         let role = json["role"];
-
         messages.push({
             "message": message,
             "role": role
         });
         messages = messages;
-
         console.log(messages);
-
     }
 
     function handleInput(event) {
@@ -187,7 +183,6 @@
     async function brainstorm_material_queries() {
         const response = await fetch('./brainstorm_material_queries');
         const json = await response.json(); 
-
         suggested_material_queries = json['prompts']
         console.log(suggested_material_queries)
     }
@@ -198,16 +193,16 @@
         dispatch('proceedToGenerate',material_name)
     }
 
-    onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
-        await init_query();
+    // onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
+    //     await init_query();
 
-        // If the chatbot_input_message, a global store, is updated, update the inputMessage variable and the text in the textbox message area.
-        chatbot_input_message.subscribe(value => {
-            inputMessage = value;
-            const textarea = document.getElementById("textarea");
-            textarea.value=inputMessage;
-        });
-    });
+    //     // If the chatbot_input_message, a global store, is updated, update the inputMessage variable and the text in the textbox message area.
+    //     chatbot_input_message.subscribe(value => {
+    //         inputMessage = value;
+    //         const textarea = document.getElementById("textarea");
+    //         textarea.value=inputMessage;
+    //     });
+    // });
 
 </script>
 
@@ -241,9 +236,7 @@
                             </li>
                         {/each}
                     </ol>
-                    
                 {/if}
-
             </div>
         </div>
     {/each}
@@ -256,7 +249,6 @@
         <div class=header> 
             <!-- svelte-ignore a11y-click-events-have-key-events -->
             <strong on:click={() => expand()} style="cursor:pointer;"> Suggested Questions </strong> 
-            
             {#if expanded_suggested_questions===true}
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <img on:click={() => expand()}  src="./logos/down-arrow-svgrepo-com.svg" style="width:25px; height: 25px;cursor:pointer;" alt="Collapse">
@@ -265,7 +257,6 @@
                 <img on:click={() => expand()} src="./logos/up-arrow-svgrepo-com.svg" style="width:25px; height: 25px;cursor:pointer;" alt="Expand">
             {/if}
         </div>
-
         {#if expanded_suggested_questions===false}
                 {suggested_material_queries[0].slice(0, 20)}... + {suggested_material_queries.length-1} more
         {:else}
@@ -277,7 +268,6 @@
                     {/each}
                 </ul>
             </div>
-
             <div class="footer">
                 <button on:click|preventDefault={()=>brainstorm_material_queries()}> Brainstorm questions! </button>
             </div>
@@ -287,7 +277,6 @@
     <button on:click|preventDefault={()=>suggest_materials()}>Suggest Materials</button>    
     <button on:click|preventDefault={()=>suggest_color_palettes()}>Suggest Colors</button>   
 </div>
-
 
 <style>
 

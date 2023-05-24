@@ -18,6 +18,7 @@
     import {selected_part_name} from '../stores.js'; 
     import {selected_obj_name} from '../stores.js';
     import {selected_objs_and_parts} from '../stores.js';
+    import {objects_3d} from '../stores.js';
 
     import {transferred_texture_url} from '../stores.js';
     import {transferred_textureimg_url} from '../stores.js';
@@ -31,10 +32,24 @@
     
     export let information_panel;
 
+    export let current_texture_parts;
+
     let width;
     let height; 
-    const widthOffset = 15;
-    const heightOffset = 55;
+    const widthOffset = 25;
+    const heightOffset = 95;
+
+    /**
+     * model3d_infos = [
+     *  {
+     *      "name":"bedframe",
+     *      "parent":"bed",
+     *      "glb_url":"models/glb/bed/bedframe.glb"
+     *  }....
+     * 
+     * ]
+     */
+    let model3d_infos = []; //List of all 3D models laoded from current_texture_parts including their parent object
 
     displayWidth.subscribe(value => {
         width = value - widthOffset;
@@ -47,7 +62,21 @@
     selected_objs_and_parts.subscribe(value => {
         console.log("selected_objs_and_parts changed");
         console.log(value);
+        console.log("objs and parts");
+        // console.log(model3d_infos);
+        objects_3d.set(model3d_infos);
+        console.log(get(objects_3d));
+        /**
+         * Basically, if  the selected_objs_and_parts (selected 3D models) have been modified, it will also be reflected in
+         * objs_and_parts (all 3D models). So, there's no need to manually update (I think?)
+        */
     });
+
+    // objects_3d.subscribe(value => {
+    //     console.log("objects_3d changed");
+    //     console.log(value);
+    //     model3d_infos = value;
+    // });
 
     let camera, scene, renderer, controls, raycaster;
     const pointer = new THREE.Vector2();
@@ -62,17 +91,7 @@
         dragging = value;
     });
     
-    /**
-     * part_infos = [
-     *  {
-     *      "name":"bedframe",
-     *      "parent":"bed",
-     *      "glb_url":"models/glb/bed/bedframe.glb"
-     *  }....
-     * 
-     * ]
-     */
-    let part_infos = []; //List of all parts loaded from objs_and_parts including their parent object
+    
 
     let dragged_texture_url = null;
     transferred_texture_url.subscribe(value=> {
@@ -86,32 +105,40 @@
         dragged_textureimg_url = value;
     });
 
+    
+
+    function get_models() {
+        for(let obj in current_texture_parts) {
+            for(let part in current_texture_parts[obj]) {
+                model3d_infos.push( {
+                    "name":part,
+                    "parent":obj,
+                    "glb_url": current_texture_parts[obj][part]["model"]
+                })
+                model3d_infos=model3d_infos
+            }
+        }
+    }
+
     async function get_objects() {
         const obj_resp= await fetch('./get_objects_and_parts');
         const obj_json = await obj_resp.json(); 
         objs_and_parts = obj_json;
-
         for (const obj in objs_and_parts) {
             let o = objs_and_parts[obj];
-
             for (const part of o["parts"]["names"]) {
-
-                part_infos.push({
+                model3d_infos.push({
                     "name":part,
                     "parent":obj,
                     "glb_url":url+'/'+obj+'/'+part+'.glb'
                 });
-                part_infos=part_infos;
+                model3d_infos=model3d_infos;
             }
         }
-        // console.log(part_infos);
     }
 
     let HIGHLIGHTED; 
-
-    
     let SELECTED_INFOS = [];
-    // let SELECTEDS = [];
     $: SELECTEDS = SELECTED_INFOS.map(item => item.model.children[0]);
 
     let mouseDown=false;
@@ -124,7 +151,7 @@
             return;
         }
         raycaster.setFromCamera(pointer, camera);
-        let objects = part_infos.map(item => item.model);
+        let objects = model3d_infos.map(item => item.model);
         const intersects = raycaster.intersectObjects(objects, true); 
         if (intersects.length > 0) {
             if(!(intersects.some(element => element ===undefined))) {
@@ -142,19 +169,17 @@
                     // let sel_objs_and_parts = get(selected_objs_and_parts)
                     if (shiftPressed) { //If shift is held, want to select multiple objects
                         SELECTEDS.push(clicked_object);
-                        const index = part_infos.findIndex(item => item.model.children[0] == clicked_object);
-                        SELECTED_INFOS.push(part_infos[index]);
+                        const index = model3d_infos.findIndex(item => item.model.children[0] == clicked_object);
+                        SELECTED_INFOS.push(model3d_infos[index]);
                     } else { //If shift is not held, want to select only one object
                         SELECTEDS = [];
                         SELECTED_INFOS = [];
                         SELECTEDS[0] = clicked_object;
-                        const index = part_infos.findIndex(item => item.model.children[0] == clicked_object);
-                        SELECTED_INFOS[0] = part_infos[index];
+                        const index = model3d_infos.findIndex(item => item.model.children[0] == clicked_object);
+                        SELECTED_INFOS[0] = model3d_infos[index];
                     }
-                    
                     selected_part_name.set(SELECTED_INFOS[0].name);
                     selected_obj_name.set(SELECTED_INFOS[0].parent);
-                    
                 } else {//If clicked object has already been selected, deselect it. 
                     SELECTEDS[0].material.emissive.setHex(0x000000);
                     SELECTEDS.splice(index, 1);
@@ -183,7 +208,7 @@
 
     function getPointedObject() {
         raycaster.setFromCamera(pointer, camera);
-        let objects = part_infos.map(item => item.model);
+        let objects = model3d_infos.map(item => item.model);
         const intersects = raycaster.intersectObjects(objects, true); //intersects is a list of objects pointed by the mouse
         if (intersects.length > 0) { //if intersects has elements 
             if (!(intersects.some(element => element===undefined))) { //if intersects does not have undefined elements
@@ -294,7 +319,6 @@
                                 selected.prev_material = selected.material.clone();
                                 
                                 let cloned_texture_parts = get(curr_texture_parts);
-                                
 
                                 let prev_texture_parts = Object.assign( {}, cloned_texture_parts); 
                                 console.log("BEFORE");
@@ -304,6 +328,9 @@
 
                                 cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"] = get(generated_texture_name);
                                 cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"] = dragged_textureimg_url;
+                                
+
+
                                 curr_texture_parts.set(cloned_texture_parts);
 
                                 console.log("AFTER");
@@ -327,14 +354,14 @@
 
     
     function add_glb_objects() {
-        for (let i = 0; i < part_infos.length; i++) {
-            let glbUrl = part_infos[i]["glb_url"];
+        for (let i = 0; i < model3d_infos.length; i++) {
+            let glbUrl = model3d_infos[i]["glb_url"];
             gltfLoader.load(glbUrl, (gltf) => {
                 // console.log('GLTF loaded: ' + gltf);
                 let model = gltf.scene
                 scene.add(model);
-                part_infos[i]["model"] = model;
-                part_infos=part_infos;
+                model3d_infos[i]["model"] = model;
+                model3d_infos=model3d_infos;
             })
         }
     }
@@ -383,8 +410,6 @@
                     material.map = texturemap;
                     material.needsUpdate = true;
                     material.color=null;
-                    // material.color.setRGB(0,0,0);
-                    // material.colorIntensity=0;
                     material.emissive.setRGB(0,0,0);
                     material.emissiveIntensity=0;
                     console.log(material);
@@ -455,7 +480,8 @@
     
 
     onMount(async () => {
-        await get_objects();
+        // await get_objects();
+        get_models();
 
         init();
 
@@ -471,9 +497,6 @@
         }
         render();
     });
-
-    
-
 
 </script>
 
@@ -545,7 +568,7 @@ DUMP
 
         raycaster.setFromCamera(mouse, camera);
 
-        let objects = part_infos.map(item => item.model);
+        let objects = model3d_infos.map(item => item.model);
         const intersects = raycaster.intersectObjects(objects, true);
 
         if (intersects.length > 0) {
@@ -558,10 +581,10 @@ DUMP
                     // highlightedPart.material = originalMaterial;
                     highlightedPart.model.children[0].material=originalMaterial;
                 }
-                const index = part_infos.findIndex(item => item.model.children[0] == object); //ASSUME that the first child of the model is the mesh
+                const index = model3d_infos.findIndex(item => item.model.children[0] == object); //ASSUME that the first child of the model is the mesh
 
                 // highlightedPart = object;
-                highlightedPart = part_infos[index];
+                highlightedPart = model3d_infos[index];
                 originalMaterial = object.material;
                 highlightedPart.model.children[0].material = highlightMaterial;
                 // object.material = highlightMaterial;

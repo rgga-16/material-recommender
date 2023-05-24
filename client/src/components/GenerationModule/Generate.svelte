@@ -104,6 +104,7 @@
     }
 
     async function apply_to_curr_rendering(index) {
+        console.log("apply to curr rendering");
         if(index==undefined) {
             alert("Please select one of the options"); 
             return;

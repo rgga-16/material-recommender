@@ -123,12 +123,10 @@
                         "child_mat_name": current_texture_parts[selected_obj][child_part]["mat_name"],
                         "child_mat_url": current_texture_parts[selected_obj][child_part]["mat_image_texture"],
                         "child_mat_finish": current_texture_parts[selected_obj][child_part]["mat_finish"],
-                        
                         "parent_part": parent_part,
                         "parent_mat_name": current_texture_parts[selected_obj][parent_part]["mat_name"],
                         "parent_mat_url": current_texture_parts[selected_obj][parent_part]["mat_image_texture"],
                         "parent_mat_finish": current_texture_parts[selected_obj][parent_part]["mat_finish"],
-                        
                     }
                     partpairs_infos.push(partpair_info);
                 }
@@ -167,17 +165,14 @@
     }
 
     export async function updatePartInformation() {
-
         is_loading=true;
         selected_parts = Object.keys(current_texture_parts[selected_obj]);
-        
         updateAndDisplayPartPairs();
         displayTextureParts();
-        
+
         for (let i = 0; i < textureparts.length; i++) {
             textureparts[i].updateImage();
         }
-
         // updateAndDisplayPartPairs();
         
         for (let j = 0; j < partpairs.length; j++) {
@@ -185,13 +180,9 @@
         }
         is_loading=false;
     }
-    
     curr_texture_parts.subscribe(value => {
 		current_texture_parts = value;
 	});
-    
-    
-
     onMount(async () => {
         updateAndDisplayPartPairs();
         displayTextureParts();
@@ -202,14 +193,13 @@
 
 <div class="information-panel">
     <div class="w3-bar w3-grey tabs">
-        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='information'} on:click={()=>switchTab('information')} id="information-btn">Information</button>
-        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='feedback'} on:click={()=>switchTab('feedback')}  id="feedback-btn">Feedback</button>
+        <!-- <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='information'} on:click={()=>switchTab('information')} id="information-btn">Information</button>
+        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='feedback'} on:click={()=>switchTab('feedback')}  id="feedback-btn">Feedback</button> -->
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='details'} on:click={()=>switchTab('details')}  id="details-btn">Details</button>
     </div>
 
-    <div class='tab-content'  class:active={activeTab==='information'} id="information">
+    <!-- <div class='tab-content'  class:active={activeTab==='information'} id="information">
         <h3> Rendering Information </h3>
-
         <select bind:value={selected_obj} on:change={() => displayTextureParts()}>
             {#each objects as obj}
                 <option value={obj}>
@@ -217,20 +207,17 @@
                 </option>
             {/each}
         </select>
-
         {#if is_loading}
             <div class="images-placeholder">
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
                 <div id="texture-parts"> </div>
             </div>
         {:else}
-
             <div id="texture-parts"> </div>
-
         {/if}
-    </div> 
+    </div>  -->
 
-    <div class='tab-content' class:active={activeTab==='feedback'} id="feedback">   
+    <!-- <div class='tab-content' class:active={activeTab==='feedback'} id="feedback">   
         <h3> Feedback </h3>
         <select bind:value={selected_obj} on:change={() => updateAndDisplayPartPairs()}>
             {#each objects as obj}
@@ -239,7 +226,6 @@
                 </option>
             {/each}
         </select>
-
         {#if is_loading}
             <div class="images-placeholder">
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
@@ -247,22 +233,8 @@
             <div id="part-pairs"> </div>
         {:else}
             <div id="part-pairs"> </div>
-            <!-- {#each partpairs_infos as partpair_info, i}
-                <PartPairs bind:this={partpairs[i]} 
-                    bind:obj={selected_obj} 
-                    bind:child_part={partpair_info.child_part} 
-                    bind:child_mat_name={current_texture_parts[selected_obj][partpair_info.child_part]['mat_name']}
-                    bind:child_mat_finish={current_texture_parts[selected_obj][partpair_info.child_part]['mat_finish']}
-                    bind:child_mat_url={current_texture_parts[selected_obj][partpair_info.child_part]['mat_image_texture']}
-
-                    bind:parent_part={partpair_info.parent_part} 
-                    bind:parent_mat_name={current_texture_parts[selected_obj][partpair_info.parent_part]['mat_name']}
-                    bind:parent_mat_finish={current_texture_parts[selected_obj][partpair_info.parent_part]['mat_finish']}
-                    bind:parent_mat_url={current_texture_parts[selected_obj][partpair_info.parent_part]['mat_image_texture']}
-                />
-            {/each} -->
         {/if}
-    </div>
+    </div> -->
 
     <div class="tab-content" class:active={activeTab==='details'} id="details">
         <h3> Object Details </h3>
