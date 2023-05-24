@@ -195,7 +195,7 @@ def transform_material(mapping_node:bpy.types.Node, transforms:dict):
 class Renderer():
     def __init__(self,cam_info, light_info=None, resolution=(1024,1024)):
         self.resolution = resolution
-        self.set_gpu("BLENDER_EEVEE")
+        self.set_gpu("CYCLES")
         self.setup_render()
         self.setup_background()
         self.setup_camera(cam_info['loc'],cam_info['rot'],cam_info['scale'])
@@ -212,7 +212,7 @@ class Renderer():
             bpy.context.preferences.addons['cycles'].preferences.get_devices()
             bpy.context.preferences.addons['cycles'].preferences.devices[0].use= True
             bpy.context.scene.cycles.device = 'GPU'
-            bpy.context.scene.cycles.samples=1024
+            bpy.context.scene.cycles.samples=4096
         elif rendering_engine=='BLENDER_EEVEE':
             bpy.context.scene.eevee.taa_render_samples=1024
             #Enable bloom
@@ -518,8 +518,8 @@ def main():
             # obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
             part_path = os.path.join(models_dir,model_key, f'{part}.glb')
             obj = renderer.load_object_gltf(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
-            renderer.recalculate_normals(obj)
-            renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish, part_material_transforms, part_material_color,part_material_finish_settings)
+            # renderer.recalculate_normals(obj)
+            # renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish, part_material_transforms, part_material_color,part_material_finish_settings)
     renderer.render(out_path=args.out_path)
     
 if __name__=="__main__":

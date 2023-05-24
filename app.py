@@ -1,10 +1,10 @@
 from flask import Flask, send_from_directory, request, jsonify, send_file
-import random, requests, json, copy, shutil 
+import random, requests, json, copy, shutil, gltf, os
 from PIL import Image
 
 from texture_transfer_3d import TextureDiffusion
 from configs import *
-import os 
+
 from utils.image import makedir, emptydir, degrees_to_radians
 
 import models.llm.gpt3 as gpt3
@@ -350,13 +350,23 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
 @app.route("/save_3d_models", methods=['POST'])
 def save_3d_models():
     form_data = request.get_json()
-    current_texture_parts = form_data["current_texture_parts"]
+    current_texture_parts = form_data["texture_parts"]
     models_3d = form_data["models_3d"]
     for model in models_3d:
         model_glb = model["model"]
         model_path = model["glb_url"] 
         model_name = model["name"]
         model_parent = model["parent"]
+
+        # WIP: This is to save the model as a .glb file
+        # Maybe use this package? https://pypi.org/project/gltflib/
+        scene = gltf.Scene()
+        mesh_obj = gltf.Mesh.from_data(model_glb) #Doesn't work
+        scene.add_object(mesh_obj)
+        gltf.save(scene,model_path,embed_data=True)
+
+    print('Done!')
+    print()
         
     return 
 
