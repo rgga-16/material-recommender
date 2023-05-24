@@ -17,6 +17,7 @@
 	import * as THREE from 'three';
 	import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 
+
 	let current_rendering_path;
 	let current_texture_parts;
 	let current_textureparts_path;
@@ -145,37 +146,63 @@
 
 	function exportGLB(model, path) {
 		const exporter = new GLTFExporter();
+		const path_noext = path.substring(0, path.lastIndexOf('.')) || path;
+		console.log(path_noext);
 
-		 // Export the mesh as a GLB file
 		exporter.parse(model, function (glb) {
-			fs.writeFileSync(path, glb);
-		});
+			const blob = new Blob([glb], {type:'application/octet-stream'});
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.style.display = 'none';
+			link.href = url;
+			link.download= path_noext+'.glb';
+			link.click();
+		})
+
+		// exporter.parse(model, function (result) {
+		// 	if (result instanceof ArrayBuffer) {
+		// 		saveArrayBuffer(result, path_noext+'.glb');
+		// 	} else {
+		// 		const output = JSON.stringify(result, null, 2);
+		// 		console.log(output);
+		// 		saveString(output, path_noext+'.gltf');
+		// 	}
+		// });
 
 	}
 
-	function render() {
+	async function render() {
 		/**
 		 * WIP
 		 */
 		// Needs 3D objects 
-		const obj3d = get(objects_3d);
+		let objects_3d_clone = Object.assign([], get(objects_3d));
 
-		const current_texture_parts_ = get(curr_texture_parts);
+		let current_texture_parts_ = Object.assign({}, get(curr_texture_parts));
 
-		for (const obj in obj3d) {
-			exportGLB(obj["model"], obj["glb_url"])
+
+		let updated_objects_3d = [];
+		for (let i =0; i < objects_3d_clone.length; i++) {
+			let obj = Object.assign({}, objects_3d_clone[i]);
+			let obj_model = obj["model"];
+			let objJson = obj_model.toJSON();
+			obj["model"] = objJson;
+			updated_objects_3d.push(obj);
+			updated_objects_3d=updated_objects_3d;
 		}
+		console.log(objects_3d_clone);
+		console.log(updated_objects_3d);
 
-		console.log("done!");
+		const dataJSON = JSON.stringify({
+			"models_3d": updated_objects_3d,
+			"texture_parts": current_texture_parts_
+		});
 
-		// const response = await fetch("/save_3d_models", {
-		// 	method: "POST",
-		// 	headers: {"Content-Type": "application/json"},
-		// 	body: JSON.stringify({
-		// 		"models_3d": obj3d,
-		// 		"texture_parts": current_texture_parts_
-		// 	}),
-		// });
+		const response = await fetch("/save_3d_models", {
+			method: "POST",
+			headers: {"Content-Type": "application/json"},
+			body: dataJSON,
+		});
 
 		// const response = await fetch("/apply_to_current_rendering", {
         //     method: "POST",
