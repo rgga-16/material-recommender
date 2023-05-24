@@ -311,6 +311,8 @@ def generate_textures(texture_string, n, imsize):
 def apply_to_current_rendering(renderpath, texture_parts_path):
     global current_texture_parts
     curr_render_savedir = os.path.join(SERVER_IMDIR,'renderings','current')
+    curr_render_loaddir = os.path.join(CLIENT_IMDIR,'renderings','current')
+
     if(not os.path.isdir(curr_render_savedir)):
         makedir(curr_render_savedir)
     
@@ -324,18 +326,40 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
     texture_filenames = []
     for obj in list(texture_parts.keys()):
         for part in list(texture_parts[obj].keys()):
+            # This portion is to copy the texture to the current rendering directory
             texture_path = texture_parts[obj][part]["mat_image_texture"]
             texture_filename = os.path.basename(texture_path)
             curr_texture_path = os.path.join(curr_render_savedir,texture_filename)
             Image.open(texture_path).save(curr_texture_path)
             texture_parts[obj][part]["mat_image_texture"] = curr_texture_path
 
+            # This portion is to copy the model to the current rendering directory
+            model_path = texture_parts[obj][part]["model"] #Note: the model is a .glb file which includes the texture map from ["mat_image_texture"]
+            model_filename = os.path.basename(model_path)
+            texture_parts[obj][part]["model"] = os.path.join(curr_render_loaddir,model_filename)
+            shutil.copy(model_path, os.path.join(curr_render_savedir,model_filename))   
+
     current_texture_parts = copy.deepcopy(texture_parts)
     with open(curr_textureparts_path,"w") as f:
         json.dump(texture_parts,f)
 
     shutil.copy(renderpath, curr_render_path) 
+    print("done applying to current rendering!")
     return curr_render_path, curr_textureparts_path
+
+@app.route("/save_3d_models", methods=['POST'])
+def save_3d_models():
+    form_data = request.get_json()
+    current_texture_parts = form_data["current_texture_parts"]
+    models_3d = form_data["models_3d"]
+    for model in models_3d:
+        model_glb = model["model"]
+        model_path = model["glb_url"] 
+        model_name = model["name"]
+        model_parent = model["parent"]
+        
+    return 
+
 
 @app.route("/apply_to_current_rendering", methods= ['POST'])
 def set_current_rendering():
@@ -410,6 +434,7 @@ def get_saved_renderings():
 
 @app.route("/get_current_rendering")
 def get_current_rendering():
+    print("Getting current rendering")
     # curr_render_loaddir = os.path.join(CLIENT_IMDIR,'renderings','current')
     curr_render_savedir = os.path.join(SERVER_IMDIR,'renderings','current')
 
@@ -457,7 +482,7 @@ if __name__ == "__main__":
         "bedroom"
     ]
 
-    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[1])
+    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[1]) #Dir where the 3D scene (information, models, textures, renderings) is stored
     RENDER_DIR = os.path.join(DATA_DIR,"renderings")
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 

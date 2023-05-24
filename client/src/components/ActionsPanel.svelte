@@ -28,24 +28,24 @@
   <div class="w3-bar w3-grey tabs">
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='generate'} on:click={()=>switchTab('generate')} id="generate-btn">Generate</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='chatbot'} on:click={()=>switchTab('chatbot')} id="suggest-colors-btn">ChatBot</button>
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_materials'} on:click={()=>switchTab('suggest_materials')} id="suggest-materials-btn">Suggest Materials</button>
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_colors'} on:click={()=>switchTab('suggest_colors')} id="suggest-colors-btn">Suggest Colors</button>
+    <!-- <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_materials'} on:click={()=>switchTab('suggest_materials')} id="suggest-materials-btn">Suggest Materials</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_colors'} on:click={()=>switchTab('suggest_colors')} id="suggest-colors-btn">Suggest Colors</button> -->
   </div>
   
   <div class='tab-content'  class:active={activeTab==='generate'} id="generate">
     <Generate onCallUpdateCurrentRendering={callUpdateCurrentRendering} bind:this={generate} />
   </div> 
 
-  <div class='tab-content' class:active={activeTab==='suggest_materials'} id="suggest_materials">
+  <!-- <div class='tab-content' class:active={activeTab==='suggest_materials'} id="suggest_materials">
     <SuggestMaterials on:proceedToGenerate={arg => {
       generate.generate_textures(arg.detail);
       generate.reset_page();
     }}/>
-  </div>
+  </div> -->
 
-  <div class='tab-content' class:active={activeTab==='suggest_colors'} id="suggest_colors">
+  <!-- <div class='tab-content' class:active={activeTab==='suggest_colors'} id="suggest_colors">
     <SuggestColors />
-  </div>
+  </div> -->
 
   <div class="tab-content" class:active={activeTab==='chatbot'} id="chatbot">
     <ChatBot on:proceedToGenerate={arg => {

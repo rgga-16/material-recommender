@@ -25,6 +25,8 @@ export const chatbot_input_message = writable(""); //Keeps track of the input me
 //      }
 // ]
 export const selected_objs_and_parts =writable ([]); //Keeps track of the selected parts and their parent objects in the 3D view
+export const objects_3d = writable([]); //Keeps track of all of the objects in the 3D view
+
 
 export const selected_obj_name = writable(null); //Keeps track of the selected part's object in the 3D view
 export const selected_part_name = writable(null); //Keeps track of the name of the currently selected part in the 3D view
