@@ -329,8 +329,6 @@
                                 cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"] = get(generated_texture_name);
                                 cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"] = dragged_textureimg_url;
                                 
-
-
                                 curr_texture_parts.set(cloned_texture_parts);
 
                                 console.log("AFTER");
