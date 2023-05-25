@@ -5,6 +5,10 @@ from texture_transfer_3d import TextureDiffusion
 from configs import *
 
 import pythreejs as p3js
+import trimesh
+from trimesh.visual.texture import TextureVisuals
+
+from pygltflib import GLTF2, Scene
 
 from utils.image import makedir, emptydir, degrees_to_radians
 
@@ -351,16 +355,53 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
 @app.route("/save_3d_models", methods=['POST'])
 def save_3d_models():
     form_data = request.get_json()
-    # current_texture_parts = form_data["texture_parts"]
+    current_texture_parts = form_data["texture_parts"]
 
     model_data = form_data["models_3d"]
+    model_name = form_data["model_name"]
+    model_parent = form_data["model_parent"]
+    model_path = form_data["model_path"]
 
-    geometry = p3js.BufferGeometry(
-        attributes= {
-            # BUG: traitlets.traitlets.TraitError: The 'array' trait of a BufferAttribute instance expected a numpy array or a NDArrayBase, not the dict {'
-            'position': p3js.BufferAttribute(model_data['geometry']['vertices'],3),
-        }
-    )
+    server_model_path = os.path.join(STATIC_IMDIR,model_path)
+
+    # WIP: Finally made the basic algo to transfer the texture to the model and export the glb file. 
+    # Next step is to make it work for all the models in the scene
+
+    # Get the mesh
+    geometries = trimesh.load_mesh(server_model_path,"glb").geometry #Get geometries in the Trimesh scene
+    mesh = list(geometries.items())[0][1] #Get the first mesh in the scene
+    # material = mesh.visual.material #Get the material of the mesh
+
+    # Always create a new PBRMaterial to be able to add roughness and metallic factors
+    material = trimesh.visual.material.PBRMaterial()
+    # Modify finish values here 
+    # material.alpha = 0.5
+    material.metallicFactor=0.8
+    material.roughnessFactor = 0.2
+    
+    # Transfer image texture
+    image_texture = Image.open('/home/fun-linux/Documents/Rgee-Gallega/DL-Projects/PhD-Projects/exploring-textures-with-stablediffusion/client/public/gen_images/renderings/current/metal.png')
+    texture_uv = mesh.visual.uv
+    new_texture_map = TextureVisuals(uv=texture_uv, image=image_texture) #Applying the texture
+    
+    material.texture= new_texture_map #Set image texture map
+    mesh.visual.material = material #Set the material of the mesh
+
+    # material.metallicFactor=0.8 #Set the metallic factor to 0.8. Also affects geometries variable.
+    # material.al
+
+
+    mesh.export("new.glb") #Saving the file
+   
+
+    print()
+
+    # geometry = p3js.BufferGeometry(
+    #     attributes= {
+    #         # BUG: traitlets.traitlets.TraitError: The 'array' trait of a BufferAttribute instance expected a numpy array or a NDArrayBase, not the dict {'
+    #         'position': p3js.BufferAttribute(model_data['geometry']['vertices'],3),
+    #     }
+    # )
     # mesh = p3js.Mesh(geometry=models_3d['geometry'], material=models_3d['material'])
 
     # print(models_3d['geometry'])
