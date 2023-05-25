@@ -180,29 +180,90 @@
 
 		let current_texture_parts_ = Object.assign({}, get(curr_texture_parts));
 
+		/*********************************************************/
+		// SOLUTION2
+		let object1 = objects_3d_clone[0]["model"];
+		const geometry = object1.children[0].geometry;
+		const material = object1.children[0].material;
 
-		let updated_objects_3d = [];
-		for (let i =0; i < objects_3d_clone.length; i++) {
-			let obj = Object.assign({}, objects_3d_clone[i]);
-			let obj_model = obj["model"];
-			let objJson = obj_model.toJSON();
-			obj["model"] = objJson;
-			updated_objects_3d.push(obj);
-			updated_objects_3d=updated_objects_3d;
+		// Extract the texture map data
+		const texture = material.map;
+		// const textureUrl = texture ? texture.image.currentSrc : null;
+		const textureOffset = texture ? texture.offset.toArray() : null; //Texturemap location
+		const textureRepeat = texture ? texture.repeat.toArray() : null; //Texturemap scale
+		console.log(texture);
+
+		// Extract the vertex colors, if available
+		const vertexColors =geometry.attributes.color !== undefined ? geometry.attributes.color.array : null;
+		
+		const morphTargets = geometry.morphTargets;
+		const morphTargetNames = morphTargets ? morphTargets.map(target => target.name) : null;
+
+		// Extract the material parameters
+		const materialParams = material.toJSON();
+
+		let modelData = {
+			geometry: {
+				vertices: geometry.attributes.position.array,
+				indices: geometry.index.array,
+				normals: geometry.attributes.normal.array,
+				uv: geometry.attributes.uv.array,
+				vertexColors,
+				morphTargets,
+				morphTargetNames,
+			},
+			material: {
+				...materialParams,
+				textureOffset,
+				textureRepeat,
+			}
 		}
-		console.log(objects_3d_clone);
-		console.log(updated_objects_3d);
 
-		const dataJSON = JSON.stringify({
-			"models_3d": updated_objects_3d,
-			"texture_parts": current_texture_parts_
+		const response = await fetch('./save_3d_models', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				"texture_parts": current_texture_parts_,
+				"models_3d":modelData
+			})
 		});
 
-		const response = await fetch("/save_3d_models", {
-			method: "POST",
-			headers: {"Content-Type": "application/json"},
-			body: dataJSON,
-		});
+		// let modelData = btoa(JSON.stringify({geometry, material}));
+		// const response = await fetch("/save_3d_models", {
+		// 	method: "POST",
+		// 	headers: {"Content-Type": "application/json"},
+		// 	body: JSON.stringify({"models_3d": modelData,}),
+		// });
+
+
+		/*********************************************************/
+
+		/*********************************************************/
+		// SOLUTION1
+		// let updated_objects_3d = [];
+		// for (let i =0; i < objects_3d_clone.length; i++) {
+		// 	let obj = Object.assign({}, objects_3d_clone[i]);
+		// 	let obj_model = obj["model"];
+		// 	let objJson = obj_model.toJSON();
+		// 	obj["model"] = objJson;
+		// 	updated_objects_3d.push(obj);
+		// 	updated_objects_3d=updated_objects_3d;
+		// }
+		// console.log(objects_3d_clone);
+		// console.log(updated_objects_3d);
+		// const dataJSON = JSON.stringify({
+		// 	"models_3d": updated_objects_3d,
+		// 	"texture_parts": current_texture_parts_
+		// });
+		// const response = await fetch("/save_3d_models", {
+		// 	method: "POST",
+		// 	headers: {"Content-Type": "application/json"},
+		// 	body: dataJSON,
+		// });
+		/*********************************************************/
+
 
 		// const response = await fetch("/apply_to_current_rendering", {
         //     method: "POST",

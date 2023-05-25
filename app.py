@@ -1,9 +1,10 @@
 from flask import Flask, send_from_directory, request, jsonify, send_file
-import random, requests, json, copy, shutil, gltf, os
+import random, requests, json, copy, shutil, os, base64
 from PIL import Image
-
 from texture_transfer_3d import TextureDiffusion
 from configs import *
+
+import pythreejs as p3js
 
 from utils.image import makedir, emptydir, degrees_to_radians
 
@@ -350,21 +351,30 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
 @app.route("/save_3d_models", methods=['POST'])
 def save_3d_models():
     form_data = request.get_json()
-    current_texture_parts = form_data["texture_parts"]
-    models_3d = form_data["models_3d"]
-    for model in models_3d:
-        model_glb = model["model"]
-        model_path = model["glb_url"] 
-        model_name = model["name"]
-        model_parent = model["parent"]
+    # current_texture_parts = form_data["texture_parts"]
 
-        # WIP: This is to save the model as a .glb file
-        # Maybe use this package? https://pypi.org/project/gltflib/
-        scene = gltf.Scene()
-        mesh_obj = gltf.Mesh.from_data(model_glb) #Doesn't work
-        scene.add_object(mesh_obj)
-        gltf.save(scene,model_path,embed_data=True)
+    model_data = form_data["models_3d"]
 
+    geometry = p3js.BufferGeometry(
+        attributes= {
+            # BUG: traitlets.traitlets.TraitError: The 'array' trait of a BufferAttribute instance expected a numpy array or a NDArrayBase, not the dict {'
+            'position': p3js.BufferAttribute(model_data['geometry']['vertices'],3),
+        }
+    )
+    # mesh = p3js.Mesh(geometry=models_3d['geometry'], material=models_3d['material'])
+
+    # print(models_3d['geometry'])
+    # print(models_3d['material'])
+    print()
+
+    # for model in models_3d:
+    #     model_glb = model["model"]
+    #     model_path = model["glb_url"] 
+
+    # p3js.Mesh(geometry=, material=)
+
+
+    
     print('Done!')
     print()
         
@@ -496,7 +506,6 @@ if __name__ == "__main__":
     RENDER_DIR = os.path.join(DATA_DIR,"renderings")
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 
-    
     init_texture_parts_path = os.path.join(RENDER_DIR, "current","object_part_material.json")
     init_render_path = os.path.join(RENDER_DIR,"current","rendering.png")
 
