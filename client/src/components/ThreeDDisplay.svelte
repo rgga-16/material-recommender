@@ -452,7 +452,7 @@
 
         add_glb_objects();
 
-        const light = new THREE.AmbientLight(0xffffff, 0.4);
+        const light = new THREE.AmbientLight(0xffffff, 0.1);
         scene.add(light);
 
         const environment = new RoomEnvironment();

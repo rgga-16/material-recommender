@@ -16,6 +16,7 @@
 
 	import * as THREE from 'three';
 	import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
+	import { saveAs } from 'file-saver';
 
 
 	let current_rendering_path;
@@ -144,186 +145,74 @@
         activeDisplayTab=tab;
     }
 
-	function exportGLB(model, path) {
-		const exporter = new GLTFExporter();
-		const path_noext = path.substring(0, path.lastIndexOf('.')) || path;
-		console.log(path_noext);
+	async function render() {
+		const renderpath = get(curr_rendering_path);
+		const textureparts = get(curr_texture_parts);
+		const texturepartspath = get(curr_textureparts_path);
 
-		exporter.parse(model, function (glb) {
-			const blob = new Blob([glb], {type:'application/octet-stream'});
-			const url = URL.createObjectURL(blob);
-			const link = document.createElement('a');
-			link.style.display = 'none';
-			link.href = url;
-			link.download= path_noext+'.glb';
-			link.click();
-		})
+		const response = await fetch("/save_model", {
+			method: "POST",
+			headers: {"Content-Type": "application/json"},
+			body: JSON.stringify({
+				"renderpath": renderpath,
+				"textureparts": textureparts,
+				"texturepartspath": texturepartspath,
+			}),
+		});
 
-		// exporter.parse(model, function (result) {
-		// 	if (result instanceof ArrayBuffer) {
-		// 		saveArrayBuffer(result, path_noext+'.glb');
-		// 	} else {
-		// 		const output = JSON.stringify(result, null, 2);
-		// 		console.log(output);
-		// 		saveString(output, path_noext+'.gltf');
-		// 	}
-		// });
 
 	}
 
-	async function render() {
-		/**
-		 * WIP
-		 */
+
+
+	function save_3d_models() {
 		// Needs 3D objects 
 		let objects_3d_clone = Object.assign([], get(objects_3d));
 
 		let current_texture_parts_ = Object.assign({}, get(curr_texture_parts));
 
-		/*********************************************************/
-		// SOLUTION2
-		let object1 = objects_3d_clone[0]["model"];
-		console.log(objects_3d_clone[0]);
-		const modelData = object1.toJSON();
-		const model_name = objects_3d_clone[0]["name"];
-		const model_parent = objects_3d_clone[0]["parent"];
-		const model_path = objects_3d_clone[0]["glb_url"];
+		for (let i = 0; i < objects_3d_clone.length; i++) {
+			let exporter = new GLTFExporter();
+			let obj = objects_3d_clone[i];
+			let obj_model = obj["model"];
+			let obj_name = obj["name"];
+			let obj_parent = obj["parent"];
+			let url = obj["glb_url"]
 
-		console.log(modelData);
+			exporter.parse(obj_model, 
+			async function(result) {
+				if(result instanceof ArrayBuffer) {
+					console.log("is an array buffer");
+				} else {
+					console.log("is not an array buffer");
+					let output = JSON.stringify(result, null, 2);
 
-		const response = await fetch('./save_3d_models', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
+					const response = await fetch("/save_model", {
+						method: "POST",
+						headers: {"Content-Type": "application/json"},
+						body: JSON.stringify({
+							"model": output,
+							"texture_parts": current_texture_parts_,
+							"name": obj_name,
+							"parent": obj_parent,
+							"url": url
+						}),
+					});
+				}
 			},
-			body: JSON.stringify({
-				"texture_parts": current_texture_parts_,
-				"models_3d":modelData,
-				"model_name":model_name,
-				"model_parent":model_parent,
-				"model_path":model_path
-			})
-		});
-
-
-		// // Extract the texture map data
-		// const texture = material.map;
-		// // const textureUrl = texture ? texture.image.currentSrc : null;
-		// const textureOffset = texture ? texture.offset.toArray() : null; //Texturemap location
-		// const textureRepeat = texture ? texture.repeat.toArray() : null; //Texturemap scale
-		// console.log(texture);
-
-		// // Extract the vertex colors, if available
-		// const vertexColors =geometry.attributes.color !== undefined ? geometry.attributes.color.array : null;
-		
-		// const morphTargets = geometry.morphTargets;
-		// const morphTargetNames = morphTargets ? morphTargets.map(target => target.name) : null;
-
-		// // Extract the material parameters
-		// const materialParams = material.toJSON();
-
-		// let modelData = {
-		// 	geometry: {
-		// 		vertices: geometry.attributes.position.array,
-		// 		indices: geometry.index.array,
-		// 		normals: geometry.attributes.normal.array,
-		// 		uv: geometry.attributes.uv.array,
-		// 		vertexColors,
-		// 		morphTargets,
-		// 		morphTargetNames,
-		// 	},
-		// 	material: {
-		// 		...materialParams,
-		// 		textureOffset,
-		// 		textureRepeat,
-		// 	}
-		// }
-
-		// const response = await fetch('./save_3d_models', {
-		// 	method: 'POST',
-		// 	headers: {
-		// 		'Content-Type': 'application/json'
-		// 	},
-		// 	body: JSON.stringify({
-		// 		"texture_parts": current_texture_parts_,
-		// 		"models_3d":modelData
-		// 	})
-		// });
-
-		// let modelData = btoa(JSON.stringify({geometry, material}));
-		// const response = await fetch("/save_3d_models", {
-		// 	method: "POST",
-		// 	headers: {"Content-Type": "application/json"},
-		// 	body: JSON.stringify({"models_3d": modelData,}),
-		// });
-
-
-		/*********************************************************/
-
-		/*********************************************************/
-		// SOLUTION1
-		// let updated_objects_3d = [];
-		// for (let i =0; i < objects_3d_clone.length; i++) {
-		// 	let obj = Object.assign({}, objects_3d_clone[i]);
-		// 	let obj_model = obj["model"];
-		// 	let objJson = obj_model.toJSON();
-		// 	obj["model"] = objJson;
-		// 	updated_objects_3d.push(obj);
-		// 	updated_objects_3d=updated_objects_3d;
-		// }
-		// console.log(objects_3d_clone);
-		// console.log(updated_objects_3d);
-		// const dataJSON = JSON.stringify({
-		// 	"models_3d": updated_objects_3d,
-		// 	"texture_parts": current_texture_parts_
-		// });
-		// const response = await fetch("/save_3d_models", {
-		// 	method: "POST",
-		// 	headers: {"Content-Type": "application/json"},
-		// 	body: dataJSON,
-		// });
-		/*********************************************************/
-
-
-		// const response = await fetch("/apply_to_current_rendering", {
-        //     method: "POST",
-        //     headers: {"Content-Type": "application/json"},
-        //     body: JSON.stringify({
-        //         "rendering_path": selected_rendering_path,
-        //         "texture_parts":selected_rendering_info,
-        //         "textureparts_path": selected_info_path
-        //     }),
-        // });
-
-        // const json = await response.json();
-        // curr_rendering_path.set(json["rendering_path"]);
-        // curr_texture_parts.set(await json["texture_parts"]);
-		// curr_textureparts_path.set(await json["textureparts_path"]);
-
-        // callUpdateCurrentRendering();
-
-		/**
-		 * 1) for each obj in obj3d, save obj[model] as obj[glb_url]
-		 * 2) get current_texture_parts
-		 * 3) do render
-		*/
+			function (error) {
+				console.log("error");
+			});
+		}
 	}
-
 
 	onMount(async function () {
 		const response = await fetch("/get_static_dir");
 		const data = await response.text();	
-
 		const threediv = document.getElementById("display");
 		displayWidth.set(threediv.offsetWidth);
 		displayHeight.set(threediv.offsetHeight);
-
-
-		
 	});
-
-	
-
 
 </script>
 
@@ -367,7 +256,7 @@
 						<pre> Loading 3D viewer. Please wait. </pre>
 					{:then data}
 						<ThreeDDisplay current_texture_parts={get(curr_texture_parts)} bind:information_panel={information_panel} {displayHeight} {displayWidth} />
-						<button on:click|preventDefault={render}> Render </button>
+						<button on:click|preventDefault={save_3d_models}> Render </button>
 					{/await}
 				</div>
 			</div>
