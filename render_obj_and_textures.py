@@ -516,7 +516,7 @@ def main():
             
             # part_path = os.path.join(models_dir,model_key, f'{part}.obj')
             # obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
-            part_path = os.path.join(models_dir,model_key, f'{part}.glb')
+            part_path = os.path.join(models_dir,model_key, f'{part}.gltf')
             obj = renderer.load_object_gltf(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
             # renderer.recalculate_normals(obj)
             # renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish, part_material_transforms, part_material_color,part_material_finish_settings)

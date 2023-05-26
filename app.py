@@ -352,74 +352,41 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
     print("done applying to current rendering!")
     return curr_render_path, curr_textureparts_path
 
-@app.route("/save_3d_models", methods=['POST'])
-def save_3d_models():
+@app.route("/save_model", methods=['POST'])
+def update_3d_model():
     form_data = request.get_json()
-    current_texture_parts = form_data["texture_parts"]
-
-    model_data = form_data["models_3d"]
-    model_name = form_data["model_name"]
-    model_parent = form_data["model_parent"]
-    model_path = form_data["model_path"]
-
+    model = form_data["model"]
+    model_name = form_data["name"]
+    model_parent = form_data["parent"]
+    model_path = form_data["url"]
     server_model_path = os.path.join(STATIC_IMDIR,model_path)
+    filename, fileext = os.path.splitext(server_model_path)
+    server_model_path = filename + ".gltf"
 
-    # WIP: Finally made the basic algo to transfer the texture to the model and export the glb file. 
-    # Next step is to make it work for all the models in the scene
-
-    # Get the mesh
-    geometries = trimesh.load_mesh(server_model_path,"glb").geometry #Get geometries in the Trimesh scene
-    mesh = list(geometries.items())[0][1] #Get the first mesh in the scene
-    # material = mesh.visual.material #Get the material of the mesh
-
-    # Always create a new PBRMaterial to be able to add roughness and metallic factors
-    material = trimesh.visual.material.PBRMaterial()
-    # Modify finish values here 
-    # material.alpha = 0.5
-    material.metallicFactor=0.8
-    material.roughnessFactor = 0.2
+    with open(server_model_path,'w') as f:
+        f.write(model)
     
-    # Transfer image texture
-    image_texture = Image.open('/home/fun-linux/Documents/Rgee-Gallega/DL-Projects/PhD-Projects/exploring-textures-with-stablediffusion/client/public/gen_images/renderings/current/metal.png')
-    texture_uv = mesh.visual.uv
-    new_texture_map = TextureVisuals(uv=texture_uv, image=image_texture) #Applying the texture
-    
-    material.texture= new_texture_map #Set image texture map
-    mesh.visual.material = material #Set the material of the mesh
+    return "ok"
 
-    # material.metallicFactor=0.8 #Set the metallic factor to 0.8. Also affects geometries variable.
-    # material.al
+@app.route("/render", methods=['POST'])
+def render():
+    form_data = request.get_json()
+    renderpath = form_data['renderpath']
+    textureparts = form_data['textureparts']
+    texturepartspath = form_data['texturepartspath']
 
+    # Code to render initial rendering. Uncomment the below code if you want to re-render the initial rendering.
+    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {renderpath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts}'
+    os.system(command_str)
 
-    mesh.export("new.glb") #Saving the file
-   
+    # # Code to load current rendering into frontend (client folder).
+    # init_texture_parts = json.load(open(os.path.join(RENDER_DIR, "current","object_part_material.json")))
+    # current_texture_parts = copy.deepcopy(init_texture_parts)
 
     print()
 
-    # geometry = p3js.BufferGeometry(
-    #     attributes= {
-    #         # BUG: traitlets.traitlets.TraitError: The 'array' trait of a BufferAttribute instance expected a numpy array or a NDArrayBase, not the dict {'
-    #         'position': p3js.BufferAttribute(model_data['geometry']['vertices'],3),
-    #     }
-    # )
-    # mesh = p3js.Mesh(geometry=models_3d['geometry'], material=models_3d['material'])
 
-    # print(models_3d['geometry'])
-    # print(models_3d['material'])
-    print()
-
-    # for model in models_3d:
-    #     model_glb = model["model"]
-    #     model_path = model["glb_url"] 
-
-    # p3js.Mesh(geometry=, material=)
-
-
-    
-    print('Done!')
-    print()
-        
-    return 
+    return
 
 
 @app.route("/apply_to_current_rendering", methods= ['POST'])
