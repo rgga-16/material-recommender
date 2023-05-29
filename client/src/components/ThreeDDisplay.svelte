@@ -15,8 +15,8 @@
     import {isDraggingImage} from '../stores.js';
     import {generated_texture_name} from '../stores.js';
 
-    import {selected_part_name} from '../stores.js'; 
-    import {selected_obj_name} from '../stores.js';
+    // import {selected_part_name} from '../stores.js'; 
+    // import {selected_obj_name} from '../stores.js';
     import {selected_objs_and_parts} from '../stores.js';
     import {objects_3d} from '../stores.js';
 
@@ -51,6 +51,18 @@
      */
     let model3d_infos = []; //List of all 3D models laoded from current_texture_parts including their parent object
 
+    // curr_rendering_path.subscribe(value => {
+    //     console.log("curr_rendering_path changed from ThreeDDisplay.svelte");
+    //     // console.log(value);
+    // });
+
+    export function update_3d_scene() {
+        current_texture_parts=get(curr_texture_parts);
+        console.log(current_texture_parts);
+        get_models();
+        setup_scene();
+    }
+
     displayWidth.subscribe(value => {
         width = value - widthOffset;
     });
@@ -78,21 +90,27 @@
     //     model3d_infos = value;
     // });
 
+    curr_texture_parts.subscribe(value => {
+        console.log("curr_texture_parts changed");
+        // console.log(value);
+        // current_texture_parts = value;
+        // get_models();
+        // console.log(model3d_infos);
+    });
+
     let camera, scene, renderer, controls, raycaster;
     const pointer = new THREE.Vector2();
 
     const gltfLoader = new GLTFLoader();
 
-    const url = 'models/glb';
-    let objs_and_parts = {}; //Dictionary of objects and their parts
+    // const url = 'models/glb';
+    // let objs_and_parts = {}; //Dictionary of objects and their parts
 
     let dragging = false;
     isDraggingImage.subscribe(value => {
         dragging = value;
     });
     
-    
-
     let dragged_texture_url = null;
     transferred_texture_url.subscribe(value=> {
         console.log("transferred_texture_url changed");
@@ -105,9 +123,8 @@
         dragged_textureimg_url = value;
     });
 
-    
-
     function get_models() {
+        model3d_infos = [];
         for(let obj in current_texture_parts) {
             for(let part in current_texture_parts[obj]) {
                 model3d_infos.push( {
@@ -116,23 +133,6 @@
                     "glb_url": current_texture_parts[obj][part]["model"]
                 })
                 model3d_infos=model3d_infos
-            }
-        }
-    }
-
-    async function get_objects() {
-        const obj_resp= await fetch('./get_objects_and_parts');
-        const obj_json = await obj_resp.json(); 
-        objs_and_parts = obj_json;
-        for (const obj in objs_and_parts) {
-            let o = objs_and_parts[obj];
-            for (const part of o["parts"]["names"]) {
-                model3d_infos.push({
-                    "name":part,
-                    "parent":obj,
-                    "glb_url":url+'/'+obj+'/'+part+'.glb'
-                });
-                model3d_infos=model3d_infos;
             }
         }
     }
@@ -178,14 +178,14 @@
                         const index = model3d_infos.findIndex(item => item.model.children[0] == clicked_object);
                         SELECTED_INFOS[0] = model3d_infos[index];
                     }
-                    selected_part_name.set(SELECTED_INFOS[0].name);
-                    selected_obj_name.set(SELECTED_INFOS[0].parent);
+                    // selected_part_name.set(SELECTED_INFOS[0].name);
+                    // selected_obj_name.set(SELECTED_INFOS[0].parent);
                 } else {//If clicked object has already been selected, deselect it. 
                     SELECTEDS[0].material.emissive.setHex(0x000000);
                     SELECTEDS.splice(index, 1);
                     SELECTED_INFOS.splice(index, 1);
-                    selected_part_name.set(null);
-                    selected_obj_name.set(null);
+                    // selected_part_name.set(null);
+                    // selected_obj_name.set(null);
                 }
                 SELECTEDS=SELECTEDS;    
                 SELECTED_INFOS=SELECTED_INFOS;
@@ -418,12 +418,22 @@
         });
     }
 
+    function setup_scene() {
+        while (scene.children.length > 0) {
+            scene.remove(scene.children[0]);
+        }
+        add_glb_objects();
+        const light = new THREE.AmbientLight(0xffffff, 0.1);
+        scene.add(light);
+    }
+
     function init() {
+        const container = document.getElementById("3d-viewer");
+        container.innerHTML = "";
         renderer = new THREE.WebGLRenderer({ alpha: true });
         // renderer.setSize( window.innerWidth/2, window.innerHeight/2); 
         renderer.setSize( width, height); 
         
-        const container = document.getElementById("3d-viewer");
         container.appendChild( renderer.domElement );
 
         scene = new THREE.Scene();
@@ -450,10 +460,7 @@
         });
         renderer.domElement.addEventListener('click', onPointerClick);
 
-        add_glb_objects();
-
-        const light = new THREE.AmbientLight(0xffffff, 0.1);
-        scene.add(light);
+        setup_scene();
 
         const environment = new RoomEnvironment();
         const pmremGenerator = new THREE.PMREMGenerator( renderer );

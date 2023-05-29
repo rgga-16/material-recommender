@@ -8,6 +8,7 @@
 	import {curr_rendering_path} from './stores.js';
 	import {curr_texture_parts} from './stores.js';
 	import {curr_textureparts_path} from './stores.js';
+	import {display_panel_tab} from './stores.js';
 	import {displayWidth} from './stores.js';
 	import {displayHeight} from './stores.js';
 	import {objects_3d} from './stores.js';
@@ -28,9 +29,10 @@
 	let is_loading=false;
 
 	let information_panel; 
+	let threed_display;
 
 	let current_rendering; 
-	function updateCurrentRenderingDisplay() {
+	function updateCurrentRenderingDisplay2() {
 		current_rendering.getImage();
 	}
 
@@ -42,6 +44,7 @@
 		return data;
 	}
 	const saved_renderings_promise = getSavedRenderings();
+
 
 	
 
@@ -104,14 +107,13 @@
             }),
         });
 
-		// updateCurrentRendering();
-
         const data = await response.json();
 		curr_rendering_path.set(await data["rendering_path"]);
 		curr_texture_parts.set(await data["texture_parts"]);
 		curr_textureparts_path.set(await data["textureparts_path"]);
 
-		information_panel.updatePartInformation();
+		// information_panel.updatePartInformation();
+		threed_display.update_3d_scene();
 
 		is_loading=false;
 		
@@ -139,10 +141,14 @@
 	}
 	const promise = getInitialRendering();
 
-
 	let activeDisplayTab='3d_display';
+
+	display_panel_tab.subscribe(value => {
+		activeDisplayTab = value;
+	});
+
 	function switchDisplayTab(tab) {
-        activeDisplayTab=tab;
+        display_panel_tab.set(tab);
     }
 
 	async function render() {
@@ -150,7 +156,7 @@
 		const textureparts = get(curr_texture_parts);
 		const texturepartspath = get(curr_textureparts_path);
 
-		const response = await fetch("/save_model", {
+		const response = await fetch("/render", {
 			method: "POST",
 			headers: {"Content-Type": "application/json"},
 			body: JSON.stringify({
@@ -160,12 +166,10 @@
 			}),
 		});
 
-
+		return "ok";
 	}
 
-
-
-	function save_3d_models() {
+	async function save_3d_models() {
 		// Needs 3D objects 
 		let objects_3d_clone = Object.assign([], get(objects_3d));
 
@@ -204,6 +208,21 @@
 				console.log("error");
 			});
 		}
+		return "ok";
+	}
+
+	async function update_3dmodels_and_render() {
+		is_loading=true;
+		const save_3d_resp = await save_3d_models();
+		const render_resp = await render();
+		is_loading=false;
+		updateCurrentRendering();
+		switchDisplayTab('rendering_display');
+	}
+
+	async function save_scene() {
+		await update_3dmodels_and_render();
+		saveRendering();
 	}
 
 	onMount(async function () {
@@ -244,22 +263,38 @@
 						{:then data} 
 							<div class="image">
 								<DynamicImage bind:this={current_rendering} imagepath={current_rendering_path} alt="Current rendering" size={"80%"}/>
-								<button on:click|preventDefault={saveRendering}> Save rendering </button>
+								<button on:click|preventDefault={save_scene}>Save Scene</button>
+								<!-- <button on:click|preventDefault={saveRendering}> Save rendering </button> -->
 							</div>
 						{/await}
 					{/if}
 				</div>
+
+
 				<!-- Display 3D model/s -->
 				<div class="tab-content threed-display" class:active={activeDisplayTab==='3d_display'} id="threed_display_parent">
-
-					{#await promise}
-						<pre> Loading 3D viewer. Please wait. </pre>
-					{:then data}
-						<ThreeDDisplay current_texture_parts={get(curr_texture_parts)} bind:information_panel={information_panel} {displayHeight} {displayWidth} />
-						<button on:click|preventDefault={save_3d_models}> Render </button>
-					{/await}
+						{#await promise}
+							<pre> Loading 3D viewer. Please wait. </pre>
+						{:then data}
+							<ThreeDDisplay bind:this={threed_display} current_texture_parts={get(curr_texture_parts)} bind:information_panel={information_panel} {displayHeight} {displayWidth} />
+							
+							<div class="display-buttons">
+								<button on:click|preventDefault={update_3dmodels_and_render}> Render </button>
+								<button on:click|preventDefault={save_scene}>Save Scene</button>
+							</div>
+							
+							{#if is_loading}
+								<div class="images-placeholder" id="threed-loading">
+									<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+								</div>
+							{/if}
+						{/await}
+					
 				</div>
+
+				
 			</div>
+			
 
 			<!-- Display of saved renderings -->
 			<div class="saved-renderings">
@@ -267,7 +302,7 @@
 					<pre> Loading saved renderings. Please wait. </pre>
 				{:then data} 
 					<form on:submit|preventDefault={loadRendering(selected_saved_rendering_idx)}>
-						<h3>Saved Renderings</h3>
+						<h3>Saved Scenes</h3>
 						<div class="saved-renderings-list"> 
 							<button disabled={!(selected_saved_rendering_idx!=undefined)}> Load rendering </button>
 							{#each saved_renderings as saved_renderings,i}
@@ -341,6 +376,31 @@
 		padding:0px 0px 0px 0px;
 		margin-bottom: 5px;
 		height: 65%;
+	}
+
+	.threed-display {
+		position: relative;
+		z-index: 1;
+	}
+
+	.display-buttons {
+		display:flex;
+		flex-direction: row;
+		justify-content: center;
+		align-items: center;
+	}
+
+	#threed-loading {
+		position: absolute; /* set position to absolute */
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 2; /* set z-index to a lower value than the container */
+		background-color: rgba(255, 255, 255, 0.5); /* add a semi-transparent background */
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 
 	.rendering-display {
@@ -461,6 +521,7 @@
         height: 100%;
         width:100%;
         padding: 5px;
+		gap: 5px;
 	}
   </style>
   

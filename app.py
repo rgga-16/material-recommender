@@ -339,10 +339,11 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
             texture_parts[obj][part]["mat_image_texture"] = curr_texture_path
 
             # This portion is to copy the model to the current rendering directory
-            model_path = texture_parts[obj][part]["model"] #Note: the model is a .glb file which includes the texture map from ["mat_image_texture"]
-            model_filename = os.path.basename(model_path)
-            texture_parts[obj][part]["model"] = os.path.join(curr_render_loaddir,model_filename)
-            shutil.copy(model_path, os.path.join(curr_render_savedir,model_filename))   
+            if("model" in list(texture_parts[obj][part].keys())):
+                model_path = texture_parts[obj][part]["model"] #Note: the model is a .gltf file which includes the texture map from ["mat_image_texture"]
+                model_filename = os.path.basename(model_path)
+                texture_parts[obj][part]["model"] = os.path.join(curr_render_loaddir,model_filename)
+                shutil.copy(model_path, os.path.join(curr_render_savedir,model_filename))   
 
     current_texture_parts = copy.deepcopy(texture_parts)
     with open(curr_textureparts_path,"w") as f:
@@ -376,17 +377,14 @@ def render():
     texturepartspath = form_data['texturepartspath']
 
     # Code to render initial rendering. Uncomment the below code if you want to re-render the initial rendering.
-    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {renderpath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts}'
+    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {renderpath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {texturepartspath}'
     os.system(command_str)
 
     # # Code to load current rendering into frontend (client folder).
     # init_texture_parts = json.load(open(os.path.join(RENDER_DIR, "current","object_part_material.json")))
     # current_texture_parts = copy.deepcopy(init_texture_parts)
 
-    print()
-
-
-    return
+    return "ok"
 
 
 @app.route("/apply_to_current_rendering", methods= ['POST'])
@@ -418,8 +416,15 @@ def add_to_saved_renderings(renderpath, texture_parts_path):
             texture_filename = os.path.basename(texture_path)
             save_texture_path = os.path.join(save_render_dir,texture_filename)
             Image.open(texture_path).save(save_texture_path)
-            # texture_parts[obj][part]["mat_image_texture"] = save_texture_path.replace(STATIC_IMDIR,"")
             texture_parts[obj][part]["mat_image_texture"] = save_texture_path
+
+            # This portion is to copy the model to the current rendering directory
+            if("model" in list(texture_parts[obj][part].keys())):
+                model_path = texture_parts[obj][part]["model"] #Note: the model is a .glb file which includes the texture map from ["mat_image_texture"]
+                model_filename = os.path.basename(model_path)
+                texture_parts[obj][part]["model"] = os.path.join(save_render_dir,model_filename)
+                full_model_path = os.path.join(STATIC_IMDIR,model_path)
+                shutil.copy(full_model_path, os.path.join(save_render_dir,model_filename))   
     
     with open(save_textureparts_path,"w") as f:
         json.dump(texture_parts,f)

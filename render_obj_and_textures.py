@@ -195,7 +195,7 @@ def transform_material(mapping_node:bpy.types.Node, transforms:dict):
 class Renderer():
     def __init__(self,cam_info, light_info=None, resolution=(1024,1024)):
         self.resolution = resolution
-        self.set_gpu("CYCLES")
+        self.set_gpu("BLENDER_EEVEE")
         self.setup_render()
         self.setup_background()
         self.setup_camera(cam_info['loc'],cam_info['rot'],cam_info['scale'])
@@ -516,7 +516,8 @@ def main():
             
             # part_path = os.path.join(models_dir,model_key, f'{part}.obj')
             # obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
-            part_path = os.path.join(models_dir,model_key, f'{part}.gltf')
+            part_path = os.path.join(CWD,'client/public/',texture_object_parts[model_key][part]["model"])
+            # part_path = os.path.join(models_dir,model_key, f'{part}.gltf')
             obj = renderer.load_object_gltf(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
             # renderer.recalculate_normals(obj)
             # renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish, part_material_transforms, part_material_color,part_material_finish_settings)

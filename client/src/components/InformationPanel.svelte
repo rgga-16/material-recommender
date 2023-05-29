@@ -17,15 +17,15 @@
     
     let current_texture_parts = get(curr_texture_parts);
 
-    let selected_part=null; 
-    selected_part_name.subscribe(value => {
-		selected_part = value;
-	});
+    // let selected_part=null; 
+    // selected_part_name.subscribe(value => {
+	// 	selected_part = value;
+	// });
 
-    let selected_object=null;
-    selected_obj_name.subscribe(value => {
-        selected_object = value;
-    });
+    // let selected_object=null;
+    // selected_obj_name.subscribe(value => {
+    //     selected_object = value;
+    // });
 
     let sel_objs_and_parts = null; 
     selected_objs_and_parts.subscribe(value => {
