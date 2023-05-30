@@ -51,16 +51,16 @@
      */
     let model3d_infos = []; //List of all 3D models laoded from current_texture_parts including their parent object
 
-    // curr_rendering_path.subscribe(value => {
-    //     console.log("curr_rendering_path changed from ThreeDDisplay.svelte");
-    //     // console.log(value);
-    // });
-
     export function update_3d_scene() {
+        selected_objs_and_parts.set([]);
+        SELECTED_INFOS=[];
+        model3d_infos=[];
         current_texture_parts=get(curr_texture_parts);
         console.log(current_texture_parts);
         get_models();
         setup_scene();
+        information_panel.displayTexturePart();
+        
     }
 
     displayWidth.subscribe(value => {
@@ -72,39 +72,25 @@
     });
 
     selected_objs_and_parts.subscribe(value => {
-        console.log("selected_objs_and_parts changed");
-        console.log(value);
-        console.log("objs and parts");
-        // console.log(model3d_infos);
-        objects_3d.set(model3d_infos);
         console.log(get(objects_3d));
+        // console.log("selected_objs_and_parts changed");
+        console.log(value);
+        // console.log("objs and parts");
+
+        // objects_3d.set(model3d_infos);
+        // console.log(get(objects_3d));
         /**
          * Basically, if  the selected_objs_and_parts (selected 3D models) have been modified, it will also be reflected in
          * objs_and_parts (all 3D models). So, there's no need to manually update (I think?)
         */
     });
 
-    // objects_3d.subscribe(value => {
-    //     console.log("objects_3d changed");
-    //     console.log(value);
-    //     model3d_infos = value;
-    // });
-
-    curr_texture_parts.subscribe(value => {
-        console.log("curr_texture_parts changed");
-        // console.log(value);
-        // current_texture_parts = value;
-        // get_models();
-        // console.log(model3d_infos);
-    });
 
     let camera, scene, renderer, controls, raycaster;
     const pointer = new THREE.Vector2();
 
     const gltfLoader = new GLTFLoader();
-
-    // const url = 'models/glb';
-    // let objs_and_parts = {}; //Dictionary of objects and their parts
+    // gltfLoader.setMeshoptDecoder(THREE.MeshoptDecoder); // Set meshoptDecoder to THREE.MeshoptDecoder
 
     let dragging = false;
     isDraggingImage.subscribe(value => {
@@ -135,6 +121,7 @@
                 model3d_infos=model3d_infos
             }
         }
+        objects_3d.set(model3d_infos);
     }
 
     let HIGHLIGHTED; 
@@ -153,44 +140,67 @@
         raycaster.setFromCamera(pointer, camera);
         let objects = model3d_infos.map(item => item.model);
         const intersects = raycaster.intersectObjects(objects, true); 
+
         if (intersects.length > 0) {
             if(!(intersects.some(element => element ===undefined))) {
                 const clicked_object = intersects[0].object; //This is the object clicked on. 
                 const index = SELECTEDS.indexOf(clicked_object);
                 if (index === -1) {//If clicked object hasn't been selected yet, select it.
-                    //If the clicked object hasn't been selected but there's another selected object.
-                    if (SELECTEDS.length > 0 && SELECTEDS[0]==clicked_object) {
-                        SELECTEDS[0].material.emissive.setHex(0x000000);
-                        SELECTEDS.splice(0, 1);
-                        SELECTED_INFOS.splice(0, 1);
-                    }
 
-                    let selected_idx = 0; 
-                    // let sel_objs_and_parts = get(selected_objs_and_parts)
+                    // //If the clicked object hasn't been selected but there's another selected object.
+                    // if (SELECTEDS.length > 0 && SELECTEDS[0]==clicked_object) {
+                    //     SELECTEDS[0].material.emissive.setHex(0x000000);
+                    //     SELECTEDS.splice(0, 1);
+                    //     SELECTED_INFOS.splice(0, 1);
+                    //     console.log("deselected");
+                    // }
+
                     if (shiftPressed) { //If shift is held, want to select multiple objects
                         SELECTEDS.push(clicked_object);
-                        const index = model3d_infos.findIndex(item => item.model.children[0] == clicked_object);
+                        const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
                         SELECTED_INFOS.push(model3d_infos[index]);
+                        console.log("Has not been selected yet. Appending it to selected objects.")
+                        SELECTEDS=SELECTEDS;    
+                        SELECTED_INFOS=SELECTED_INFOS;
+                        selected_objs_and_parts.set(SELECTED_INFOS);
+                        console.log(get(selected_objs_and_parts));
+                        information_panel.displayTexturePart();
                     } else { //If shift is not held, want to select only one object
                         SELECTEDS = [];
                         SELECTED_INFOS = [];
                         SELECTEDS[0] = clicked_object;
-                        const index = model3d_infos.findIndex(item => item.model.children[0] == clicked_object);
+                        console.log(clicked_object);
+                        console.log(model3d_infos);
+                        // const index = model3d_infos.findIndex(item => item.model.children[0].name === clicked_object.model_name);
+                        const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
+                        
+                        console.log(get(curr_texture_parts));
                         SELECTED_INFOS[0] = model3d_infos[index];
+                        console.log("Has not been selected yet. Selecting it.")
+
+                        SELECTEDS=SELECTEDS;    
+                        SELECTED_INFOS=SELECTED_INFOS;
+                        selected_objs_and_parts.set(SELECTED_INFOS);
+                        console.log(get(selected_objs_and_parts));
+                        information_panel.displayTexturePart();
                     }
-                    // selected_part_name.set(SELECTED_INFOS[0].name);
-                    // selected_obj_name.set(SELECTED_INFOS[0].parent);
+                    
+
                 } else {//If clicked object has already been selected, deselect it. 
                     SELECTEDS[0].material.emissive.setHex(0x000000);
                     SELECTEDS.splice(index, 1);
                     SELECTED_INFOS.splice(index, 1);
-                    // selected_part_name.set(null);
-                    // selected_obj_name.set(null);
+                    console.log("Has been selected. Deselected.")
+
+                    SELECTEDS=SELECTEDS;    
+                    SELECTED_INFOS=SELECTED_INFOS;
+                    selected_objs_and_parts.set(SELECTED_INFOS);
+                    information_panel.displayTexturePart();
                 }
                 SELECTEDS=SELECTEDS;    
                 SELECTED_INFOS=SELECTED_INFOS;
                 selected_objs_and_parts.set(SELECTED_INFOS);
-                // console.log(get(selected_objs_and_parts));
+                information_panel.displayTexturePart();
             }
         } else {// If the user clicks on an empty space, then we want to deselect the selected object.
             if (SELECTEDS.length > 0) {
@@ -198,12 +208,11 @@
                 SELECTEDS = [];
                 SELECTED_INFOS = [];
                 selected_objs_and_parts.set(SELECTED_INFOS);
-                selected_part_name.set(null);
-                selected_obj_name.set(null);
             }
+            console.log("Nothing's been selected.")
         }
-        console.log(get(selected_objs_and_parts));
-        information_panel.displayTexturePart();
+        // console.log(get(selected_objs_and_parts));
+        // information_panel.displayTexturePart();
     }
 
     function getPointedObject() {
@@ -311,7 +320,8 @@
                     if (dragged_texture_url) {
                         if(SELECTEDS.length > 0) {
                             for (const selected of SELECTEDS) {
-                                const index = SELECTED_INFOS.findIndex(item => item.model.children[0] == selected);
+                                const index = SELECTED_INFOS.findIndex(item => item.name === selected.model_name && item.parent === selected.model_parent);
+                                // const index = SELECTED_INFOS.findIndex(item => item.model.children[0] == selected);
                                 let SELECTED_INFO = SELECTED_INFOS[index];
                                 let selected_object_name = SELECTED_INFO.name;
                                 let selected_parent_object = SELECTED_INFO.parent;
@@ -357,11 +367,26 @@
             gltfLoader.load(glbUrl, (gltf) => {
                 // console.log('GLTF loaded: ' + gltf);
                 let model = gltf.scene
+                
+                //Workaround. If the model.children[0] is Object3D, the Mesh is found in model.children[0].children[0]. 
+                // Replace model.children[0] with model.children[0].children[0]
+                if(model.children[0] instanceof THREE.Object3D && !(model.children[0] instanceof THREE.Mesh)) {
+                    console.log("model.children[0] is Object3D. Changing it to a Mesh.");
+                    const real_mesh = model.children[0].children[0];
+                    model.children[0] = real_mesh;
+                }
+
+                model.traverse(function(child) {
+                    child.model_name = model3d_infos[i]["name"];
+                    child.model_parent = model3d_infos[i]["parent"];    
+                });
+
                 scene.add(model);
                 model3d_infos[i]["model"] = model;
                 model3d_infos=model3d_infos;
             })
         }
+        console.log(model3d_infos);
     }
 
     function changeTexture(object, url) {
