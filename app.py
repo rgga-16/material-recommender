@@ -4,11 +4,6 @@ from PIL import Image
 from texture_transfer_3d import TextureDiffusion
 from configs import *
 
-import pythreejs as p3js
-import trimesh
-from trimesh.visual.texture import TextureVisuals
-
-from pygltflib import GLTF2, Scene
 
 from utils.image import makedir, emptydir, degrees_to_radians
 
@@ -383,7 +378,6 @@ def render():
     # # Code to load current rendering into frontend (client folder).
     # init_texture_parts = json.load(open(os.path.join(RENDER_DIR, "current","object_part_material.json")))
     # current_texture_parts = copy.deepcopy(init_texture_parts)
-
     return "ok"
 
 

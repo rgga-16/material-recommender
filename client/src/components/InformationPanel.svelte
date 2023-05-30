@@ -3,8 +3,7 @@
     // import {createComponent} from 'svelte';
     import {get} from 'svelte/store';
     import {curr_texture_parts} from '../stores.js';
-    import {selected_part_name} from '../stores.js';
-    import {selected_obj_name} from '../stores.js';
+
     import {selected_objs_and_parts} from '../stores.js';
     import TexturePart from './TexturePart.svelte';
     import PartPairs from './PartPairs.svelte';
@@ -57,6 +56,7 @@
         let textureparts=[];
         const textureparts_div = document.getElementById("texture-part-details");
         textureparts_div.innerHTML='';
+        console.log(sel_objs_and_parts);
 
         for(let i=0; i < sel_objs_and_parts.length; i++) {
             let selected_part_parent = sel_objs_and_parts[i].parent; 
@@ -184,9 +184,9 @@
 		current_texture_parts = value;
 	});
     onMount(async () => {
-        updateAndDisplayPartPairs();
-        displayTextureParts();
-        console.log(current_texture_parts);
+        // updateAndDisplayPartPairs();
+        // displayTextureParts();
+        // console.log(current_texture_parts);
     });
 
 </script>
@@ -283,6 +283,8 @@
         width:100%;
         padding: 5px;
         overflow: auto; 
+        justify-content:center;
+        align-items:center;
     }
 
     .images-placeholder {

@@ -335,7 +335,7 @@
       display: flex;
       flex-direction: column;
       padding: 5px; 
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       gap: 5px;
       width: 100%;
@@ -356,19 +356,11 @@
     #texture-details {
       display: flex;
       flex-direction:column;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       font-size: 0.8rem;
     }
-/* 
-    #color-details {
-      display: flex;
-      flex-direction:column;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 0.5rem;
-      font-size: 0.8rem;
-    } */
+
 
     .texture-name {
       font-weight: bold;

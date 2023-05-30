@@ -32,11 +32,6 @@
 	let threed_display;
 
 	let current_rendering; 
-	function updateCurrentRenderingDisplay2() {
-		current_rendering.getImage();
-	}
-
-
 	async function getSavedRenderings() {
 		let response = await fetch('/get_saved_renderings');
 		let data = await response.json();
@@ -90,7 +85,11 @@
                 body: JSON.stringify(curr_rendering_dict),
         });
         const data = await response.json();
+		saved_renderings = [];
+		selected_saved_rendering_idx=undefined;
+		is_loading=true;
         saved_renderings = await data["saved_renderings"]
+		is_loading=false;
 	}
 
 	async function loadRendering(idx) {
@@ -177,6 +176,7 @@
 
 		for (let i = 0; i < objects_3d_clone.length; i++) {
 			let exporter = new GLTFExporter();
+			exporter.includeStandardMaterials = true;
 			let obj = objects_3d_clone[i];
 			let obj_model = obj["model"];
 			let obj_name = obj["name"];
@@ -304,13 +304,24 @@
 					<form on:submit|preventDefault={loadRendering(selected_saved_rendering_idx)}>
 						<h3>Saved Scenes</h3>
 						<div class="saved-renderings-list"> 
-							<button disabled={!(selected_saved_rendering_idx!=undefined)}> Load rendering </button>
-							{#each saved_renderings as saved_renderings,i}
-								<label class = "saved-rendering" class:selected={selected_saved_rendering_idx===i}>
-									<input type=radio bind:group={selected_saved_rendering_idx} name="option-{i}" value={i} />
-									<img src={saved_renderings["rendering_path"]} alt="saved rendering {i}" />
-								</label>
-							{/each}
+							<button disabled={!(selected_saved_rendering_idx!=undefined)}> Load scene </button>
+							{#if saved_renderings.length===0}
+								{#if is_loading}
+									<div class="images-placeholder">
+										<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+									</div>
+								{:else}
+									<p> No saved renderings. </p>
+								{/if}
+							{:else}
+								{#each saved_renderings as saved_renderings,i}
+									<label class = "saved-rendering" class:selected={selected_saved_rendering_idx===i}>
+										<input type=radio bind:group={selected_saved_rendering_idx} name="option-{i}" value={i} />
+										<img src={saved_renderings["rendering_path"]} alt="saved rendering {i}" />
+									</label>
+								{/each}
+							{/if}
+							
 						</div>
 					</form>
 				{/await}
