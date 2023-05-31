@@ -33,6 +33,19 @@ def query():
     response = gpt3.query(form_data["prompt"],form_data["role"])
     return jsonify({"response":response,"role":"assistant"})
 
+@app.route("/feedback_materials", methods=['POST'])
+def feedback_materials():
+    form_data = request.get_json()
+    material_name = form_data["material_name"]
+    object_name = form_data["object_name"]
+    part_name = form_data["part_name"]
+    attached_parts = form_data["attached_parts"]
+
+    # attached_parts should be [(object,part,material),...]
+    response = gpt3.provide_material_feedback(material_name, object_name, part_name, attached_parts=attached_parts)
+
+    return jsonify({"response":response,"role":"assistant"})
+
 @app.route("/suggest_materials", methods=['POST'])
 def suggest_materials():
     form_data = request.get_json()
