@@ -67,7 +67,7 @@
         generated_textures = results_json["results"];
         is_loading=false;
 
-        generated_texture_name.set(texture_str);
+        generated_texture_name.set(input_material);
         
     }
 

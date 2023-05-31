@@ -11,8 +11,13 @@
 
     import {createEventDispatcher} from 'svelte';
 
+    import {curr_texture_parts} from '../stores.js';
 
-    const dispatch = createEventDispatcher();
+
+    let current_texture_parts;
+    curr_texture_parts.subscribe(value => {
+      current_texture_parts = value;
+    });
     
     export let part_name;
     export let part_parent_name;
@@ -21,6 +26,15 @@
     export let material_finish; 
     export let material_url;
     export let material_color=null; //Color code of the material
+
+
+    /**
+     * parents = [
+     *  (object, part)
+     * 
+     * ]
+     */
+    export let parents = []; //List of parts that this part is attached to.
     let material_color_palette = null;
 
     if (material_color) {
@@ -74,6 +88,8 @@
     export function updateImage() {
       image.getImage();
     }
+    console.log(parents);
+
 
     onMount(async () => {
       material = sel_objs_and_parts[index].model.children[0].material;
@@ -170,6 +186,33 @@
       // generate_tab_page.set(0);
     }
 
+    let feedback =undefined;
+    async function requestMaterialFeedback() {
+      
+      let attached_parts = [];
+      for (const p in parents) {
+        const obj = p[0];
+        const part = p[1];
+        const attached_part_material = current_texture_parts[obj][part]['mat_name'];
+        attached_parts.push((obj, part, attached_part_material));
+        attached_parts=attached_parts;
+      }
+
+      const response = await fetch("/feedback_materials", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({
+                "material_name": material_name,
+                "object_name":part_parent_name,
+                "part_name":part_name,
+                "attached_parts":attached_parts,
+              }),
+      });
+      const data = await response.json();
+      feedback = await data['response'];
+      const role = await data['role'];
+    }
+
     let activeTab='adjust-finish';
     function switchTab(tab) {
       activeTab = tab;
@@ -182,7 +225,11 @@
   <DynamicImage bind:this={image} imagepath={material_url} alt={material_name} size={"200px"}/>
   <div id="texture-details">
         <div class="texture-name">Material: {material_name}</div>
-        <button on:click|preventDefault={suggestSimilarMaterials}>Suggest similar materials </button>
+        <div class="control">
+          <button on:click|preventDefault={suggestSimilarMaterials}>Suggest similar materials </button>
+          <button on:click|preventDefault={requestMaterialFeedback}> Request feedback </button>
+        </div>
+        
         <!-- <div>Material finish: {material_finish}</div> -->
   </div>
 
@@ -190,6 +237,10 @@
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-finish'} on:click={()=>switchTab('adjust-finish')} id="adjust-finish-btn">Material Finish</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-texture-map'} on:click={()=>switchTab('adjust-texture-map')} id="adjust-texture-btn">Texture Map</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-color'} on:click={()=>switchTab('adjust-color')} id="adjust-color-btn">Color Finish</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='attached-parts'} on:click={()=>switchTab('attached-parts')} id="attached-parts-btn">Attached Parts</button>
+    {#if feedback}
+      <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='view-feedback'} on:click={()=>switchTab('view-feedback')} id="view-feedback-btn">View Feedback</button>
+    {/if}
   </div>
 
   <div class="card container tab-content" class:active={activeTab==='adjust-finish'}>
@@ -219,7 +270,7 @@
   <div class="card container tab-content " class:active={activeTab==='adjust-texture-map'}>
     <h5><b>Adjust Texture Map</b></h5>
     <div class="control">
-      <div class="card container">
+      <div class="card container" style="height: auto;">
         <h6> <b> Translation </b></h6>
         <div class="control">
           <span>X:</span>
@@ -231,7 +282,7 @@
         </div>
       </div>
 
-      <div class="card container">
+      <div class="card container" style="height: auto;">
         <h6> <b> Rotation </b></h6>
         <div class="control">
           <span>Z: </span>
@@ -239,7 +290,7 @@
         </div>
       </div>
 
-      <div class="card container">
+      <div class="card container" style="height: auto;">
         <h6> <b> Scale </b></h6>
         <div class="control">
           <span>X & Y: </span>
@@ -331,6 +382,34 @@
       >
     {/if}
   </div>
+
+  <div class="card container tab-content" class:active={activeTab==='attached-parts'}>
+    {#if parents.length > 0}
+      <h5> <b> Attached Parts </b></h5>
+      {#each parents as p}
+        <div class="control container">
+          <div class="card">
+            <h6> <b> Object: {p[0]}  </b></h6>
+            <h6> <b> Part: {p[1]} </b></h6>
+          </div>
+          <DynamicImage imagepath={current_texture_parts[p[0]][p[1]]["mat_image_texture"]} alt={current_texture_parts[p[0]][p[1]]["mat_name"]} size={"100px"}/>
+        </div>
+      {/each}
+    {:else}
+      <p> This component is not attached to anything. </p>
+    {/if}
+
+  </div>
+
+  {#if feedback}
+
+    <div class="card container tab-content" class:active={activeTab==='view-feedback'}>
+      <h5> <b> Feedback </b></h5>
+        <p>{feedback}</p>
+    </div>
+  {/if}
+
+
 </div>
 
 <style>
@@ -344,13 +423,13 @@
     .card {
       display: flex;
       flex-direction: column;
-      padding: 5px; 
       justify-content: center;
       align-items: center;
       align-content:center;
+      padding: 5px; 
       gap: 5px;
       width: 100%;
-      height: 100%;
+      height: auto;
     }
 
     .control {
@@ -359,6 +438,7 @@
       align-items: center;
       justify-content: center;
       align-content:center;
+      padding: 5px;
       gap: 5px;
       width: 100%;
       height: 100%;

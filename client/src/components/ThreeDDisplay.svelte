@@ -326,7 +326,7 @@
                                 let selected_object_name = SELECTED_INFO.name;
                                 let selected_parent_object = SELECTED_INFO.parent;
 
-                                selected.prev_material = selected.material.clone();
+                                // selected.prev_material = selected.material.clone();
                                 
                                 let cloned_texture_parts = get(curr_texture_parts);
 
@@ -395,7 +395,7 @@
             if (node.isMesh) {
                 // console.log("material changed");
                 console.log(node);
-                const newMaterial = new THREE.MeshStandardMaterial({});
+                const newMaterial = new THREE.MeshStandardMaterial({color:null});
                 node.material=newMaterial;
                 const material = node.material;
                 if (Array.isArray(material)) {
@@ -411,7 +411,7 @@
                         texturemap.repeat.set(length, width);
                         mat.map = texturemap;
                         mat.needsUpdate = true;
-                        mat.color=null;
+                        // mat.color=null;
                         // mat.color.setRGB(0,0,0);
                         // mat.colorIntensity=0;
                         mat.emissive.setRGB(0,0,0);

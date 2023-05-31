@@ -56,7 +56,8 @@
         let textureparts=[];
         const textureparts_div = document.getElementById("texture-part-details");
         textureparts_div.innerHTML='';
-        console.log(sel_objs_and_parts);
+        // console.log(sel_objs_and_parts);
+        console.log(current_texture_parts);
 
         for(let i=0; i < sel_objs_and_parts.length; i++) {
             let selected_part_parent = sel_objs_and_parts[i].parent; 
@@ -66,6 +67,7 @@
             let mat_name = current_texture_parts[selected_part_parent][selected_part]["mat_name"];
             let material_url = current_texture_parts[selected_part_parent][selected_part]["mat_image_texture"];
             let material_finish = current_texture_parts[selected_part_parent][selected_part]["mat_finish"];
+            let parents = current_texture_parts[selected_part_parent][selected_part]["parents"];
 
             let material_color = null;
             if(current_texture_parts.hasOwnProperty('mat_color')) {
@@ -81,6 +83,7 @@
                     material_url: material_url,
                     material_finish: material_finish,
                     material_color: material_color,
+                    parents:parents
                 }
             });
             textureparts.push(texturepart);
@@ -198,6 +201,18 @@
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='details'} on:click={()=>switchTab('details')}  id="details-btn">Details</button>
     </div>
 
+    <div class="tab-content" class:active={activeTab==='details'} id="details">
+        <h3> Object Details </h3>
+        {#if sel_objs_and_parts.length > 0}
+            <div id="texture-part-details">  </div>
+        {:else }
+            <div class="images-placeholder">
+                No object selected. Please select an object in the 3D View.
+            </div>
+            <div id="texture-part-details"> </div>
+        {/if}
+    </div>
+
     <!-- <div class='tab-content'  class:active={activeTab==='information'} id="information">
         <h3> Rendering Information </h3>
         <select bind:value={selected_obj} on:change={() => displayTextureParts()}>
@@ -236,20 +251,14 @@
         {/if}
     </div> -->
 
-    <div class="tab-content" class:active={activeTab==='details'} id="details">
-        <h3> Object Details </h3>
-        {#if sel_objs_and_parts.length > 0}
-            <div id="texture-part-details">  </div>
-        {:else }
-            <div class="images-placeholder">
-                No object selected. Please select an object in the 3D View.
-            </div>
-            <div id="texture-part-details"> </div>
-        {/if}
-    </div>
+    
 </div>
 
 <style>
+
+    #texture-part-details {
+        height:auto;
+    }
 
     .information-panel {
         display: flex;
@@ -283,7 +292,7 @@
         width:100%;
         padding: 5px;
         overflow: auto; 
-        justify-content:center;
+        justify-content:flex-start;
         align-items:center;
     }
 
