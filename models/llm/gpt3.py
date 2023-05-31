@@ -27,8 +27,6 @@ materials_suggestion_prompt = f'''
     Return {n_material_suggestion_prompts} prompts.
 '''
 
-
-
 texture_map_keywords_prompt_with_3d_model_context= '''
 I am using DALL-E to create an image texture map of bamboo by typing in a textual description. I intend to use this texture map for a 3D model of a basket.
 
@@ -176,11 +174,42 @@ def brainstorm_material_queries():
     return prompts
 
 
+materials_feedbacks = []
+'''
+attached_parts: list of tuples (object_name, part_name, material_name)
+'''
+def provide_material_feedback(material_name, object_name, part_name, attached_parts=None, design_context=None):
+    material_feedback_prompt_head = f'''
+    I have a {object_name} {part_name} made out of {material_name}. 
+    '''
 
+    materials_context = f'''Here is additional information for context: \n'''
+    if attached_parts is not None:
+        for attached_part in attached_parts:
+            materials_context += f'''It is attached to a {attached_part[0]} {attached_part[1]} made out of {attached_part[2]}. '''
 
+    material_feedback_prompt_tail = f'''\n
+        Please provide feedback on the material used based on the following aspects: durability, maintenance, sustainability, assembly, and cost. 
+        For each aspect, if you gave critical feedback on that aspect, please provide suggestions 
+        (e.g. alternative materials, adding material finishes, assembly attachments) to improve the aspect. 
+        Make sure that you also consider the object the material is used on.
+    '''
 
+    material_feedback_prompt = material_feedback_prompt_head + materials_context + material_feedback_prompt_tail
 
+    global init_history
+    init_history_clone = copy.deepcopy(init_history)
+    init_history_clone.append({"role":"user", "content":material_feedback_prompt})
 
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=init_history_clone,
+        temperature=0.1
+    )
+
+    material_feedback = response["choices"][0]["message"]["content"]
+
+    return material_feedback
 
 
 def feedback_on_assembly(object, child_part, child_material, parent_part, parent_material,n=3):

@@ -110,7 +110,6 @@
     }
 
     function updateTextureMapOrientation() {
-
       selected_objs_and_parts.update(value => {
         adjustMap(value[index].model.children[0].material.map);
         if (value[index].model.children[0].material.normalMap) {
@@ -171,6 +170,11 @@
       // generate_tab_page.set(0);
     }
 
+    let activeTab='adjust-finish';
+    function switchTab(tab) {
+      activeTab = tab;
+    }
+
 </script>
 
 <div class="card container">
@@ -182,7 +186,13 @@
         <!-- <div>Material finish: {material_finish}</div> -->
   </div>
 
-  <div class="card">
+  <div class="w3-bar w3-grey tabs">
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-finish'} on:click={()=>switchTab('adjust-finish')} id="adjust-finish-btn">Material Finish</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-texture-map'} on:click={()=>switchTab('adjust-texture-map')} id="adjust-texture-btn">Texture Map</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-color'} on:click={()=>switchTab('adjust-color')} id="adjust-color-btn">Color Finish</button>
+  </div>
+
+  <div class="card container tab-content" class:active={activeTab==='adjust-finish'}>
     <h5><b>Adjust Finish</b></h5> 
     <div class="control">
       <!-- <span>Is Transparent?: </span> 
@@ -206,7 +216,7 @@
     </div>
     
   </div>
-  <div class="card">
+  <div class="card container tab-content " class:active={activeTab==='adjust-texture-map'}>
     <h5><b>Adjust Texture Map</b></h5>
     <div class="control">
       <div class="card container">
@@ -247,7 +257,7 @@
     </div>
   </div>
 
-  <div class="card ">
+  <div class="card container tab-content" class:active={activeTab==='adjust-color'}>
     <h5> <b> Adjust Color </b></h5>
 
     <div class="control container" id="color-palette-header">
@@ -337,6 +347,7 @@
       padding: 5px; 
       justify-content: center;
       align-items: center;
+      align-content:center;
       gap: 5px;
       width: 100%;
       height: 100%;
@@ -347,6 +358,7 @@
       flex-direction: row;
       align-items: center;
       justify-content: center;
+      align-content:center;
       gap: 5px;
       width: 100%;
       height: 100%;
@@ -357,6 +369,7 @@
       display: flex;
       flex-direction:column;
       justify-content: center;
+      align-content:center;
       align-items: center;
       font-size: 0.8rem;
     }
@@ -424,6 +437,43 @@
     .swatch.selectable.selected:hover {
       border: 3px solid blue;
     } 
+
+    .tabs   {
+      display:flex; 
+      flex-direction: row;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      align-content:center;
+      gap: 0px;
+    }
+
+    .tab-btn {
+      height:100%;
+      border: black 1px solid;
+    }
+
+    .tab-btn.active {
+      background-color: rgb(89, 185, 218);
+    }
+
+    .tab-btn.active:hover {
+      background-color: rgb(89, 185, 218);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+      /* height: 100%;
+      width:100%;
+      padding: 5px;
+      gap: 5px; */
+    }
 
 
   </style>
