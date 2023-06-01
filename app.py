@@ -107,7 +107,7 @@ def add_color_to_rendering():
     texture_parts[obj][part]["mat_color"] = form_data["color"] if "color" in list(form_data.keys()) else None
 
     with open(textureparts_path,"w") as f:
-        json.dump(texture_parts,f)
+        json.dump(texture_parts,f,indent=4)
 
     command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
     os.system(command_str)
@@ -125,7 +125,7 @@ def add_finish_to_rendering():
     texture_parts[obj][part]["mat_finish_settings"] = form_data["psbdf_settings"]
 
     with open(textureparts_path,"w") as f:
-        json.dump(texture_parts,f)
+        json.dump(texture_parts,f,indent=4)
 
     command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
     os.system(command_str)
@@ -152,7 +152,7 @@ def add_transform_to_rendering():
     }
 
     with open(textureparts_path,"w") as f:
-        json.dump(texture_parts,f)
+        json.dump(texture_parts,f,indent=4)
 
     command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
     os.system(command_str)
@@ -228,7 +228,7 @@ def generate_and_transfer_textures():
         tmp_texture_parts_savepath = os.path.join(SERVER_IMDIR,"renderings",f"texture_parts_{i}.json")
         
         with open(tmp_texture_parts_savepath,"w") as tmpfile:
-            json.dump(new_texture_parts,tmpfile)
+            json.dump(new_texture_parts,tmpfile,indent=4)
 
         rendering_savepath = os.path.join(SERVER_IMDIR,"renderings",f"rendering_{i}.png")
         rendering_loadpath = os.path.join(CLIENT_IMDIR,"renderings",f"rendering_{i}.png")
@@ -299,7 +299,7 @@ def apply_textures():
         tmp_texture_parts_savepath = os.path.join(SERVER_IMDIR,"renderings",f"texture_parts_{i}.json")
         
         with open(tmp_texture_parts_savepath,"w") as tmpfile:
-            json.dump(new_texture_parts,tmpfile)
+            json.dump(new_texture_parts,tmpfile,indent=4)
 
         rendering_savepath = os.path.join(SERVER_IMDIR,"renderings",f"rendering_{i}.png")
         
@@ -355,7 +355,7 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
 
     current_texture_parts = copy.deepcopy(texture_parts)
     with open(curr_textureparts_path,"w") as f:
-        json.dump(texture_parts,f)
+        json.dump(texture_parts,f,indent=4)
 
     shutil.copy(renderpath, curr_render_path) 
     print("done applying to current rendering!")
@@ -434,7 +434,7 @@ def add_to_saved_renderings(renderpath, texture_parts_path):
                 shutil.copy(full_model_path, os.path.join(save_render_dir,model_filename))   
     
     with open(save_textureparts_path,"w") as f:
-        json.dump(texture_parts,f)
+        json.dump(texture_parts,f,indent=4)
     shutil.copy(renderpath, save_render_path)
     LATEST_RENDER_ID+=1
     return save_render_path,save_textureparts_path
@@ -547,5 +547,7 @@ if __name__ == "__main__":
         render_path = os.path.join(dir_path,"rendering.png")
         textureparts_path = os.path.join(dir_path,"object_part_material.json")
         add_to_saved_renderings(render_path,textureparts_path)
+    
+    print(f"Latest rendering ID: {LATEST_RENDER_ID}")
 
     app.run(debug=True)
