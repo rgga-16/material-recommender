@@ -311,7 +311,9 @@
 										<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
 									</div>
 								{:else}
-									<p> No saved renderings. </p>
+									<div class="images-placeholder" style="height:100%;">
+										No saved renderings yet.
+									</div>
 								{/if}
 							{:else}
 								{#each saved_renderings as saved_renderings,i}
