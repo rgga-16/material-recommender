@@ -3,6 +3,7 @@
     import NumberSpinner from "svelte-number-spinner";
     import RangeSlider from "svelte-range-slider-pips";
     import {onMount} from 'svelte';
+    import SvelteMarkdown from 'svelte-markdown';
 
     import {selected_objs_and_parts} from '../stores.js';
     import {saved_color_palettes} from "../stores.js";
@@ -188,13 +189,19 @@
 
     let feedback =undefined;
     async function requestMaterialFeedback() {
-      
+      console.log(current_texture_parts);
       let attached_parts = [];
       for (const p in parents) {
-        const obj = p[0];
-        const part = p[1];
+        
+        const parent = parents[p]
+        console.log(parent);
+        const obj = parent[0];
+        const part = parent[1];
+        console.log(obj);
+        console.log(part);
         const attached_part_material = current_texture_parts[obj][part]['mat_name'];
-        attached_parts.push((obj, part, attached_part_material));
+        console.log(attached_part_material);
+        attached_parts.push([obj, part, attached_part_material]);
         attached_parts=attached_parts;
       }
 
@@ -209,7 +216,9 @@
               }),
       });
       const data = await response.json();
-      feedback = await data['response'];
+      const unformatted_feedback = await data['response'];
+      feedback = unformatted_feedback;
+      // feedback = await data['response'];
       const role = await data['role'];
     }
 
@@ -274,11 +283,11 @@
         <h6> <b> Translation </b></h6>
         <div class="control">
           <span>X:</span>
-          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={translationX} min=0.0 max=1 step=0.01 decimals=2 precision=0.01/>
+          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={translationX} min=0.0 max=10 step=0.01 decimals=2 precision=0.01/>
         </div>
         <div class="control">
           <span>Y:</span>
-          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={translationY} min=0.0 max=1 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={translationY} min=0.0 max=10 step=0.01 decimals=1 precision=0.01/>
         </div>
       </div>
 
@@ -294,15 +303,15 @@
         <h6> <b> Scale </b></h6>
         <div class="control">
           <span>X & Y: </span>
-          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={scale} min=0.0 max=5 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={scale} min=0.0 max=10 step=0.01 decimals=1 precision=0.01/>
         </div>
         <div class="control">
           <span>X: </span>
-          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={scaleX} min=0.0 max=5 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={scaleX} min=0.0 max=10 step=0.01 decimals=1 precision=0.01/>
         </div>
         <div class="control">
           <span>Y: </span>
-          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={scaleY} min=0.0 max=5 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={scaleY} min=0.0 max=10 step=0.01 decimals=1 precision=0.01/>
         </div>
       </div>
     </div>
@@ -402,10 +411,10 @@
   </div>
 
   {#if feedback}
-
     <div class="card container tab-content" class:active={activeTab==='view-feedback'}>
       <h5> <b> Feedback </b></h5>
-        <p>{feedback}</p>
+        <!-- <p>{feedback}</p> -->
+        <SvelteMarkdown source={feedback} />
     </div>
   {/if}
 
