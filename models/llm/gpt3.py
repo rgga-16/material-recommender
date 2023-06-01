@@ -2,7 +2,7 @@
 import os, copy
 import openai
 openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
-import re , ast
+import re , ast, json
 import yake 
 
 kw_extractor = yake.KeywordExtractor(lan='en',n=3,top=20,dedupLim=0.9)
@@ -41,7 +41,8 @@ I want you to return the keywords only as a Python list. Do not say anything els
 
 message_history = []
 temperature=0.5
-init_history = [{"role":"system", "content":system_prompt}]
+init_history = [{"role":"system", "content":system_prompt[:system_prompt.index("Now, introduce yourself to the user.")]}]
+print(init_history)
 
 def get_message_history():
     return message_history
@@ -190,12 +191,15 @@ def provide_material_feedback(material_name, object_name, part_name, attached_pa
 
     material_feedback_prompt_tail = f'''\n
         Please provide feedback on the material used based on the following aspects: durability, maintenance, sustainability, assembly, and cost. 
-        For each aspect, if you gave critical feedback on that aspect, please provide suggestions 
+        For each aspect, if you gave critical feedback on that aspect, please provide up to 5 suggestions 
         (e.g. alternative materials, adding material finishes, assembly attachments) to improve the aspect. 
         Make sure that you also consider the object the material is used on.
+
+        Respond using Markdown.
     '''
 
     material_feedback_prompt = material_feedback_prompt_head + materials_context + material_feedback_prompt_tail
+    print(material_feedback_prompt)
 
     global init_history
     init_history_clone = copy.deepcopy(init_history)
@@ -208,6 +212,24 @@ def provide_material_feedback(material_name, object_name, part_name, attached_pa
     )
 
     material_feedback = response["choices"][0]["message"]["content"]
+    init_history_clone.append({"role":"assistant", "content":material_feedback})
+
+    follow_up_prompt = f'''
+        Based on the feedback, for each aspect, if you mentioned any materials, finishes, or assembly attachments, return them as a dictionary. 
+        The keys should be the aspects, and the values in each aspect is a list of mentioned items. Here is a template:
+    '''
+    dict_template = {
+            "durability": ["finish1", "finish2", "material1","material2"],
+            "maintenance": ["finish1", "finish2", "material1","material2"],
+            "sustainability": ["material1","material2"],
+            "assembly": ["assembly_attachment_1", "assembly_attachment_2"],
+            "cost": ["material1","material2"]
+    }
+    dict_template_str = json.dumps(dict_template)
+    follow_up_prompt += dict_template_str
+    print(follow_up_prompt)
+
+
 
     return material_feedback
 
