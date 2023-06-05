@@ -1,7 +1,7 @@
 from flask import Flask, send_from_directory, request, jsonify, send_file
 import random, requests, json, copy, shutil, os, base64
 from PIL import Image
-from texture_transfer_3d import TextureDiffusion
+from texture_transfer_3d import TextureDiffusion, DALLE2
 from configs import *
 
 
@@ -515,6 +515,7 @@ if __name__ == "__main__":
     
     ######################################
     texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
+    # texture_generator = DALLE2()
     emptydir(SERVER_IMDIR,delete_dirs=False)
 
     products = [
