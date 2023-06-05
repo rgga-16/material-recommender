@@ -2,8 +2,11 @@ import torch
 from torch import autocast
 torch.cuda.empty_cache()
 from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
-# StableDiffusionImg2ImgPipeline
 import time, os
+import openai
+openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
+from utils import image
+
 import pathlib as p
 
 def patch_conv(cls):
@@ -16,6 +19,31 @@ patch_conv(torch.nn.Conv2d)
 # class StableDiffusionAPI():
 #     def __init__(self) -> None:
 #         pass
+
+
+class DALLE2():
+    def __init__(self) -> None:
+        pass
+
+    def text2texture(self,texture_str,n=4, gen_imsize=512):
+        images_b64 = []
+        images = []
+        for _ in range(n):
+            response = openai.Image.create(
+                prompt=texture_str,
+                n=n,
+                # size=f"{gen_imsize}x{gen_imsize}",
+                size=f"{512}x{512}",
+                response_format="b64_json"
+            )
+            image_b64 = response['data'][0]['b64_json']
+            im = image.b64_2_img(image_b64).convert('RGB')
+            images.append(im)
+            images_b64.append(image_b64)
+
+        return images
+
+
 
 class TextureDiffusion():
     def __init__(self, model_id="CompVis/stable-diffusion-v1-4"):
@@ -36,7 +64,7 @@ class TextureDiffusion():
     
     def text2texture(self, texture_str,n=4, gen_imsize=512):
         prompt = f'{texture_str}'
-        print(f"PROMPT: {prompt}")
+        # print(f"PROMPT: {prompt}")
         images = []
         for _ in range(n):
             with autocast("cuda"):

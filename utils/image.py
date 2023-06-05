@@ -5,12 +5,26 @@ import torch
 import os, shutil, math
 import io
 from base64 import encodebytes
+from io import BytesIO
+import base64
 
 css= '''
     .gradio-container #materials_generator {
         background-color: red;
     }
 '''
+
+# Convert Image to Base64 
+def im_2_b64(image):
+    buff = BytesIO()
+    image.save(buff, format="JPEG")
+    img_str = base64.b64encode(buff.getvalue())
+    return img_str
+
+# Convert Base64 to Image
+def b64_2_img(data):
+    buff = BytesIO(base64.b64decode(data))
+    return Image.open(buff)
 
 def degrees_to_radians(degree):
     return math.radians(degree)
