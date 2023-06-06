@@ -514,8 +514,8 @@ if __name__ == "__main__":
     # Here, you should make the necessary dirs under client/public.
     
     ######################################
-    texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
-    # texture_generator = DALLE2()
+    # texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
+    texture_generator = DALLE2()
     emptydir(SERVER_IMDIR,delete_dirs=False)
 
     products = [
