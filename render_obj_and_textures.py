@@ -193,13 +193,26 @@ def transform_material(mapping_node:bpy.types.Node, transforms:dict):
 
 
 class Renderer():
-    def __init__(self,cam_info, light_info=None, resolution=(1024,1024)):
+    def __init__(self,cam_info, light_info=None, resolution=(1024,1024), render_mode='BLENDER_EEVEE'):
         self.resolution = resolution
-        self.set_gpu("BLENDER_EEVEE")
+        self.rendering_mode = render_mode.upper()
+        self.set_gpu(self.rendering_mode)
         self.setup_render()
-        self.setup_background()
+        # self.setup_background()
+        self.setup_background_skytexture()
         self.setup_camera(cam_info['loc'],cam_info['rot'],cam_info['scale'])
-        if light_info: self.setup_light(light_info['loc'],light_info['rot'],light_info['scale'])
+
+
+        if light_info: 
+            # self.setup_light(light_info['loc'],light_info['rot'],light_info['scale'])
+            element = light_info['loc']
+            if isinstance(element, float): 
+                self.setup_light(light_info['loc'],light_info['rot'],light_info['scale'],light_info['type'])
+            elif isinstance(element, list):
+                for loc,rot,scale in zip(light_info['loc'],light_info['rot'],light_info['scale']):
+                    self.setup_light(loc,rot,scale,light_info['type'])
+            else:
+                raise ValueError('ERROR: Invalid light info type. Must be a dictionary that contains loc, rot, scale, and type. loc, rot, and scale can be a list of values or a list of lists')
         
         self.objects = []
     
@@ -212,7 +225,7 @@ class Renderer():
             bpy.context.preferences.addons['cycles'].preferences.get_devices()
             bpy.context.preferences.addons['cycles'].preferences.devices[0].use= True
             bpy.context.scene.cycles.device = 'GPU'
-            bpy.context.scene.cycles.samples=4096
+            bpy.context.scene.cycles.samples=1024
         elif rendering_engine=='BLENDER_EEVEE':
             bpy.context.scene.eevee.taa_render_samples=1024
             #Enable bloom
@@ -236,6 +249,46 @@ class Renderer():
         bpy.ops.object.delete({"selected_objects": self.objects})
         self.objects=[]
 
+    
+    def setup_background_skytexture(self):
+        scene = bpy.data.scenes["Scene"]
+        world = scene.world
+
+        world.use_nodes = True
+        node_tree = world.node_tree
+
+        # Add a Sky Texture node to the world
+        sky_texture = world.node_tree.nodes.new("ShaderNodeTexSky")
+
+        # Set the Sun Size to 0.5 degrees
+        sky_texture.sun_size = math.radians(0.5)
+        # Set the Sun Intensity to 0.3
+        sky_texture.sun_intensity = 0.3
+        # Set the Sun Elevation to -7.48 degrees
+        sky_texture.sun_elevation = math.radians(-7.48)
+        # Set the Sun Rotation to 295 degrees
+        sky_texture.sun_rotation = math.radians(295)
+        # Set the Altitude to 0
+        sky_texture.altitude = 0
+        # Set the Air to 0.1
+        sky_texture.air_density = 0.1
+        # Set the Dust to 1
+        sky_texture.dust_density = 1
+        # Set the Ozone to 1
+        sky_texture.ozone_density = 1
+        # Set the Strength to 1
+        # sky_texture.strength = 1
+
+        # Add a Background node to the world
+        # background = world.node_tree.nodes.new("ShaderNodeBackground")
+
+        # Set the world's node tree to use the Background node as the output
+        # world.node_tree.nodes["World Output"].inputs["Surface"].default_value = background.outputs["Background"]
+        world.node_tree.links.new(world.node_tree.nodes["Background"].outputs["Background"], world.node_tree.nodes["World Output"].inputs["Surface"])
+        # Connect the Sky Texture node to the Background node
+        world.node_tree.links.new(sky_texture.outputs["Color"], world.node_tree.nodes["Background"].inputs["Color"])
+        return 
+    
     def setup_background(self,hdri_path: str = os.path.join(working_dir_path, 'data', 'hdri', 'interior.exr') , rotation: float = 0.0) -> None:
         scene = bpy.data.scenes["Scene"]
         world = scene.world
@@ -276,9 +329,9 @@ class Renderer():
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete(use_global=False)
 
-    def setup_light(self, loc=(14.188, -13.29, 16.627), rot=(11.7,-54.7,126), scale=(1.0,1.0,1.0)):
+    def setup_light(self, loc=(14.188, -13.29, 16.627), rot=(11.7,-54.7,126), scale=(1.0,1.0,1.0), type='SUN'):
         # Create new lamp datablock
-        lamp_data = bpy.data.lights.new(name="New Lamp", type='SUN')
+        lamp_data = bpy.data.lights.new(name="New Lamp", type=type.upper())
         lamp_data.energy = 10
         # Create new object with our lamp datablock
         lamp_object = bpy.data.objects.new(name="New Lamp", object_data=lamp_data)
@@ -288,6 +341,19 @@ class Renderer():
         lamp_object.location = loc
         lamp_object.rotation_euler = (math.radians(rot[0]), math.radians(rot[1]), math.radians(rot[2]))
         lamp_object.scale = scale
+
+        if type.upper()=="POINT":
+            print("IT'S A POINT")
+            lamp_data.energy = 25
+            lamp_data.distance=0 
+            lamp_data.use_nodes = True
+            tree = lamp_data.node_tree
+            emission_node = tree.nodes["Emission"]
+            blackbody_node = tree.nodes.new(type='ShaderNodeBlackbody')
+            blackbody_node.inputs[0].default_value = 5500
+            tree.links.new(blackbody_node.outputs[0], emission_node.inputs[0])  
+            emission_node.inputs[1].default_value = 2
+
         # And finally select it make active
         lamp_object.select_set(state=True)
         # self.scene.objects.active = lamp_object
@@ -473,8 +539,39 @@ def get_args():
         ap.add_argument("--rendering_setup_json", type = str, help = "Path to .json file containing filenames of 3D parts and their placements, lighting, & camera configs in Blender.")
         ap.add_argument("--texture_object_parts_json", type = str, help = "Path to .json file containing 3D parts and their corresponding textures.")
         ap.add_argument("--out_path", type = str, help = "File path to save the rendering.")
+        ap.add_argument("--render_mode", type=str, help="Rendering mode in Blender (BLENDER_EEVEE or CYCLES).", default="BLENDER_EEVEE")
         args = ap.parse_args(extract_args())
         return args
+
+
+
+def main2():
+    args = get_args()
+
+    with open(args.rendering_setup_json) as json_file:
+        info = json.load(json_file)
+        cam_info = info['camera']
+        light_info = None 
+        if 'light' in info: light_info = info['light']
+        resolution = info['resolution']
+    
+    renderer = Renderer(cam_info=cam_info,light_info=light_info,resolution=resolution,render_mode=args.render_mode)
+
+    with open(args.texture_object_parts_json) as json_file:
+        texture_object_parts = json.load(json_file)
+    
+    for obj_key in texture_object_parts:
+        obj = texture_object_parts[obj_key]
+        # print(f"Object: {obj}")
+        for part_key in obj: 
+            part = obj[part_key]
+            # print(f"Part: {part}")
+            model_path = part['model']
+            renderer.load_object_gltf(model_path)
+    
+    renderer.render(args.out_path)
+
+    return 
 
 def main(): 
     args = get_args()
@@ -488,7 +585,7 @@ def main():
         if 'light' in info: light_info = info['light'] 
         resolution = info['resolution']
 
-    renderer = Renderer(cam_info=cam_info,light_info=light_info,resolution=resolution)
+    renderer = Renderer(cam_info=cam_info,light_info=light_info,resolution=resolution,render_mode=args.render_mode)
 
     with open(args.texture_object_parts_json) as json_file:
         texture_object_parts = json.load(json_file)
@@ -524,4 +621,5 @@ def main():
     renderer.render(out_path=args.out_path)
     
 if __name__=="__main__":
-    main()
+    # main()
+    main2()
