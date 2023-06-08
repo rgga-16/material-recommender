@@ -116,7 +116,8 @@
                 model3d_infos.push( {
                     "name":part,
                     "parent":obj,
-                    "glb_url": current_texture_parts[obj][part]["model"]
+                    "glb_url": current_texture_parts[obj][part]["model"],
+                    "is_selectable": current_texture_parts[obj][part]["is_selectable"]
                 })
                 model3d_infos=model3d_infos
             }
@@ -155,36 +156,47 @@
                     //     console.log("deselected");
                     // }
 
-                    if (shiftPressed) { //If shift is held, want to select multiple objects
-                        SELECTEDS.push(clicked_object);
-                        const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
-                        SELECTED_INFOS.push(model3d_infos[index]);
-                        console.log("Has not been selected yet. Appending it to selected objects.")
-                        SELECTEDS=SELECTEDS;    
-                        SELECTED_INFOS=SELECTED_INFOS;
-                        selected_objs_and_parts.set(SELECTED_INFOS);
-                        console.log(get(selected_objs_and_parts));
-                        information_panel.displayTexturePart();
-                    } else { //If shift is not held, want to select only one object
-                        SELECTEDS = [];
-                        SELECTED_INFOS = [];
-                        SELECTEDS[0] = clicked_object;
-                        console.log(clicked_object);
-                        console.log(model3d_infos);
-                        // const index = model3d_infos.findIndex(item => item.model.children[0].name === clicked_object.model_name);
-                        const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
-                        
-                        console.log(get(curr_texture_parts));
-                        SELECTED_INFOS[0] = model3d_infos[index];
-                        console.log("Has not been selected yet. Selecting it.")
+                    if(isObjectSelectable(clicked_object)) {
+                        if (shiftPressed) { //If shift is held, want to select multiple objects
+                            SELECTEDS.push(clicked_object);
+                            const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
+                            SELECTED_INFOS.push(model3d_infos[index]);
+                            console.log("Has not been selected yet. Appending it to selected objects.")
+                            SELECTEDS=SELECTEDS;    
+                            SELECTED_INFOS=SELECTED_INFOS;
+                            selected_objs_and_parts.set(SELECTED_INFOS);
+                            console.log(get(selected_objs_and_parts));
+                            information_panel.displayTexturePart();
+                        } else { //If shift is not held, want to select only one object
+                            SELECTEDS = [];
+                            SELECTED_INFOS = [];
+                            SELECTEDS[0] = clicked_object;
+                            console.log(clicked_object);
+                            console.log(model3d_infos);
+                            // const index = model3d_infos.findIndex(item => item.model.children[0].name === clicked_object.model_name);
+                            const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
+                            
+                            console.log(get(curr_texture_parts));
+                            SELECTED_INFOS[0] = model3d_infos[index];
+                            console.log("Has not been selected yet. Selecting it.")
 
-                        SELECTEDS=SELECTEDS;    
-                        SELECTED_INFOS=SELECTED_INFOS;
-                        selected_objs_and_parts.set(SELECTED_INFOS);
-                        console.log(get(selected_objs_and_parts));
-                        information_panel.displayTexturePart();
+                            SELECTEDS=SELECTEDS;    
+                            SELECTED_INFOS=SELECTED_INFOS;
+                            selected_objs_and_parts.set(SELECTED_INFOS);
+                            console.log(get(selected_objs_and_parts));
+                            information_panel.displayTexturePart();
+                        }
+                    } else {
+                        if (SELECTEDS.length > 0) {
+                            for (let i = 0; i < SELECTEDS.length; i++) {
+                                SELECTEDS[i].material.emissive.setHex(0x000000);
+                            }
+                            SELECTEDS = [];
+                            SELECTED_INFOS = [];
+                            selected_objs_and_parts.set(SELECTED_INFOS);
+                        }
+                        console.log("Nothing's been selected.")
                     }
-                    
 
                 } else {//If clicked object has already been selected, deselect it. 
                     SELECTEDS[0].material.emissive.setHex(0x000000);
@@ -204,7 +216,9 @@
             }
         } else {// If the user clicks on an empty space, then we want to deselect the selected object.
             if (SELECTEDS.length > 0) {
-                SELECTEDS[0].material.emissive.setHex(0x000000);
+                for (let i = 0; i < SELECTEDS.length; i++) {
+                    SELECTEDS[i].material.emissive.setHex(0x000000);
+                }
                 SELECTEDS = [];
                 SELECTED_INFOS = [];
                 selected_objs_and_parts.set(SELECTED_INFOS);
@@ -228,6 +242,23 @@
         }
     }
 
+    function isObjectSelectable(object) {
+        const index = model3d_infos.findIndex(item => item.name === object.model_name && item.parent === object.model_parent);
+        const model3d_info = model3d_infos[index];
+        let is_selectable = false;
+
+        if(model3d_info) {
+            if(model3d_info.is_selectable) {
+                is_selectable = true;
+            } else {
+                is_selectable = false;
+            }
+        }
+
+        return is_selectable;
+
+    }
+
     function highlightObject() {
         if(SELECTEDS.length > 0) {
             for (const selected of SELECTEDS) {
@@ -236,20 +267,30 @@
             }
         }
         const object = getPointedObject();
+
+
         if(object) {
             //HIGHLIGHTED is the object that is highlighted in red
                 //if there was already highlighted object is not the same as the one pointed by the mouse
-                if (HIGHLIGHTED != object) {
-                    if (HIGHLIGHTED) {  //if there is a highlighted object
-                        //reset the color of the highlighted object
-                        HIGHLIGHTED.material.emissive.setRGB(0,0,0);
-                        HIGHLIGHTED.material.emissiveIntensity=0;
-                    }
+            if (HIGHLIGHTED != object) {
+                if (HIGHLIGHTED) {  //if there is a highlighted object
+                    //reset the color of the highlighted object
+                    HIGHLIGHTED.material.emissive.setRGB(0,0,0);
+                    HIGHLIGHTED.material.emissiveIntensity=0;
+                }
+
+                if(isObjectSelectable(object)) {
                     HIGHLIGHTED = object; //set the highlighted object to the one pointed by the mouse
                     HIGHLIGHTED.currentHex = HIGHLIGHTED.material.emissive.getHex();//save the color of object before it is highlighted
                     HIGHLIGHTED.material.emissive.setRGB(1,0,0);
                     HIGHLIGHTED.material.emissiveIntensity=0.2;
+                } else {
+                    HIGHLIGHTED = null;
+                    // HIGHLIGHTED.material.emissive.setRGB(0,0,0);
+                    // HIGHLIGHTED.material.emissiveIntensity=0;
                 }
+                
+            }
         } else {
             if (HIGHLIGHTED) {
                 // HIGHLIGHTED.material.emissive.setHex(0x000000);//reset the color of the highlighted object
