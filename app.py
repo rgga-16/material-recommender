@@ -532,8 +532,8 @@ if __name__ == "__main__":
     init_render_path = os.path.join(RENDER_DIR,"current","rendering.png")
 
     # Code to render initial rendering. Uncomment the below code if you want to re-render the initial rendering.
-    # command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {init_render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path} --render_mode CYCLES'
-    # os.system(command_str)
+    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {init_render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path} --render_mode CYCLES'
+    os.system(command_str)
 
     # Code to load current rendering into frontend (client folder).
     init_texture_parts = json.load(open(init_texture_parts_path))

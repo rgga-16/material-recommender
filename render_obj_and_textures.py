@@ -352,7 +352,7 @@ class Renderer():
             blackbody_node = tree.nodes.new(type='ShaderNodeBlackbody')
             blackbody_node.inputs[0].default_value = 5500
             tree.links.new(blackbody_node.outputs[0], emission_node.inputs[0])  
-            emission_node.inputs[1].default_value = 2
+            emission_node.inputs[1].default_value = 1
 
         # And finally select it make active
         lamp_object.select_set(state=True)
@@ -360,13 +360,12 @@ class Renderer():
         bpy.context.view_layer.objects.active = lamp_object
         self.lamp=lamp_object
 
-    def setup_camera(self,location=(13.244,-12.473,5.12852), 
-                    rotation=(86.3394,0,46.6919),
-                    scale = (1.0,1.0,1.0)):
+    def setup_camera(self,location, rotation,scale):
         bpy.ops.object.camera_add()
         self.camera = bpy.data.objects['Camera']
         self.camera.rotation_mode = 'XYZ'
         self.camera.location=location
+        self.camera.data.lens=30
         self.camera.rotation_euler = (math.radians(rotation[0]), 
                                     math.radians(rotation[1]), 
                                     math.radians(rotation[2]))
