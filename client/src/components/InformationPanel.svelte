@@ -57,7 +57,7 @@
         const textureparts_div = document.getElementById("texture-part-details");
         textureparts_div.innerHTML='';
         // console.log(sel_objs_and_parts);
-        console.log(current_texture_parts);
+        // console.log(current_texture_parts);
 
         for(let i=0; i < sel_objs_and_parts.length; i++) {
             let selected_part_parent = sel_objs_and_parts[i].parent; 

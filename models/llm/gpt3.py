@@ -42,7 +42,6 @@ I want you to return the keywords only as a Python list. Do not say anything els
 message_history = []
 temperature=0.5
 init_history = [{"role":"system", "content":system_prompt[:system_prompt.index("Now, introduce yourself to the user.")]}]
-print(init_history)
 
 def get_message_history():
     return message_history
