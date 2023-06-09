@@ -49,7 +49,7 @@ def feedback_materials():
 @app.route("/suggest_materials", methods=['POST'])
 def suggest_materials():
     form_data = request.get_json()
-    intro_text, suggested_materials_dict = gpt3.suggest_materials(form_data["prompt"],role=form_data["role"])
+    intro_text, suggested_materials_dict = gpt3.suggest_materials(form_data["prompt"],role=form_data["role"],use_internet=form_data["use_internet"])
     suggested_materials = []
     for sm in suggested_materials_dict:
         image, filename = generate_textures(sm,n=1, imsize=448); image=image[0]; filename=filename[0]
@@ -65,7 +65,7 @@ def suggest_materials():
 @app.route("/suggest_colors", methods=['POST'])
 def suggest_colors():
     form_data = request.get_json()
-    intro_text, suggested_color_palettes = gpt3.suggest_color_palettes(form_data["prompt"],role=form_data["role"])
+    intro_text, suggested_color_palettes = gpt3.suggest_color_palettes(form_data["prompt"],role=form_data["role"],use_internet=form_data["use_internet"])
     return jsonify({"intro_text":intro_text,"role":"assistant","suggested_color_palettes":suggested_color_palettes})
 
 @app.route("/brainstorm_prompt_keywords", methods=['POST']) 
@@ -532,8 +532,8 @@ if __name__ == "__main__":
     init_render_path = os.path.join(RENDER_DIR,"current","rendering.png")
 
     # Code to render initial rendering. Uncomment the below code if you want to re-render the initial rendering.
-    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {init_render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path} --render_mode CYCLES'
-    os.system(command_str)
+    # command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {init_render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path} --render_mode CYCLES'
+    # os.system(command_str)
 
     # Code to load current rendering into frontend (client folder).
     init_texture_parts = json.load(open(init_texture_parts_path))
