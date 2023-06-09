@@ -1,11 +1,13 @@
 
 import os, copy
-import openai
+import openai, tiktoken
 openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
 import re , ast, json
 import yake 
+from datetime import datetime
 
-kw_extractor = yake.KeywordExtractor(lan='en',n=3,top=20,dedupLim=0.9)
+
+from langchain.tools import DuckDuckGoSearchResults
 
 
 system_prompt = '''
@@ -37,15 +39,63 @@ Brainstorm example keywords or key phrases I can append to the textual descripti
 
 I want you to return the keywords only as a Python list. Do not say anything else apart from the Python list.
 '''
-
+search = DuckDuckGoSearchResults(num_results=10)
 
 message_history = []
-temperature=0.5
+temperature=0.0
+model_name = "gpt-3.5-turbo"
+max_tokens=4097
+encoding = tiktoken.get_encoding("cl100k_base")
+# encoding = tiktoken.encoding_for_model(model_name)
+
 init_history = [{"role":"system", "content":system_prompt[:system_prompt.index("Now, introduce yourself to the user.")]}]
+
+# Code borrowed from https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
+    """Returns the number of tokens used by a list of messages."""
+    try:
+        encoding = tiktoken.encoding_for_model(model)
+    except KeyError:
+        print("Warning: model not found. Using cl100k_base encoding.")
+        encoding = tiktoken.get_encoding("cl100k_base")
+    if model == "gpt-3.5-turbo":
+        print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
+        return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301")
+    elif model == "gpt-4":
+        print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
+        return num_tokens_from_messages(messages, model="gpt-4-0314")
+    elif model == "gpt-3.5-turbo-0301":
+        tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
+        tokens_per_name = -1  # if there's a name, the role is omitted
+    elif model == "gpt-4-0314":
+        tokens_per_message = 3
+        tokens_per_name = 1
+    else:
+        raise NotImplementedError(f"""num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
+    num_tokens = 0
+    for message in messages:
+        num_tokens += tokens_per_message
+        for key, value in message.items():
+            num_tokens += len(encoding.encode(value))
+            if key == "name":
+                num_tokens += tokens_per_name
+    num_tokens += 3  # every reply is primed with <|start|>assistant<|message|>
+    return num_tokens
+
+def check_and_trim_message_history():
+    offset=300
+    global message_history
+    global max_tokens
+    global model_name 
+
+    if num_tokens_from_messages(message_history, model=model_name) > max_tokens:
+        print("Current number of tokens in message history exceeds the maximum number of tokens allowed. Trimming message history.")
+        while num_tokens_from_messages(message_history, model=model_name) > max_tokens - offset:
+            del message_history[1] # Delete the 2nd message in the history. The first message is always the system prompt, which should not be deleted.
+            
 
 def get_message_history():
     return message_history
-
 
 
 def parse_into_list(string):
@@ -60,72 +110,154 @@ def init_query():
     response = query(system_prompt,"system")
     return response
 
+def internet_search(query,role="user"):
+    global message_history 
+
+    prompt = f'''
+        Disregard any previous instructions.
+        I will give you a question or an instruction. Your objective is to answer my question or fulfill my instruction.
+        My question or instruction is: {query}
+        For your reference, today's date is {datetime.now().isoformat()}.
+        It's possible that the question or instruction, or just a portion of it, requires relevant information from the internet to give a satisfactory answer or complete the task. 
+        Therefore, provided below is the necessary information obtained from the internet, which sets the context for addressing the question or fulfilling the instruction. 
+        You will write a comprehensive reply to the given question or instruction. 
+        Make sure to cite results using [[NUMBER](URL)] notation after the reference. 
+        If the provided information from the internet results refers to multiple subjects with the same name, write separate answers for each subject:
+    '''
+
+    results_str= search.run(query)
+    results = ast.literal_eval(results_str)
+
+    for i in range(len(results)):
+        r = results[i]
+        prompt += f'''\n
+            NUMBER:{i+1}
+            URL:{r['link']}
+            TITLE:{r['title']}
+            CONTENT:{r['snippet']}
+        '''
+    return prompt
+
 def query(prompt,role="user"):
     global message_history
     message_history.append({"role":role, "content":prompt})
-
+    check_and_trim_message_history()
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=message_history,
         temperature=temperature
     )
-
     response_msg = response["choices"][0]["message"]["content"]
     message_history.append({"role":response["choices"][0]["message"]["role"], "content":response_msg})
-
     return response_msg
 
-def suggest_materials(prompt,role="user"):
+def suggest_materials(prompt,role="user", use_internet=True):
     refined_prompt = f"{prompt}"
+    if use_internet:
+        refined_prompt = internet_search(refined_prompt,role)
     initial_response = query(refined_prompt,role)
-
     intro_text = initial_response.split('\n')[0].strip()
+    if use_internet: 
+        python_dict_prompt = f'''
+            Now, return the suggested materials and their detailed reasons from the previous response as a Python dictionary. 
+            Make sure the reasons are the same as the ones in the previous response, and maintain their reference citations.
+            Do not say anything else apart from the dictionary.
+        '''
+    else: 
+        python_dict_prompt= '''
+        Now, return the suggested materials and their detailed reasons as a Python dictionary. 
+        Make sure the reasons are the same as the ones in the previous response.
+        Do not say anything else apart from the dictionary.'''
+    python_dict_response = query(python_dict_prompt,role).strip()
 
-    python_dict_prompt= "Now, return the suggested materials and their reasons as a Python dictionary. Do not say anything else apart from the dictionary."
-    python_dict_response = query(python_dict_prompt,role)
+    # Remove text before and after the Python list
+    start_index = python_dict_response.find('{')
+    if start_index>0:
+        print("Removing text before the Python list.")
+        python_dict_response = python_dict_response[start_index:].strip()
+    end_index = python_dict_response.rfind('}')
+    if end_index<len(python_dict_response)-1:
+        print("Removing text after the Python list.")
+        python_dict_response = python_dict_response[:end_index+1].strip()
+
+    python_dict_response = python_dict_response.strip()
+
 
     suggestions = ast.literal_eval(python_dict_response)
-
     return intro_text, suggestions
 
-def suggest_color_palettes(prompt, role="user"):
-    refined_prompt = f'''{prompt}. 
-    Suggest color palettes that contain hex codes using the following format:
-
-    - Color Palette #1 Name
-    Textual explanation of color palette
-    HEX codes: HEXCODE1, #HEXCODE2, #HEXCODE3,... #HEXCODEN
-
-    - Color Palette #2 Name
-    Textual explanation of color palette
-    HEX codes: HEXCODE1, #HEXCODE2, #HEXCODE3,... #HEXCODEN
-
-    .....
-
-    - Color Palette #N Name
-    Textual explanation of color palette
-    HEX codes: HEXCODE1, #HEXCODE2, #HEXCODE3,... #HEXCODEN
-
-    Now, suggest 5 color palettes.
-    '''
-
+def suggest_color_palettes(prompt, role="user", use_internet=True):
+    refined_prompt = f"{prompt}. Suggest color palettes."
+    if use_internet:
+        refined_prompt = internet_search(refined_prompt,role)
     initial_response = query(refined_prompt,role)
     intro_text = initial_response.split('\n')[0].strip()
 
-    python_list_prompt= '''
-        Now, return them as a list of dictionaries. 
+    if use_internet:
+        python_list_prompt='''
+        Now, return the suggested color palettes that contain hex color codes, their names, and their detailed descriptions from the previous response as a Python list of dictionaries. 
         Each dictionary should contain the following keys: name, description, codes. 
-        RETURN THE LIST ONLY. Do not say anything else (ex. "Here are the color palettes you requested, return as a list of dictionaries.") apart from the list.
-    '''
+        Make sure the descriptions are the same as the ones in the previous response, and maintain their reference citations.
+        Do not say anything else apart from the Python list.
+        '''
+    else:
+        python_list_prompt='''
+        Now, return the suggested color palettes that contain hex color codes, their names, and their detailed descriptions from the previous response as a Python list of dictionaries. 
+        Each dictionary should contain the following keys: name, description, codes. 
+        Make sure the descriptions are the same as the ones in the previous response.
+        Do not say anything else apart from the Python list.
+        '''
+    python_list_response = query(python_list_prompt,role).strip()
 
-    python_list_response = query(python_list_prompt,role)
+    # Remove text before and after the Python list
+    start_index = python_list_response.find('[')
+    if start_index>0:
+        print("Removing text before the Python list.")
+        python_list_response = python_list_response[start_index:].strip()
+    end_index = python_list_response.rfind(']')
+    if end_index<len(python_list_response)-1:
+        print("Removing text after the Python list.")
+        python_list_response = python_list_response[:end_index+1].strip()
 
-    # pattern = r"```\n(.*?)```"
-    # matches = re.findall(pattern, python_list_response, re.DOTALL)
-    # assert len(matches) == 1
+    python_list_response = python_list_response.strip()
 
-    python_list = ast.literal_eval(python_list_response)
-    return intro_text, python_list
+    suggestions = ast.literal_eval(python_list_response)
+    return intro_text, suggestions
+
+# def suggest_color_palettes(prompt, role="user"):
+#     refined_prompt = f'''{prompt}. 
+#     Suggest color palettes that contain hex codes using the following format:
+
+#     - Color Palette #1 Name
+#     Textual explanation of color palette
+#     HEX codes: HEXCODE1, #HEXCODE2, #HEXCODE3,... #HEXCODEN
+
+#     - Color Palette #2 Name
+#     Textual explanation of color palette
+#     HEX codes: HEXCODE1, #HEXCODE2, #HEXCODE3,... #HEXCODEN
+
+#     .....
+
+#     - Color Palette #N Name
+#     Textual explanation of color palette
+#     HEX codes: HEXCODE1, #HEXCODE2, #HEXCODE3,... #HEXCODEN
+
+#     Now, suggest 5 color palettes.
+#     '''
+
+#     initial_response = query(refined_prompt,role)
+#     intro_text = initial_response.split('\n')[0].strip()
+
+#     python_list_prompt= '''
+#         Now, return them as a Python list of dictionaries. 
+#         Each dictionary should contain the following keys: name, description, codes. 
+#         RETURN THE PYTHON LIST ONLY. Do not say anything else (ex. "Here are the color palettes you requested, return as a list of dictionaries.") apart from the Python list.
+#     '''
+
+#     python_list_response = query(python_list_prompt,role)
+
+#     python_list = ast.literal_eval(python_list_response)
+#     return intro_text, python_list
 
 def brainstorm_prompt_keywords(material):
 

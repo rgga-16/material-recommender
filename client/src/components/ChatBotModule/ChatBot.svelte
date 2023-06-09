@@ -14,6 +14,7 @@
     const dispatch = createEventDispatcher();
 
     let inputMessage = '';
+    let use_internet=false;
     
     let messages = [];
     /*
@@ -58,6 +59,7 @@
             body: JSON.stringify({
                 "prompt": inputMessage,
                 "role":"user",
+                "use_internet": use_internet
             }),
         });
         const json = await response.json();
@@ -97,6 +99,7 @@
             body: JSON.stringify({
                 "prompt": inputMessage,
                 "role":"user",
+                "use_internet": use_internet
             }),
         });
         const json = await response.json();
@@ -194,17 +197,17 @@
         dispatch('proceedToGenerate',material_name)
     }
 
-    // onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
-    //     await init_query();
+    onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
+        await init_query();
 
-    //     // If the chatbot_input_message, a global store, is updated, update the inputMessage variable and the text in the textbox message area.
-    //     chatbot_input_message.subscribe(value => {
-    //         inputMessage = value;
-    //         const textarea = document.getElementById("textarea");
-    //         textarea.innerHTML='';
-    //         textarea.value=inputMessage;
-    //     });
-    // });
+        // If the chatbot_input_message, a global store, is updated, update the inputMessage variable and the text in the textbox message area.
+        chatbot_input_message.subscribe(value => {
+            inputMessage = value;
+            const textarea = document.getElementById("textarea");
+            textarea.innerHTML='';
+            textarea.value=inputMessage;
+        });
+    });
 
 </script>
 
@@ -276,8 +279,13 @@
         {/if}
     </div>
     <textarea style="width:100%;" bind:value="{inputMessage}" on:keydown="{e => e.key === 'Enter' && suggest_materials()}" placeholder="Type your queries for materials or color palettes here.." id="textarea"></textarea>
+    <label>
+        <input type="checkbox" bind:checked={use_internet} >
+        Use web search
+    </label>
     <button on:click|preventDefault={()=>suggest_materials()}>Suggest Materials</button>    
     <button on:click|preventDefault={()=>suggest_color_palettes()}>Suggest Colors</button>   
+    
 </div>
 
 <style>
