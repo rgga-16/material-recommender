@@ -182,7 +182,6 @@ def suggest_materials(prompt,role="user", use_internet=True):
 
     python_dict_response = python_dict_response.strip()
 
-
     suggestions = ast.literal_eval(python_dict_response)
     return intro_text, suggestions
 
@@ -346,20 +345,44 @@ def provide_material_feedback(material_name, object_name, part_name, attached_pa
     init_history_clone.append({"role":"assistant", "content":material_feedback})
 
     follow_up_prompt = f'''
-        Based on the feedback, for each aspect, if you mentioned any materials, finishes, or assembly attachments, return them as a dictionary. 
-        The keys should be the aspects, and the values in each aspect is a list of mentioned items. Here is a template:
+        Based on the feedback, for each aspect, if you suggested any materials, finishes, or assembly attachments, return them as a dictionary. 
+        The keys should be the aspects, and the values in each aspect is a list of lists where each list contains the name of the suggested item and item type.
+        The item type must either be one of the following: material, finish, attachment, or other. 
+        
+        Here is a template:
     '''
     dict_template = {
-            "durability": ["finish1", "finish2", "material1","material2"],
-            "maintenance": ["finish1", "finish2", "material1","material2"],
-            "sustainability": ["material1","material2"],
-            "assembly": ["assembly_attachment_1", "assembly_attachment_2"],
-            "cost": ["material1","material2"]
+            "durability": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]],
+            "maintenance": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]],
+            "sustainability": [["material1","material"],["material2","material"]],
+            "assembly": [["assembly_attachment_1","attachment"], ["assembly_attachment_2","attachment"]],
+            "cost": [["material1","material"],["material2","material"]]
     }
     dict_template_str = json.dumps(dict_template)
     follow_up_prompt += dict_template_str
     print(follow_up_prompt)
 
+    init_history_clone.append({"role":"user", "content":follow_up_prompt})
+    suggestions_dict_response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=init_history_clone,
+        temperature=0.0
+    )
+    suggestions_dict_str= suggestions_dict_response["choices"][0]["message"]["content"]
+
+    # Remove text before and after the Python dict
+    start_index = suggestions_dict_str.find('{')
+    if start_index>0:
+        print("Removing text before the Python dictionary.")
+        suggestions_dict_str = suggestions_dict_str[start_index:].strip()
+    end_index = suggestions_dict_str.rfind('}')
+    if end_index<len(suggestions_dict_str)-1:
+        print("Removing text after the Python dictionary.")
+        suggestions_dict_str = suggestions_dict_str[:end_index+1].strip()
+
+    suggestions_dict_str = suggestions_dict_str.strip()
+    suggestions_dict= ast.literal_eval(suggestions_dict_str)
+    print(suggestions_dict)
 
 
     return material_feedback

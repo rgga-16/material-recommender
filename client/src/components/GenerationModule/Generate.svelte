@@ -284,7 +284,7 @@
                         </div>
                     {/if}
 
-                    {#if brainstormed_prompt_keywords.length > 0 && manual_prompt_keywords.length > 0}
+                    {#if brainstormed_prompt_keywords.length <= 0 && manual_prompt_keywords.length <= 0}
                         <p> No keywords added. </p>
                     {/if}
                 </div>
