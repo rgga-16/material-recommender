@@ -49,6 +49,7 @@
 
   <div class="tab-content" class:active={activeTab==='chatbot'} id="chatbot">
     <ChatBot on:proceedToGenerate={arg => {
+      generate.empty_keywordlists();
       generate.generate_textures(arg.detail);
       generate.reset_page();
     }}/>
