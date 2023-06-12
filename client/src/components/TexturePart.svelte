@@ -1,6 +1,7 @@
 <script>
     import DynamicImage from "./DynamicImage.svelte";
     import NumberSpinner from "svelte-number-spinner";
+    import { Circle } from 'svelte-loading-spinners';
     import RangeSlider from "svelte-range-slider-pips";
     import {onMount} from 'svelte';
     import SvelteMarkdown from 'svelte-markdown';
@@ -13,7 +14,7 @@
     import {createEventDispatcher} from 'svelte';
 
     import {curr_texture_parts} from '../stores.js';
-
+    import { get } from 'svelte/store';
 
     let current_texture_parts;
     curr_texture_parts.subscribe(value => {
@@ -50,6 +51,8 @@
         ]
       };
     }
+
+    let is_loading_feedback=false;
     
     export let index;
     let material;
@@ -92,21 +95,7 @@
     console.log(parents);
 
 
-    onMount(async () => {
-      material = sel_objs_and_parts[index].model.children[0].material;
-      opacity = [material.opacity];
-      roughness = [material.roughness]; 
-      metalness = [material.metalness];
-      isTransparent = material.transparent;
-
-      translationX = material.map.offset.x;
-      translationY = material.map.offset.y;
-      rotation = material.map.rotation;
-      scaleX = material.map.repeat.x;
-      scaleY = material.map.repeat.y;
-
-    });
-
+    
     function adjustMap(map) {
       map.offset.x = translationX;
       map.offset.y = translationY;
@@ -181,18 +170,25 @@
     }
 
     function suggestSimilarMaterials() {
-      let query = "Can you suggest similar materials to " + material_name + " for a " + part_parent_name + " " + part_name + "?";
-      actions_panel_tab.set("chatbot");
-      chatbot_input_message.set(query);
+      if(part_parent_name===part_name){
+        let query = "Can you suggest similar materials to " + material_name + "for a " + part_parent_name + "?";
+        actions_panel_tab.set("chatbot");
+        chatbot_input_message.set(query);
+      } else {
+        let query = "Can you suggest similar materials to " + material_name + " for a " + part_parent_name + " " + part_name + "?";
+        actions_panel_tab.set("chatbot");
+        chatbot_input_message.set(query);
+      }
       // generate_tab_page.set(0);
     }
 
     let feedback =undefined;
     async function requestMaterialFeedback() {
-      console.log(current_texture_parts);
+      feedback=undefined;
+      switchTab("view-feedback");
+
       let attached_parts = [];
       for (const p in parents) {
-        
         const parent = parents[p]
         console.log(parent);
         const obj = parent[0];
@@ -204,7 +200,7 @@
         attached_parts.push([obj, part, attached_part_material]);
         attached_parts=attached_parts;
       }
-
+      is_loading_feedback=true;
       const response = await fetch("/feedback_materials", {
               method: "POST",
               headers: {"Content-Type": "application/json"},
@@ -217,15 +213,42 @@
       });
       const data = await response.json();
       const unformatted_feedback = await data['response'];
-      feedback = unformatted_feedback;
-      // feedback = await data['response'];
       const role = await data['role'];
+      is_loading_feedback=false;
+      feedback = unformatted_feedback;
+
+      current_texture_parts[part_parent_name][part_name]['feedback'] = feedback;
+      curr_texture_parts.set(current_texture_parts);
+
+      console.log(get(curr_texture_parts));
+      console.log(current_texture_parts);
     }
 
     let activeTab='adjust-finish';
     function switchTab(tab) {
       activeTab = tab;
     }
+
+    onMount(async () => {
+      material = sel_objs_and_parts[index].model.children[0].material;
+      opacity = [material.opacity];
+      roughness = [material.roughness]; 
+      metalness = [material.metalness];
+      isTransparent = material.transparent;
+
+      translationX = material.map.offset.x;
+      translationY = material.map.offset.y;
+      rotation = material.map.rotation;
+      scaleX = material.map.repeat.x;
+      scaleY = material.map.repeat.y;
+
+      if(current_texture_parts[part_parent_name][part_name]['feedback']) {
+        feedback = current_texture_parts[part_parent_name][part_name]['feedback'];
+      }
+
+
+    });
+
 
 </script>
 
@@ -247,9 +270,7 @@
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-texture-map'} on:click={()=>switchTab('adjust-texture-map')} id="adjust-texture-btn">Texture Map</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-color'} on:click={()=>switchTab('adjust-color')} id="adjust-color-btn">Color Finish</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='attached-parts'} on:click={()=>switchTab('attached-parts')} id="attached-parts-btn">Attached Parts</button>
-    {#if feedback}
-      <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='view-feedback'} on:click={()=>switchTab('view-feedback')} id="view-feedback-btn">View Feedback</button>
-    {/if}
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='view-feedback'} on:click={()=>switchTab('view-feedback')} id="view-feedback-btn">View Feedback</button>
   </div>
 
   <div class="card container tab-content" class:active={activeTab==='adjust-finish'}>
@@ -410,13 +431,19 @@
 
   </div>
 
-  {#if feedback}
-    <div class="card container tab-content" class:active={activeTab==='view-feedback'}>
-      <h5> <b> Feedback </b></h5>
-        <!-- <p>{feedback}</p> -->
+  <div class="card container tab-content" class:active={activeTab==='view-feedback'}>
+    <h5> <b> Feedback </b></h5>
+      {#if feedback}
         <SvelteMarkdown source={feedback} />
-    </div>
-  {/if}
+      {:else if is_loading_feedback}
+        <div class="images-placeholder">
+          Requesting feedback...
+          <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+        </div>
+      {:else}
+        <p> No feedback yet. </p>
+      {/if}
+  </div>
 
 
 </div>
@@ -562,6 +589,17 @@
       width:100%;
       padding: 5px;
       gap: 5px; */
+    }
+
+    .images-placeholder {
+        width: 100%;
+        height: 100%;
+        border: 1px dashed black;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
     }
 
 
