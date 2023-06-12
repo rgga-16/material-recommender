@@ -1,6 +1,6 @@
 <script>
     import {onMount} from 'svelte';
-
+    import { Circle } from 'svelte-loading-spinners';
     import MaterialCard from '../SuggestModule/MaterialCard.svelte';
     import ColorPalette from '../SuggestModule/ColorPalette.svelte';
     import {saved_color_palettes} from '../../stores.js';
@@ -39,7 +39,11 @@
     function expand() {
         expanded_suggested_questions = !expanded_suggested_questions;
     }
-    let is_loading=false;
+
+
+    let is_loading_response=false;
+    let is_loading_material_queries=false;
+    let is_loading_color_queries=false;
 
     async function suggest_materials() {
         if (inputMessage.trim() === '') {
@@ -52,7 +56,7 @@
             "type": "regular"
         });
         messages = messages;
-
+        is_loading_response=true;
         const response = await fetch("/suggest_materials", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -63,12 +67,13 @@
             }),
         });
         const json = await response.json();
+        is_loading_response=false;
         inputMessage = '';
 
         let intro_text = json["intro_text"];
         let role = json["role"];
         let suggested_materials = json["suggested_materials"];
-        console.log(suggested_materials);
+        // console.log(suggested_materials);
 
         let message_type = "suggested_materials";
         messages.push({
@@ -92,7 +97,7 @@
             "type": "regular"
         });
         messages = messages;
-
+        is_loading_response=true;
         const response = await fetch("/suggest_colors", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -103,6 +108,7 @@
             }),
         });
         const json = await response.json();
+        is_loading_response=false;
         inputMessage = '';
 
         let intro_text = json["intro_text"];
@@ -166,8 +172,10 @@
     }
 
     async function init_query() {
+        is_loading_response=true;
         const response = await fetch('./init_query');
         const json = await response.json();
+        is_loading_response=false;
         let message = json["response"];
         let role = json["role"];
         messages.push({
@@ -175,7 +183,7 @@
             "role": role
         });
         messages = messages;
-        console.log(messages);
+        // console.log(messages);
     }
 
     function handleInput(event) {
@@ -185,10 +193,13 @@
     }
     
     async function brainstorm_material_queries() {
+        suggested_material_queries=[];
+        is_loading_material_queries=true;
         const response = await fetch('./brainstorm_material_queries');
         const json = await response.json(); 
+        is_loading_material_queries=false;
         suggested_material_queries = json['prompts']
-        console.log(suggested_material_queries)
+        // console.log(suggested_material_queries)
     }
 
     function generate(material_name) {
@@ -199,7 +210,6 @@
 
     onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
         await init_query();
-
         // If the chatbot_input_message, a global store, is updated, update the inputMessage variable and the text in the textbox message area.
         chatbot_input_message.subscribe(value => {
             inputMessage = value;
@@ -245,6 +255,17 @@
             </div>
         </div>
     {/each}
+    {#if is_loading_response}
+        <div class="assistant" style="position:relative; min-height: 20%;">
+            <strong>assistant:</strong> 
+            <div class="images-placeholder" style="position:absolute; top:0; left:0; z-index:2; width:100%; height:100%;">
+                Loading response... 
+                <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+            </div>
+        </div>
+        
+    {/if}
+
 </div>
 
 
@@ -272,6 +293,14 @@
                         <li on:click={handleInput} style="cursor:pointer;"> {query} </li>
                     {/each}
                 </ul>
+                {#if is_loading_material_queries}
+                    <div style="position:relative; min-height: 70%;">
+                        <div class="images-placeholder" style="position:absolute; top:0; left:0; z-index:2; width:100%; height:100%;">
+                            Brainstorming material queries...
+                            <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+                        </div>
+                    </div>
+                {/if}
             </div>
             <div class="footer">
                 <button on:click|preventDefault={()=>brainstorm_material_queries()}> Brainstorm questions! </button>
@@ -391,6 +420,17 @@
         height: 180%;
         width: 100%;
         margin-bottom: 5px;
+    }
+
+    .images-placeholder {
+        width: 100%;
+        height: 100%;
+        /* border: 1px dashed black; */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
     }
 
 </style>
