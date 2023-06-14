@@ -360,14 +360,14 @@
 	}
 
 	.actions-panel {
-		width: 25%;
+		width: 23%;
 		background-color: lightgray;
 		height: inherit;
 		border: 2px solid black;
 	}
 
 	.information-panel {
-		width: 25%; 
+		width: 27%; 
 		background-color: lightgray;
 		border: 2px solid black;
 		height: inherit;

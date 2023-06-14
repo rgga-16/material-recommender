@@ -39,7 +39,7 @@ Brainstorm example keywords or key phrases I can append to the textual descripti
 
 I want you to return the keywords only as a Python list. Do not say anything else apart from the Python list.
 '''
-search = DuckDuckGoSearchResults(num_results=10)
+
 
 message_history = []
 temperature=0.0
@@ -110,9 +110,10 @@ def init_query():
     response = query(system_prompt,"system")
     return response
 
-def internet_search(query,role="user"):
-    global message_history 
 
+def internet_search(query,role="user",n_results=10):
+    global message_history 
+    search = DuckDuckGoSearchResults(num_results=n_results)
     prompt = f'''
         Disregard any previous instructions.
         I will give you a question or an instruction. Your objective is to answer my question or fulfill my instruction.
@@ -136,7 +137,7 @@ def internet_search(query,role="user"):
             TITLE:{r['title']}
             CONTENT:{r['snippet']}
         '''
-    return prompt
+    return prompt, results 
 
 def query(prompt,role="user"):
     global message_history
@@ -154,7 +155,7 @@ def query(prompt,role="user"):
 def suggest_materials(prompt,role="user", use_internet=True):
     refined_prompt = f"{prompt}"
     if use_internet:
-        refined_prompt = internet_search(refined_prompt,role)
+        refined_prompt,_ = internet_search(refined_prompt,role)
     initial_response = query(refined_prompt,role)
     intro_text = initial_response.split('\n')[0].strip()
     if use_internet: 
@@ -188,7 +189,7 @@ def suggest_materials(prompt,role="user", use_internet=True):
 def suggest_color_palettes(prompt, role="user", use_internet=True):
     refined_prompt = f"{prompt}. Suggest color palettes."
     if use_internet:
-        refined_prompt = internet_search(refined_prompt,role)
+        refined_prompt,_ = internet_search(refined_prompt,role)
     initial_response = query(refined_prompt,role)
     intro_text = initial_response.split('\n')[0].strip()
 
@@ -223,41 +224,6 @@ def suggest_color_palettes(prompt, role="user", use_internet=True):
     suggestions = ast.literal_eval(python_list_response)
     return intro_text, suggestions
 
-# def suggest_color_palettes(prompt, role="user"):
-#     refined_prompt = f'''{prompt}. 
-#     Suggest color palettes that contain hex codes using the following format:
-
-#     - Color Palette #1 Name
-#     Textual explanation of color palette
-#     HEX codes: HEXCODE1, #HEXCODE2, #HEXCODE3,... #HEXCODEN
-
-#     - Color Palette #2 Name
-#     Textual explanation of color palette
-#     HEX codes: HEXCODE1, #HEXCODE2, #HEXCODE3,... #HEXCODEN
-
-#     .....
-
-#     - Color Palette #N Name
-#     Textual explanation of color palette
-#     HEX codes: HEXCODE1, #HEXCODE2, #HEXCODE3,... #HEXCODEN
-
-#     Now, suggest 5 color palettes.
-#     '''
-
-#     initial_response = query(refined_prompt,role)
-#     intro_text = initial_response.split('\n')[0].strip()
-
-#     python_list_prompt= '''
-#         Now, return them as a Python list of dictionaries. 
-#         Each dictionary should contain the following keys: name, description, codes. 
-#         RETURN THE PYTHON LIST ONLY. Do not say anything else (ex. "Here are the color palettes you requested, return as a list of dictionaries.") apart from the Python list.
-#     '''
-
-#     python_list_response = query(python_list_prompt,role)
-
-#     python_list = ast.literal_eval(python_list_response)
-#     return intro_text, python_list
-
 def brainstorm_prompt_keywords(material):
 
     texture_map_keywords_prompt = f'''
@@ -276,8 +242,6 @@ def brainstorm_prompt_keywords(material):
     )
     keywords = ast.literal_eval(response["choices"][0]["message"]["content"])
     return keywords
-
-
 
 def brainstorm_material_queries(): 
     global init_history
@@ -309,34 +273,65 @@ materials_feedbacks = []
 '''
 attached_parts: list of tuples (object_name, part_name, material_name)
 '''
-def provide_material_feedback(material_name, object_name, part_name, attached_parts=None, design_context=None):
-    material_feedback_prompt_head = f'''
-    I have a {object_name} {part_name} made out of {material_name}. 
-    '''
+def provide_material_feedback(material_name, object_name, part_name, use_internet=False, attached_parts=None, design_context=None):
+    
+    if(object_name==part_name):
+        part_name=""
+    material_feedback_prompt_head = f"I have a {object_name} {part_name} made out of {material_name}. "
 
-    materials_context = f'''Here is additional information for context: \n'''
-    if attached_parts is not None:
+    materials_context=""
+    if attached_parts is not None and len(attached_parts)>0:
+        materials_context = f'''Here is additional information for context: \n'''
         for attached_part in attached_parts:
             materials_context += f'''It is attached to a {attached_part[0]} {attached_part[1]} made out of {attached_part[2]}. '''
 
-    material_feedback_prompt_tail = f'''\n
-        Please provide feedback on the material used based on the following aspects: durability, maintenance, sustainability, assembly, and cost. 
-        For each aspect, if you gave critical feedback on that aspect, please provide up to 5 suggestions 
-        (e.g. alternative materials, adding material finishes, assembly attachments) to improve the aspect. 
-        Make sure that you also consider the object the material is used on.
-
-        Respond using Markdown.
+    material_feedback_prompt_tail = f'''\nPlease provide feedback on the material used based on the following aspects: durability, maintenance, sustainability, assembly, and cost. 
+    For each aspect, if you gave critical feedback on that aspect, please provide up to 5 suggestions 
+    (e.g. alternative materials, adding material finishes, assembly attachments) to improve the aspect. 
+    Make sure that you also consider the object the material is used on.
     '''
 
-    material_feedback_prompt = material_feedback_prompt_head + materials_context + material_feedback_prompt_tail
-    print(material_feedback_prompt)
+    if use_internet:
+        aspects = ["durability", "maintenance", "sustainability", "assembly", "cost"]
+        results = []
+        material_feedback_prompt_tail += f'''\n 
+        Here are sources from the internet that you can refer to and cite when providing feedback: \n
+        '''
+        src_idx=1
+        references = []
+        for i in range(len(aspects)):
+            aspect = aspects[i]
+            internet_search_query = f'{aspect} of a {object_name} {part_name} made out of {material_name}'
+            _, results = internet_search(internet_search_query,role="user",n_results=5)
+            material_feedback_prompt_tail += f"**{aspect}**:"
+            for r in results:
+                material_feedback_prompt_tail += f'''\n
+                NUMBER:{src_idx}
+                URL:{r['link']}
+                TITLE:{r['title']}
+                CONTENT:{r['snippet']}
+                '''
 
+                references.append({
+                    "number":src_idx,
+                    "url":r['link'],
+                    "title":r['title'],
+                })
+                src_idx+=1
+        
+        material_feedback_prompt_tail += f'''
+        Make sure to cite results using [[NUMBER](URL)] notation after the reference. 
+        If the provided information from the internet results refers to multiple subjects with the same name, write separate answers for each subject.
+        '''
+
+    material_feedback_prompt = material_feedback_prompt_head + materials_context + material_feedback_prompt_tail + "\nRespond using Markdown."
+    print(material_feedback_prompt)
     global init_history
     init_history_clone = copy.deepcopy(init_history)
     init_history_clone.append({"role":"user", "content":material_feedback_prompt})
 
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-3.5-turbo-16k",
         messages=init_history_clone,
         temperature=0.1
     )
@@ -344,27 +339,66 @@ def provide_material_feedback(material_name, object_name, part_name, attached_pa
     material_feedback = response["choices"][0]["message"]["content"]
     init_history_clone.append({"role":"assistant", "content":material_feedback})
 
-    follow_up_prompt = f'''
-        Based on the feedback, for each aspect, if you suggested any materials, finishes, or assembly attachments, return them as a dictionary. 
-        The keys should be the aspects, and the values in each aspect is a list of lists where each list contains the name of the suggested item and item type.
-        The item type must either be one of the following: material, finish, attachment, or other. 
-        
-        Here is a template:
-    '''
-    dict_template = {
-            "durability": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]],
-            "maintenance": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]],
-            "sustainability": [["material1","material"],["material2","material"]],
-            "assembly": [["assembly_attachment_1","attachment"], ["assembly_attachment_2","attachment"]],
-            "cost": [["material1","material"],["material2","material"]]
-    }
-    dict_template_str = json.dumps(dict_template)
-    follow_up_prompt += dict_template_str
-    print(follow_up_prompt)
+    intro_text = material_feedback.split('\n')[0].strip()
 
-    init_history_clone.append({"role":"user", "content":follow_up_prompt})
+    #########################################
+    follow_up_prompt2 = f'''
+    Based on the feedback, return a Python dictionary. Each key should be an aspect. The values of each aspect are "feedback" and "suggestions".
+    "feedback" is the key to the feedback you provided for that aspect. Make sure that the feedback is in Markdown format and it is exactly the same as the feedback you provided for that aspect in the previous response.
+    "suggestions" is a list of lists where each list contains the name of the suggested item and item type.
+    The item type must either be one of the following: material, finish, attachment, or other.
+    Here is a template:
+    '''
+    dict_template2 = {
+        "durability": {
+            "feedback": "durability feedback",
+            "suggestions": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]]
+        },
+        "maintenance": {
+            "feedback": "maintenance feedback",
+            "suggestions": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]]
+        },
+        "sustainability": {
+            "feedback": "sustainability feedback",
+            "suggestions": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]]
+        },
+        "assembly": {
+            "feedback": "assembly feedback",
+            "suggestions": [["assembly_attachment_1","attachment"], ["assembly_attachment_2","attachment"]]
+        },
+        "cost": {
+            "feedback": "cost feedback",
+            "suggestions": [["material1","material"],["material2","material"]]
+        }
+    }
+    dict_template2_str = json.dumps(dict_template2, indent=4)
+    follow_up_prompt2 += dict_template2_str
+    init_history_clone.append({"role":"user", "content":follow_up_prompt2})
+    #########################################
+
+    #########################################
+    # follow_up_prompt = f'''
+    # Based on the feedback, for each aspect, if you suggested any materials, finishes, or assembly attachments, return them as a dictionary. 
+    # The keys should be the aspects, and the values in each aspect is a list of lists where each list contains the name of the suggested item and item type.
+    # The item type must either be one of the following: material, finish, attachment, or other. 
+    # Here is a template:
+    # '''
+    # dict_template = {
+    #         "durability": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]],
+    #         "maintenance": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]],
+    #         "sustainability": [["material1","material"],["material2","material"]],
+    #         "assembly": [["assembly_attachment_1","attachment"], ["assembly_attachment_2","attachment"]],
+    #         "cost": [["material1","material"],["material2","material"]]
+    # }
+    # dict_template_str = json.dumps(dict_template)
+    # follow_up_prompt += dict_template_str
+    # print(follow_up_prompt)
+    # init_history_clone.append({"role":"user", "content":follow_up_prompt})
+    #########################################
+
+    
     suggestions_dict_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-3.5-turbo-16k",
         messages=init_history_clone,
         temperature=0.0
     )
@@ -384,8 +418,7 @@ def provide_material_feedback(material_name, object_name, part_name, attached_pa
     suggestions_dict= ast.literal_eval(suggestions_dict_str)
     print(suggestions_dict)
 
-
-    return material_feedback
+    return intro_text, material_feedback, suggestions_dict, references
 
 
 def feedback_on_assembly(object, child_part, child_material, parent_part, parent_material,n=3):
