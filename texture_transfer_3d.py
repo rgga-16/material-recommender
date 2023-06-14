@@ -40,7 +40,6 @@ class DALLE2():
             im = image.b64_2_img(image_b64).convert('RGB')
             images.append(im)
             images_b64.append(image_b64)
-
         return images
 
 

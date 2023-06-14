@@ -179,27 +179,25 @@
         actions_panel_tab.set("chatbot");
         chatbot_input_message.set(query);
       }
-      // generate_tab_page.set(0);
     }
 
     let feedback =undefined;
+    let formatted_feedback = undefined;
+    let intro_text=undefined;
+    let references=undefined; 
+    let activeAspect;
     async function requestMaterialFeedback() {
       feedback=undefined;
+      formatted_feedback=undefined; intro_text=undefined; references=undefined;
       switchTab("view-feedback");
 
       let attached_parts = [];
       for (const p in parents) {
-        const parent = parents[p]
-        console.log(parent);
-        const obj = parent[0];
-        const part = parent[1];
-        console.log(obj);
-        console.log(part);
+        const parent = parents[p]; const obj = parent[0]; const part = parent[1];
         const attached_part_material = current_texture_parts[obj][part]['mat_name'];
-        console.log(attached_part_material);
-        attached_parts.push([obj, part, attached_part_material]);
-        attached_parts=attached_parts;
+        attached_parts.push([obj, part, attached_part_material]); attached_parts=attached_parts;
       }
+
       is_loading_feedback=true;
       const response = await fetch("/feedback_materials", {
               method: "POST",
@@ -211,13 +209,25 @@
                 "attached_parts":attached_parts,
               }),
       });
+
       const data = await response.json();
-      const unformatted_feedback = await data['response'];
+      
+      const unformatted_feedback = await data['unformatted_response'];
       const role = await data['role'];
+      intro_text = await data['intro_text'];
+      formatted_feedback = await data['formatted_response'];
+      references = await data['references'];
+
+      activeAspect= await Object.keys(formatted_feedback)[0];
+
       is_loading_feedback=false;
+
       feedback = unformatted_feedback;
 
-      current_texture_parts[part_parent_name][part_name]['feedback'] = feedback;
+      current_texture_parts[part_parent_name][part_name]['feedback'] = {};
+      current_texture_parts[part_parent_name][part_name]['feedback']['formatted_feedback'] = formatted_feedback;
+      current_texture_parts[part_parent_name][part_name]['feedback']['intro_text'] = intro_text;
+      current_texture_parts[part_parent_name][part_name]['feedback']['references'] = references;
       curr_texture_parts.set(current_texture_parts);
 
       console.log(get(curr_texture_parts));
@@ -243,8 +253,12 @@
       scaleY = material.map.repeat.y;
 
       if(current_texture_parts[part_parent_name][part_name]['feedback']) {
-        feedback = current_texture_parts[part_parent_name][part_name]['feedback'];
+        // feedback = current_texture_parts[part_parent_name][part_name]['feedback'];
+        formatted_feedback = current_texture_parts[part_parent_name][part_name]['feedback']['formatted_feedback'];
+        intro_text = current_texture_parts[part_parent_name][part_name]['feedback']['intro_text'];
+        references = current_texture_parts[part_parent_name][part_name]['feedback']['references'];
       }
+      console.log(parents);
 
 
     });
@@ -433,6 +447,48 @@
 
   <div class="card container tab-content" class:active={activeTab==='view-feedback'}>
     <h5> <b> Feedback </b></h5>
+      {#if formatted_feedback}
+        <SvelteMarkdown source={intro_text} />
+        <div class="w3-bar w3-grey tabs">
+          {#each Object.keys(formatted_feedback) as aspect}
+            <button class="w3-bar-item w3-button tab-btn" class:active={activeAspect===aspect} on:click={() => {activeAspect = aspect;}}>
+              {aspect}
+            </button>
+          {/each}
+        </div>
+
+        {#each Object.keys(formatted_feedback) as aspect}
+          <div class="card container tab-content" class:active={activeAspect===aspect}>
+            <SvelteMarkdown source={formatted_feedback[aspect]['feedback']} />
+            <div class="control">
+              {#each formatted_feedback[aspect]['suggestions'] as suggestion}
+                <div class="card">
+                  {#if suggestion[1] === "material" && suggestion.length===3} 
+                    <span>{suggestion[1]}</span>
+                    <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"}/>
+                    <span>{suggestion[0]}</span>
+                  {:else}
+                    <span>{suggestion[1]}:{suggestion[0]}</span>
+                  {/if} 
+                </div>
+              {/each}
+            </div>
+          </div>
+        {/each}
+
+        <SvelteMarkdown source={references} />
+      {:else if is_loading_feedback}
+        <div class="images-placeholder">
+          Requesting feedback...
+          <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+        </div>
+      {:else}
+        <p> No feedback yet. </p>
+      {/if}
+  </div>
+
+  <!-- <div class="card container tab-content" class:active={activeTab==='view-feedback'}>
+    <h5> <b> Feedback </b></h5>
       {#if feedback}
         <SvelteMarkdown source={feedback} />
       {:else if is_loading_feedback}
@@ -443,7 +499,7 @@
       {:else}
         <p> No feedback yet. </p>
       {/if}
-  </div>
+  </div> -->
 
 
 </div>

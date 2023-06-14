@@ -5,7 +5,7 @@ from texture_transfer_3d import TextureDiffusion, DALLE2
 from configs import *
 
 
-from utils.image import makedir, emptydir, degrees_to_radians
+from utils.image import makedir, emptydir, degrees_to_radians, im_2_b64
 
 import models.llm.gpt3 as gpt3
 
@@ -33,6 +33,12 @@ def query():
     response = gpt3.query(form_data["prompt"],form_data["role"])
     return jsonify({"response":response,"role":"assistant"})
 
+def format_references(references):
+    references_str=""
+    for ref in references:
+        references_str+=f"{ref['number']}. [{ref['title']}]({ref['url']})\n"
+    return references_str
+
 @app.route("/feedback_materials", methods=['POST'])
 def feedback_materials():
     form_data = request.get_json()
@@ -41,10 +47,27 @@ def feedback_materials():
     part_name = form_data["part_name"]
     attached_parts = form_data["attached_parts"]
 
-    # attached_parts should be [(object,part,material),...]
-    response = gpt3.provide_material_feedback(material_name, object_name, part_name, attached_parts=attached_parts)
+    intro_text, response, suggestions_dict, references = gpt3.provide_material_feedback(material_name, object_name, part_name, use_internet=True, attached_parts=attached_parts)
+    references_str = format_references(references)
 
-    return jsonify({"response":response,"role":"assistant"})
+    for aspect in suggestions_dict:
+        for suggestion in suggestions_dict[aspect]['suggestions']:
+            type=suggestion[1]; name=suggestion[0]
+            if type=="material":
+                texture_prompt = f"{name}, texture map, seamless, 4k"
+                image, _ = generate_textures(texture_prompt,n=1, imsize=448); image=image[0]
+                b64_url = im_2_b64(image)
+                b64_url_serial = f"data:image/jpeg;base64,{b64_url.decode('utf-8')}"
+                suggestion.append(b64_url_serial)
+                # image is a PIL image
+                
+    return jsonify({
+        "intro_text":intro_text,
+        "unformatted_response":response,
+        "formatted_response":suggestions_dict,
+        "references":references_str,
+        "role":"assistant"
+    })
 
 @app.route("/suggest_materials", methods=['POST'])
 def suggest_materials():
@@ -52,7 +75,8 @@ def suggest_materials():
     intro_text, suggested_materials_dict = gpt3.suggest_materials(form_data["prompt"],role=form_data["role"],use_internet=form_data["use_internet"])
     suggested_materials = []
     for sm in suggested_materials_dict:
-        image, filename = generate_textures(sm,n=1, imsize=448); image=image[0]; filename=filename[0]
+        texture_prompt = f"{sm}, texture map, seamless, 4k"
+        image, filename = generate_textures(texture_prompt,n=1, imsize=448); image=image[0]; filename=filename[0]
         savepath = os.path.join(SERVER_IMDIR,"suggested",filename)
         image.save(savepath)
         suggested_materials.append({
