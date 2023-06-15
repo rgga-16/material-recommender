@@ -1,11 +1,11 @@
 from flask import Flask, send_from_directory, request, jsonify, send_file
-import random, requests, json, copy, shutil, os, base64
+import random, requests, json, copy, shutil, os, base64, io
 from PIL import Image
 from texture_transfer_3d import TextureDiffusion, DALLE2
 from configs import *
 
 
-from utils.image import makedir, emptydir, degrees_to_radians, im_2_b64
+from utils.image import makedir, emptydir, degrees_to_radians, im_2_b64, is_b64
 
 import models.llm.gpt3 as gpt3
 
@@ -57,9 +57,21 @@ def feedback_materials():
                 texture_prompt = f"{name}, texture map, seamless, 4k"
                 image, _ = generate_textures(texture_prompt,n=1, imsize=448); image=image[0]
                 b64_url = im_2_b64(image)
-                b64_url_serial = f"data:image/jpeg;base64,{b64_url.decode('utf-8')}"
-                suggestion.append(b64_url_serial)
-                # image is a PIL image
+                suggestion.append(b64_url.decode('utf-8'))
+            elif type=="attachment":
+                texture_prompt = f"{name}, photorealistic, 4k"
+                image, _ = generate_textures(texture_prompt,n=1, imsize=448); image=image[0]
+                b64_url = im_2_b64(image)
+                suggestion.append(b64_url.decode('utf-8'))
+            elif type=="finish": 
+                suggested_finish_settings = gpt3.suggest_finish_settings(name, material_name, object_name, part_name)
+                suggestion.append(suggested_finish_settings)
+            else: 
+                texture_prompt = f"{name}, photorealistic, 4k"
+                image, _ = generate_textures(texture_prompt,n=1, imsize=448); image=image[0]
+                b64_url = im_2_b64(image)
+                suggestion.append(b64_url.decode('utf-8'))
+
                 
     return jsonify({
         "intro_text":intro_text,
@@ -269,8 +281,25 @@ def generate_and_transfer_textures():
 @app.route("/get_image", methods=['POST'])
 def get_image(): 
     form_data = request.get_json()
-    img_path = form_data["image_path"]
-    return send_file(img_path,mimetype='image/png')
+    img_data = form_data["image_data"]
+
+    if is_b64(img_data):
+        print("IT'S b64 URL")
+        img_bytes = base64.b64decode(img_data)  
+        return send_file(io.BytesIO(img_bytes),mimetype='image/png')
+    else:
+        print("Image data is not base64 encoded. Detecting it as an image path instead.")
+
+    # try: 
+    #     img_bytes = base64.b64decode(img_data)  
+    #     return send_file(io.BytesIO(img_bytes),mimetype='image/png')
+    # except Exception as e:
+    #     print("Image data is not base64 encoded. Detecting it as an image path instead.")
+    
+    img_path = img_data 
+    _, file_extension = os.path.splitext(img_path)
+
+    return send_file(img_path,mimetype=f'image/{file_extension[1:]}')
 
 @app.route("/generate_textures", methods=['POST'])
 def generate_textures_():

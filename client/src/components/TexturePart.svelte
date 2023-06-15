@@ -10,6 +10,8 @@
     import {saved_color_palettes} from "../stores.js";
     import {chatbot_input_message} from "../stores.js";
     import {actions_panel_tab} from '../stores.js';
+    import {generate_tab_page} from '../stores.js';
+    import {generate_module} from '../stores.js';
 
     import {createEventDispatcher} from 'svelte';
 
@@ -238,7 +240,7 @@
     function switchTab(tab) {
       activeTab = tab;
     }
-
+    let gen_module;
     onMount(async () => {
       material = sel_objs_and_parts[index].model.children[0].material;
       opacity = [material.opacity];
@@ -257,11 +259,29 @@
         formatted_feedback = current_texture_parts[part_parent_name][part_name]['feedback']['formatted_feedback'];
         intro_text = current_texture_parts[part_parent_name][part_name]['feedback']['intro_text'];
         references = current_texture_parts[part_parent_name][part_name]['feedback']['references'];
+        activeAspect= Object.keys(formatted_feedback)[0];
       }
       console.log(parents);
 
+      gen_module = get(generate_module);
+
 
     });
+
+    function applyFinishSuggestion(finish_suggestion) {
+      switchTab('adjust-finish');
+      opacity = [finish_suggestion["opacity"]];
+      roughness = [finish_suggestion["roughness"]];
+      metalness = [finish_suggestion["metalllic"]];
+      updateFinish();
+      
+    }
+
+    function generate(material_name) {
+      actions_panel_tab.set("generate");
+      generate_tab_page.set(0);
+      gen_module.generate_textures(material_name);
+    }
 
 
 </script>
@@ -460,18 +480,41 @@
         {#each Object.keys(formatted_feedback) as aspect}
           <div class="card container tab-content" class:active={activeAspect===aspect}>
             <SvelteMarkdown source={formatted_feedback[aspect]['feedback']} />
-            <div class="control">
-              {#each formatted_feedback[aspect]['suggestions'] as suggestion}
-                <div class="card">
-                  {#if suggestion[1] === "material" && suggestion.length===3} 
-                    <span>{suggestion[1]}</span>
-                    <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"}/>
-                    <span>{suggestion[0]}</span>
-                  {:else}
-                    <span>{suggestion[1]}:{suggestion[0]}</span>
-                  {/if} 
-                </div>
-              {/each}
+            
+            <div class="card container">
+              <h6> <b> <u> Suggestions </u>  </b></h6>
+              <div class="control" style="justify-content:space-between;">
+                {#each formatted_feedback[aspect]['suggestions'] as suggestion}
+                  <div class="card container">
+                    {#if suggestion[1] === "material" && suggestion.length===3} 
+                      <span> <b> {suggestion[0]} </b></span>
+                      <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"} is_draggable={true}/>
+                      <span> <b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+
+                      <button  on:click={() => {generate(suggestion[0])}}> 
+                        Generate more! 
+                        <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
+                      </button>
+                    {:else if suggestion[1] === "attachment" && suggestion.length===3}
+                      <span> <b> {suggestion[0]} </b></span>
+                      <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"}/>
+                      <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                    {:else if suggestion[1] === "finish" && suggestion.length===3}
+                      <span> <b> {suggestion[0]} </b></span>
+                      <div class="card container">
+                        <span> Opacity: {suggestion[2]["opacity"]}</span>
+                        <span> Roughness: {suggestion[2]["roughness"]}</span>
+                        <span> Metalness: {suggestion[2]["metallic"]}</span>
+                      </div>
+                      <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                      <button  on:click={() => {applyFinishSuggestion(suggestion[2])}}> Apply Finish </button>
+                    {:else}
+                      <span> <b> {suggestion[0]} </b></span>
+                      <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                    {/if} 
+                  </div>
+                {/each}
+              </div>
             </div>
           </div>
         {/each}
@@ -521,7 +564,7 @@
       padding: 5px; 
       gap: 5px;
       width: 100%;
-      height: auto;
+      height: 100%;
     }
 
     .control {

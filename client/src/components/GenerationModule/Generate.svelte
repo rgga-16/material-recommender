@@ -51,7 +51,7 @@
             }
         }
 
-        texture_str += ",  texture map, 4k";
+        texture_str += ",  texture map, seamless, 4k";
 
         const results_response = await fetch("/generate_textures", {
             method: "POST",

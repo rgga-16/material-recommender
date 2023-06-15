@@ -17,13 +17,12 @@ let is_loading=false;
 
 export async function getImage() {
     is_loading=true; 
-    // const start = performance.now();
     try {   
         const response = await fetch("/get_image", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
-                "image_path": imagepath,
+                "image_data": imagepath,
             }),
         });
         const blob = await response.blob();
@@ -32,8 +31,6 @@ export async function getImage() {
         console.error(error);
     } finally {
         is_loading=false;
-        // const end = performance.now();
-        // console.log("New getImage() took " + (end - start) + " milliseconds.");
     }
 
 }

@@ -4,6 +4,8 @@
     import SuggestColors from "./SuggestModule/SuggestColors.svelte";
     import ChatBot from "./ChatBotModule/ChatBot.svelte";
     import {actions_panel_tab} from '../stores.js';
+    import {onMount} from 'svelte';
+    import {generate_module} from '../stores.js';
 
     export let onCallUpdateCurrentRendering;
     let generate;
@@ -21,13 +23,20 @@
       actions_panel_tab.set(tab);
     }
 
+    onMount(() => {
+      console.log(generate);
+      generate_module.set(generate);
+    });
+
+    
+
     
 </script>
 
 <div class="actions-panel">
   <div class="w3-bar w3-grey tabs">
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='generate'} on:click={()=>switchTab('generate')} id="generate-btn">Generate</button>
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='chatbot'} on:click={()=>switchTab('chatbot')} id="suggest-colors-btn">ChatBot</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='chatbot'} on:click={()=>switchTab('chatbot')} id="chatbot-btn">ChatBot</button>
     <!-- <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_materials'} on:click={()=>switchTab('suggest_materials')} id="suggest-materials-btn">Suggest Materials</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_colors'} on:click={()=>switchTab('suggest_colors')} id="suggest-colors-btn">Suggest Colors</button> -->
   </div>
