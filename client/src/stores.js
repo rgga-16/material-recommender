@@ -52,11 +52,11 @@ export const saved_color_palettes = writable([
     }
 ]);
 
-export const material_aware_feedbacks = writable({}); //Keeps track of the material-aware feedbacks of each part in the 3D view
-
 export const actions_panel_tab = writable("chatbot"); //Keeps track of which tab is currently selected in the actions panel
 export const information_panel_tab = writable("details"); //Keeps track of which tab is currently selected in the information panel
 export const display_panel_tab = writable("3d_display")
+
+export const generate_module = writable(); //Keeps track of the generate module. Used if you want to call the module to generate something.
 
 export const generate_tab_page = writable(0); //Keeps track of which page is currently selected in the generate tab
 

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np 
 from PIL import Image
 import torch 
-import os, shutil, math
+import os, shutil, math, re
 import io
 from base64 import encodebytes
 from io import BytesIO
@@ -13,6 +13,11 @@ css= '''
         background-color: red;
     }
 '''
+
+# Borrowed function from: https://www.generacodice.com/en/articolo/4761261/check-if-a-string-is-encoded-in-base64-using-python
+RE_BASE64 = "^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$"
+def is_b64(s:str) -> bool:
+    return False if s is None or not re.search(RE_BASE64, s) else True
 
 # Convert Image to Base64 
 def im_2_b64(image):

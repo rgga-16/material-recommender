@@ -125,10 +125,8 @@ def internet_search(query,role="user",n_results=10):
         Make sure to cite results using [[NUMBER](URL)] notation after the reference. 
         If the provided information from the internet results refers to multiple subjects with the same name, write separate answers for each subject:
     '''
-
     results_str= search.run(query)
     results = ast.literal_eval(results_str)
-
     for i in range(len(results)):
         r = results[i]
         prompt += f'''\n
@@ -186,6 +184,54 @@ def suggest_materials(prompt,role="user", use_internet=True):
     suggestions = ast.literal_eval(python_dict_response)
     return intro_text, suggestions
 
+def suggest_finish_settings(finish_name, material_name, object_name, part_name, role="user"):
+
+    if(object_name==part_name):
+        object_str = f"The 3D object you are applying the finish onto is a {object_name}."
+    else:
+        object_str = f"The 3D object is a {object_name} and the part of the object you are applying the finish onto is the {part_name}."
+
+    prompt=f'''
+    Imagine you are putting settings for a finish you want to add onto the material for a 3D object in a 3D modelling software.
+    {object_str} 
+    The material you want to add the finish to is the {material_name}.
+    Here are the following settings you can edit, their range of values for the finish, and a description of each setting:
+    - Roughness: 0.0 to 1.0. This controls the shine of the material. Values less than 0.5 would give a smoother and glossier finish while a greater than 0.5 would give a rougher and more matte finish.
+    - Metallic: 0.0 to 1.0. This controls the metallicness of the material. Values less than 0.5 would make the material look less metallic while a greater than 0.5 would make the material look more metallic.
+    - Opacity: 0.0 to 1.0. This controls the opacity of the material. Values less than 0.5 would make the material more transparent while a greater than 0.5 would make the material more opaque.
+    Now, return the suggested setting values for the finish, {finish_name}, as a Python dictionary.
+    The keys should be the setting names, and the values should be the suggested setting values.
+    '''
+    # Do not say anything else apart from the Python dictionary.
+    global init_history
+    init_history_clone = copy.deepcopy(init_history)
+    init_history_clone.append({"role":"user", "content":prompt})
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=init_history_clone,
+        temperature=0.2
+    )
+    suggested_settings_str = response["choices"][0]["message"]["content"]
+
+    # Remove text before and after the Python dict
+    start_index = suggested_settings_str.find('{')
+    if start_index>0:
+        print("Removing text before the Python dictionary.")
+        suggested_settings_str = suggested_settings_str[start_index:].strip()
+    end_index = suggested_settings_str.rfind('}')
+    if end_index<len(suggested_settings_str)-1:
+        print("Removing text after the Python dictionary.")
+        suggested_settings_str = suggested_settings_str[:end_index+1].strip()
+    suggested_settings_str = suggested_settings_str.strip()
+
+    suggested_settings = ast.literal_eval(suggested_settings_str)
+
+    for key in list(suggested_settings.keys()):
+        new_key = key.strip().lower()
+        suggested_settings[new_key] = suggested_settings.pop(key)
+
+    return suggested_settings
+
 def suggest_color_palettes(prompt, role="user", use_internet=True):
     refined_prompt = f"{prompt}. Suggest color palettes."
     if use_internet:
@@ -218,14 +264,12 @@ def suggest_color_palettes(prompt, role="user", use_internet=True):
     if end_index<len(python_list_response)-1:
         print("Removing text after the Python list.")
         python_list_response = python_list_response[:end_index+1].strip()
-
     python_list_response = python_list_response.strip()
 
     suggestions = ast.literal_eval(python_list_response)
     return intro_text, suggestions
 
 def brainstorm_prompt_keywords(material):
-
     texture_map_keywords_prompt = f'''
         I am using DALL-E to create an image of a {material} texture map by typing in a textual description.
         Brainstorm example keywords I can append to the textual description to make a detailed and more accurate image of a {material} texture map. 
