@@ -4,13 +4,14 @@
     import DynamicImage from "../DynamicImage.svelte";
     export let pairs;
     export let selected_texturepaths=[]; 
+    export let texture_name;
 </script>
 
 <div class="image-grid">
     {#each pairs as pair, i}
         <label class="preview-card" class:selected={selected_texturepaths.includes(pair.texture)}>
             <input type=checkbox bind:group={selected_texturepaths} name="option" value={pair.texture} >
-            <div class="image"> <DynamicImage imagepath={pair.texture} size={"175px"} alt="Texture" is_draggable={true}/> </div>
+            <div class="image"> <DynamicImage imagepath={pair.texture} size={"175px"} alt={texture_name} is_draggable={true}/> </div>
             <!-- <PreviewCard texture={pair.texture} rendering={pair.rendering} info={pair.info} index={i} size=175/> -->
         </label>
     {/each} 

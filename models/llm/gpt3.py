@@ -420,26 +420,6 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
     init_history_clone.append({"role":"user", "content":follow_up_prompt2})
     #########################################
 
-    #########################################
-    # follow_up_prompt = f'''
-    # Based on the feedback, for each aspect, if you suggested any materials, finishes, or assembly attachments, return them as a dictionary. 
-    # The keys should be the aspects, and the values in each aspect is a list of lists where each list contains the name of the suggested item and item type.
-    # The item type must either be one of the following: material, finish, attachment, or other. 
-    # Here is a template:
-    # '''
-    # dict_template = {
-    #         "durability": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]],
-    #         "maintenance": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]],
-    #         "sustainability": [["material1","material"],["material2","material"]],
-    #         "assembly": [["assembly_attachment_1","attachment"], ["assembly_attachment_2","attachment"]],
-    #         "cost": [["material1","material"],["material2","material"]]
-    # }
-    # dict_template_str = json.dumps(dict_template)
-    # follow_up_prompt += dict_template_str
-    # print(follow_up_prompt)
-    # init_history_clone.append({"role":"user", "content":follow_up_prompt})
-    #########################################
-
     
     suggestions_dict_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo-16k",

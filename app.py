@@ -425,6 +425,8 @@ def update_3d_model():
     filename, fileext = os.path.splitext(server_model_path)
     server_model_path = filename + ".gltf"
 
+
+
     with open(server_model_path,'w') as f:
         f.write(model)
     
@@ -432,10 +434,25 @@ def update_3d_model():
 
 @app.route("/render", methods=['POST'])
 def render():
+    global current_texture_parts
     form_data = request.get_json()
     renderpath = form_data['renderpath']
     textureparts = form_data['textureparts']
     texturepartspath = form_data['texturepartspath']
+    
+    # curr_render_loaddir = os.path.join(CLIENT_IMDIR,'renderings','current')
+    curr_render_savedir = os.path.join(SERVER_IMDIR,'renderings','current')
+    for obj in list(textureparts.keys()):
+        for part in list(textureparts[obj].keys()):
+            # This portion is to add the current rendering directory to the model path 
+            if("model" in list(textureparts[obj][part].keys())):
+                model_path = textureparts[obj][part]["model"] #Note: the model is a .gltf file which includes the texture map from ["mat_image_texture"]
+                model_filename = os.path.basename(model_path)
+                textureparts[obj][part]["model"] = os.path.join(curr_render_savedir,model_filename) 
+    # current_texture_parts = copy.deepcopy(textureparts)
+
+    with open(texturepartspath,"w") as f:
+        json.dump(textureparts,f,indent=4)
 
     # Code to render initial rendering. Uncomment the below code if you want to re-render the initial rendering.
     command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {renderpath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {texturepartspath}'
