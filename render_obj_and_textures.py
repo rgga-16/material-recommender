@@ -566,6 +566,7 @@ def main2():
             part = obj[part_key]
             # print(f"Part: {part}")
             model_path = part['model']
+            print(f"MODEL PATH: {model_path}")
             renderer.load_object_gltf(model_path)
     
     renderer.render(args.out_path)

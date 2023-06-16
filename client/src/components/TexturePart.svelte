@@ -255,7 +255,6 @@
       scaleY = material.map.repeat.y;
 
       if(current_texture_parts[part_parent_name][part_name]['feedback']) {
-        // feedback = current_texture_parts[part_parent_name][part_name]['feedback'];
         formatted_feedback = current_texture_parts[part_parent_name][part_name]['feedback']['formatted_feedback'];
         intro_text = current_texture_parts[part_parent_name][part_name]['feedback']['intro_text'];
         references = current_texture_parts[part_parent_name][part_name]['feedback']['references'];
@@ -264,8 +263,6 @@
       console.log(parents);
 
       gen_module = get(generate_module);
-
-
     });
 
     function applyFinishSuggestion(finish_suggestion) {
@@ -485,7 +482,7 @@
               <h6> <b> <u> Suggestions </u>  </b></h6>
               <div class="control" style="justify-content:space-between;">
                 {#each formatted_feedback[aspect]['suggestions'] as suggestion}
-                  <div class="card container">
+                  <div class="card container" style="height:100%;">
                     {#if suggestion[1] === "material" && suggestion.length===3} 
                       <span> <b> {suggestion[0]} </b></span>
                       <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"} is_draggable={true}/>
@@ -564,7 +561,7 @@
       padding: 5px; 
       gap: 5px;
       width: 100%;
-      height: 100%;
+      height: auto;
     }
 
     .control {

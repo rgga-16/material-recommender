@@ -3,6 +3,7 @@ import { onMount } from "svelte";
 import { Circle } from 'svelte-loading-spinners';
 import {transferred_texture_url} from '../stores.js';
 import {transferred_textureimg_url} from '../stores.js';
+import {transferred_texture_name} from '../stores.js';
 import {isDraggingImage} from '../stores.js';
 
 // This component is a dynamic image component. It should dynamically load an image given its path.
@@ -44,6 +45,7 @@ function dragStart(event) {
     event.dataTransfer.setData("text/plain", event.target.src);
     transferred_texture_url.set(imagesource);
     transferred_textureimg_url.set(imagepath);
+    transferred_texture_name.set(alt);
 }
 
 $: getImage();

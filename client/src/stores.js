@@ -39,6 +39,9 @@ export const transferred_texture_url = writable("");
 // This URL is used to display the texture map as an image in HTML.
 export const transferred_textureimg_url =writable("");
 
+//Keeps track of the name of the image texture being dragged and transferred
+export const transferred_texture_name = writable(""); 
+
 export const saved_color_palettes = writable([
     {
         name: "Default",

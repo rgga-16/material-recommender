@@ -24,7 +24,6 @@
     }
 
     onMount(() => {
-      console.log(generate);
       generate_module.set(generate);
     });
 

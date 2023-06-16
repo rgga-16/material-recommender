@@ -17,6 +17,7 @@
 
 	import * as THREE from 'three';
 	import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
+	import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 	import { saveAs } from 'file-saver';
 
 
@@ -123,6 +124,7 @@
 	});
 
 	curr_texture_parts.subscribe(value => {
+		console.log(value);
 		current_texture_parts = value;
 	});
 
@@ -154,6 +156,7 @@
 		const renderpath = get(curr_rendering_path);
 		const textureparts = get(curr_texture_parts);
 		const texturepartspath = get(curr_textureparts_path);
+		console.log(textureparts);
 
 		const response = await fetch("/render", {
 			method: "POST",
@@ -168,11 +171,42 @@
 		return "ok";
 	}
 
+	async function save_3d_models2() {
+		// Needs 3D objects 
+		let objects_3d_clone = get(objects_3d);
+		console.log(objects_3d_clone);
+
+		let current_texture_parts_ =get(curr_texture_parts);
+
+		for (let i = 0; i < objects_3d_clone.length; i++) {
+			let obj = objects_3d_clone[i];
+			let obj_model = obj["model"];
+			let obj_name = obj["name"];
+			let obj_parent = obj["parent"];
+			let url = obj["glb_url"]
+
+			
+			const response = await fetch("/save_model", {
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify({
+					"model": JSON.stringify(obj_model.toJSON(), null, 2),
+					"texture_parts": current_texture_parts_,
+					"name": obj_name,
+					"parent": obj_parent,
+					"url": url
+				}),
+			});
+
+		}
+		return "ok";
+	}
 	async function save_3d_models() {
 		// Needs 3D objects 
-		let objects_3d_clone = Object.assign([], get(objects_3d));
+		let objects_3d_clone = get(objects_3d);
+		console.log(objects_3d_clone);
 
-		let current_texture_parts_ = Object.assign({}, get(curr_texture_parts));
+		let current_texture_parts_ =get(curr_texture_parts);
 
 		for (let i = 0; i < objects_3d_clone.length; i++) {
 			let exporter = new GLTFExporter();
@@ -185,12 +219,14 @@
 
 			exporter.parse(obj_model, 
 			async function(result) {
+				// console.log(obj_name + " " + obj_parent);
+				// console.log(result);
 				if(result instanceof ArrayBuffer) {
-					// console.log("is an array buffer");
+					console.log("is an array buffer");
+
 				} else {
 					// console.log("is not an array buffer");
 					let output = JSON.stringify(result, null, 2);
-
 					const response = await fetch("/save_model", {
 						method: "POST",
 						headers: {"Content-Type": "application/json"},
@@ -205,11 +241,12 @@
 				}
 			},
 			function (error) {
-				console.log("error");
+				console.log("error for " + obj_name + ": " + error);
 			});
 		}
 		return "ok";
 	}
+
 
 	async function update_3dmodels_and_render() {
 		is_loading=true;

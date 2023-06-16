@@ -35,9 +35,9 @@
     let n_textures = 8;
 
     onMount(async () => {
-        const obj_and_part_resp= await fetch('./get_objects_and_parts');
-        const obj_and_part_json = await obj_and_part_resp.json(); 
-        objs_and_parts = obj_and_part_json;
+        // const obj_and_part_resp= await fetch('./get_objects_and_parts');
+        // const obj_and_part_json = await obj_and_part_resp.json(); 
+        // objs_and_parts = obj_and_part_json;
     }); 
 
     export async function generate_textures(texture_str) {
@@ -235,7 +235,6 @@
     <header> Material Generator </header>
 
     <div class="page" class:hidden={current_page!=0} id="generate_materials">
-        <!-- <form > -->
             <div class="row">
                 <input name="material_name" type="text" bind:value={input_material} placeholder="Type in a material texture..." required/>
                 <div class="column">
@@ -293,11 +292,10 @@
             <div class="row">
                 <button on:click|preventDefault={generate_textures(input_material)}> Generate Material </button>
             </div>
-<!-- 
-        </form> -->
+
         {#if generated_textures.length > 0}
                 <p> Texture map results for: {get(generated_texture_name)}</p>
-                <GeneratedTextures pairs= {generated_textures} bind:selected_texturepaths={selected_textures}/>
+                <GeneratedTextures pairs= {generated_textures} texture_name={get(generated_texture_name)} bind:selected_texturepaths={selected_textures}/>
                 <p> {selected_textures.length}/{n_textures} textures selected. {#if selected_textures.length<=0} Please select at least 1 texture map to proceed.{/if}</p>
         {:else if is_loading==true}
             <div class="images-placeholder">
