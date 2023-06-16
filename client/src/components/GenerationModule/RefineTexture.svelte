@@ -179,7 +179,7 @@
         rendering_texture_pairs[selected_index].info_path = json["updated_textureparts_path"]
         is_loading=false; 
 
-        console.log(rendering_texture_pairs[selected_index].info);
+        // console.log(rendering_texture_pairs[selected_index].info);
 
         updateDisplayedMatFinish();
 

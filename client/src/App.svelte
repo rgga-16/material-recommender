@@ -62,13 +62,13 @@
 	let ui_collapsed = false;
 
 	function collapseDiv(is_collapsed) {
-		console.log("before: " + is_collapsed);
+		// console.log("before: " + is_collapsed);
 		if (is_collapsed===true) {
 			is_collapsed=false;
 		} else {
 			is_collapsed=true;
 		}
-		console.log("after: " + is_collapsed);
+		// console.log("after: " + is_collapsed);
 	}
 
 	async function saveRendering() {
@@ -186,9 +186,9 @@
 			exporter.parse(obj_model, 
 			async function(result) {
 				if(result instanceof ArrayBuffer) {
-					console.log("is an array buffer");
+					// console.log("is an array buffer");
 				} else {
-					console.log("is not an array buffer");
+					// console.log("is not an array buffer");
 					let output = JSON.stringify(result, null, 2);
 
 					const response = await fetch("/save_model", {
