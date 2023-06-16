@@ -114,7 +114,7 @@
         let intro_text = json["intro_text"];
         let role = json["role"];
         let suggested_color_palettes = json["suggested_color_palettes"];
-        console.log(suggested_color_palettes);
+        // console.log(suggested_color_palettes);
 
         let message_type = "suggested_color_palettes";
         messages.push({
@@ -166,7 +166,7 @@
         });
         messages = messages;
 
-        console.log(messages);
+        // console.log(messages);
         inputMessage = '';
 
     }

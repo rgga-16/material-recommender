@@ -56,7 +56,7 @@
         SELECTED_INFOS=[];
         model3d_infos=[];
         current_texture_parts=get(curr_texture_parts);
-        console.log(current_texture_parts);
+        // console.log(current_texture_parts);
         get_models();
         setup_scene();
         information_panel.displayTexturePart();
@@ -72,9 +72,9 @@
     });
 
     selected_objs_and_parts.subscribe(value => {
-        console.log(get(objects_3d));
+        // console.log(get(objects_3d));
         // console.log("selected_objs_and_parts changed");
-        console.log(value);
+        // console.log(value);
         // console.log("objs and parts");
 
         // objects_3d.set(model3d_infos);
@@ -99,13 +99,13 @@
     
     let dragged_texture_url = null;
     transferred_texture_url.subscribe(value=> {
-        console.log("transferred_texture_url changed");
+        // console.log("transferred_texture_url changed");
         dragged_texture_url = value;
     });
 
     let dragged_textureimg_url = null;
     transferred_textureimg_url.subscribe(value=> {
-        console.log("transferred_textureimg_url changed");
+        // console.log("transferred_textureimg_url changed");
         dragged_textureimg_url = value;
     });
 
@@ -161,29 +161,29 @@
                             SELECTEDS.push(clicked_object);
                             const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
                             SELECTED_INFOS.push(model3d_infos[index]);
-                            console.log("Has not been selected yet. Appending it to selected objects.")
+                            // console.log("Has not been selected yet. Appending it to selected objects.")
                             SELECTEDS=SELECTEDS;    
                             SELECTED_INFOS=SELECTED_INFOS;
                             selected_objs_and_parts.set(SELECTED_INFOS);
-                            console.log(get(selected_objs_and_parts));
+                            // console.log(get(selected_objs_and_parts));
                             information_panel.displayTexturePart();
                         } else { //If shift is not held, want to select only one object
                             SELECTEDS = [];
                             SELECTED_INFOS = [];
                             SELECTEDS[0] = clicked_object;
-                            console.log(clicked_object);
-                            console.log(model3d_infos);
+                            // console.log(clicked_object);
+                            // console.log(model3d_infos);
                             // const index = model3d_infos.findIndex(item => item.model.children[0].name === clicked_object.model_name);
                             const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
                             
-                            console.log(get(curr_texture_parts));
+                            // console.log(get(curr_texture_parts));
                             SELECTED_INFOS[0] = model3d_infos[index];
-                            console.log("Has not been selected yet. Selecting it.")
+                            // console.log("Has not been selected yet. Selecting it.")
 
                             SELECTEDS=SELECTEDS;    
                             SELECTED_INFOS=SELECTED_INFOS;
                             selected_objs_and_parts.set(SELECTED_INFOS);
-                            console.log(get(selected_objs_and_parts));
+                            // console.log(get(selected_objs_and_parts));
                             information_panel.displayTexturePart();
                         }
                     } else {
@@ -195,14 +195,14 @@
                             SELECTED_INFOS = [];
                             selected_objs_and_parts.set(SELECTED_INFOS);
                         }
-                        console.log("Nothing's been selected.")
+                        // console.log("Nothing's been selected.")
                     }
 
                 } else {//If clicked object has already been selected, deselect it. 
                     SELECTEDS[0].material.emissive.setHex(0x000000);
                     SELECTEDS.splice(index, 1);
                     SELECTED_INFOS.splice(index, 1);
-                    console.log("Has been selected. Deselected.")
+                    // console.log("Has been selected. Deselected.")
 
                     SELECTEDS=SELECTEDS;    
                     SELECTED_INFOS=SELECTED_INFOS;
@@ -223,7 +223,7 @@
                 SELECTED_INFOS = [];
                 selected_objs_and_parts.set(SELECTED_INFOS);
             }
-            console.log("Nothing's been selected.")
+            // console.log("Nothing's been selected.")
         }
         // console.log(get(selected_objs_and_parts));
         // information_panel.displayTexturePart();
@@ -372,8 +372,8 @@
                                 let cloned_texture_parts = get(curr_texture_parts);
 
                                 let prev_texture_parts = Object.assign( {}, cloned_texture_parts); 
-                                console.log("BEFORE");
-                                console.log(prev_texture_parts);
+                                // console.log("BEFORE");
+                                // console.log(prev_texture_parts);
 
                                 changeTexture(selected,dragged_texture_url);
 
@@ -382,8 +382,8 @@
                                 
                                 curr_texture_parts.set(cloned_texture_parts);
 
-                                console.log("AFTER");
-                                console.log(get(curr_texture_parts));
+                                // console.log("AFTER");
+                                // console.log(get(curr_texture_parts));
 
                                 information_panel.displayTexturePart();
                             }
@@ -391,7 +391,6 @@
                             transferred_textureimg_url.set(null);
                             isDraggingImage.set(false);
                         } else {
-                            console.log("No selected object. Please select an object first.");
                             alert("No selected object. Please select an object first.");
                         }
                     }
@@ -412,7 +411,7 @@
                 //Workaround. If the model.children[0] is Object3D, the Mesh is found in model.children[0].children[0]. 
                 // Replace model.children[0] with model.children[0].children[0]
                 if(model.children[0] instanceof THREE.Object3D && !(model.children[0] instanceof THREE.Mesh)) {
-                    console.log("model.children[0] is Object3D. Changing it to a Mesh.");
+                    // console.log("model.children[0] is Object3D. Changing it to a Mesh.");
                     const real_mesh = model.children[0].children[0];
                     model.children[0] = real_mesh;
                 }
@@ -427,7 +426,7 @@
                 model3d_infos=model3d_infos;
             })
         }
-        console.log(model3d_infos);
+        // console.log(model3d_infos);
     }
 
     function changeTexture(object, url) {
@@ -435,7 +434,7 @@
         object.traverse((node) => {
             if (node.isMesh) {
                 // console.log("material changed");
-                console.log(node);
+                // console.log(node);
                 const newMaterial = new THREE.MeshStandardMaterial({color:null});
                 node.material=newMaterial;
                 const material = node.material;
@@ -457,7 +456,7 @@
                         // mat.colorIntensity=0;
                         mat.emissive.setRGB(0,0,0);
                         mat.emissiveIntensity=0;
-                        console.log(mat);
+                        // console.log(mat);
                         
                     });
                 } else {
@@ -476,7 +475,7 @@
                     material.color=null;
                     material.emissive.setRGB(0,0,0);
                     material.emissiveIntensity=0;
-                    console.log(material);
+                    // console.log(material);
                 }
                 // transferred_texture_url.set(null);
                 // isDraggingImage.set(false);

@@ -94,7 +94,7 @@
     export function updateImage() {
       image.getImage();
     }
-    console.log(parents);
+    // console.log(parents);
 
 
     
@@ -160,10 +160,10 @@
 
     function updateColor() {
       let color = palettes[selected_palette_idx]['palette'][selected_swatch_idx];
-      console.log(selected_palette_idx);
-      console.log(color);
+      // console.log(selected_palette_idx);
+      // console.log(color);
       const hexNumber = parseInt(color.substring(1), 16);
-      console.log(hexNumber);
+      // console.log(hexNumber);
 
       selected_objs_and_parts.update(value => {
         value[index].model.children[0].material.color.setHex(hexNumber);
@@ -232,8 +232,8 @@
       current_texture_parts[part_parent_name][part_name]['feedback']['references'] = references;
       curr_texture_parts.set(current_texture_parts);
 
-      console.log(get(curr_texture_parts));
-      console.log(current_texture_parts);
+      // console.log(get(curr_texture_parts));
+      // console.log(current_texture_parts);
     }
 
     let activeTab='adjust-finish';
