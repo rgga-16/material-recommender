@@ -141,13 +141,17 @@ def query(prompt,role="user"):
     global message_history
     message_history.append({"role":role, "content":prompt})
     check_and_trim_message_history()
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=message_history,
-        temperature=temperature
-    )
-    response_msg = response["choices"][0]["message"]["content"]
-    message_history.append({"role":response["choices"][0]["message"]["role"], "content":response_msg})
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=message_history,
+            temperature=temperature
+        )
+        response_msg = response["choices"][0]["message"]["content"]
+        message_history.append({"role":response["choices"][0]["message"]["role"], "content":response_msg})
+    except Exception as e:
+        response_msg = f"Error: {e}"
     return response_msg
 
 def suggest_materials(prompt,role="user", use_internet=True):
@@ -181,7 +185,11 @@ def suggest_materials(prompt,role="user", use_internet=True):
 
     python_dict_response = python_dict_response.strip()
 
-    suggestions = ast.literal_eval(python_dict_response)
+    try:
+        suggestions = ast.literal_eval(python_dict_response)
+    except SyntaxError as e:
+        intro_text = f"Sorry, please try again. We got the following error: {e}."
+        suggestions = {}
     return intro_text, suggestions
 
 def suggest_finish_settings(finish_name, material_name, object_name, part_name, role="user"):
@@ -445,71 +453,76 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
     return intro_text, material_feedback, suggestions_dict, references
 
 
-def feedback_on_assembly(object, child_part, child_material, parent_part, parent_material,n=3):
-    recommendation_prompt = f'''
-        What can be used to attach a {object} {child_part} made of {child_material} to a {object} {parent_part} made of {parent_material}? 
-        Give {n} recommendations. For each recommendation, give your reason. Separate the recommendation and reason by a | . Return in bullet points.
-    '''
-
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=recommendation_prompt,
-        max_tokens=512,
-        temperature=0.7,
-    )
-
-    items = parse_into_list(response["choices"][0]["text"])
-
-    attachments = []
-    for item in items:
-        name = item.split("|")[0].strip()
-        reason = item.split("|")[1].strip()
-        keywords = extract_keywords(reason)
-        attachments.append({"name":name,"reason":reason, "keywords":keywords})
-
-    return attachments
-
-def extract_keywords(text):
-    return kw_extractor.extract_keywords(text)
 
 
-def suggest_materials_by_style(style,material_type,n_materials=5,object=None,part=None):
-    prompt=f'''
-    What examples of {material_type} materials are of {style} interior design style?
-    For each example, give your reason. Separate the example and reason by a | . Return in bullet points.
-    '''
 
-    # Using ChatGPT
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role":"user", "content":prompt}],
-        max_tokens=512,
-        temperature=0.7,
-    )
-    items = parse_into_list(response["choices"][0]["text"])
-    materials = []
-    for item in items:
-        name = item.split("|")[0].strip()
-        reason = item.split("|")[1].strip()
-        keywords = extract_keywords(reason)
-        materials.append({"name":name,"reason":reason, "keywords":keywords})
-    return materials
 
-def suggest_color_by_style(style,n_themes=5):
-    prompt=f'''
-    What are colors that are of {style} interior design style? Return {n_themes} hex color themes.
+# DUMP (OLD CODE)
+# def feedback_on_assembly(object, child_part, child_material, parent_part, parent_material,n=3):
+#     recommendation_prompt = f'''
+#         What can be used to attach a {object} {child_part} made of {child_material} to a {object} {parent_part} made of {parent_material}? 
+#         Give {n} recommendations. For each recommendation, give your reason. Separate the recommendation and reason by a | . Return in bullet points.
+#     '''
+
+#     response = openai.Completion.create(
+#         model="text-davinci-003",
+#         prompt=recommendation_prompt,
+#         max_tokens=512,
+#         temperature=0.7,
+#     )
+
+#     items = parse_into_list(response["choices"][0]["text"])
+
+#     attachments = []
+#     for item in items:
+#         name = item.split("|")[0].strip()
+#         reason = item.split("|")[1].strip()
+#         keywords = extract_keywords(reason)
+#         attachments.append({"name":name,"reason":reason, "keywords":keywords})
+
+#     return attachments
+
+# def extract_keywords(text):
+#     return kw_extractor.extract_keywords(text)
+
+
+# def suggest_materials_by_style(style,material_type,n_materials=5,object=None,part=None):
+#     prompt=f'''
+#     What examples of {material_type} materials are of {style} interior design style?
+#     For each example, give your reason. Separate the example and reason by a | . Return in bullet points.
+#     '''
+
+#     # Using ChatGPT
+#     response = openai.ChatCompletion.create(
+#         model="gpt-3.5-turbo",
+#         messages=[{"role":"user", "content":prompt}],
+#         max_tokens=512,
+#         temperature=0.7,
+#     )
+#     items = parse_into_list(response["choices"][0]["text"])
+#     materials = []
+#     for item in items:
+#         name = item.split("|")[0].strip()
+#         reason = item.split("|")[1].strip()
+#         keywords = extract_keywords(reason)
+#         materials.append({"name":name,"reason":reason, "keywords":keywords})
+#     return materials
+
+# def suggest_color_by_style(style,n_themes=5):
+#     prompt=f'''
+#     What are colors that are of {style} interior design style? Return {n_themes} hex color themes.
     
-    Don't say anything else apart from the hex codes and theme name. Return them as a dictionary.
-    '''
+#     Don't say anything else apart from the hex codes and theme name. Return them as a dictionary.
+#     '''
 
-    # Using ChatGPT
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role":"user", "content":prompt}],
-    )
-    response_msg = response["choices"][0]["message"]["content"]
+#     # Using ChatGPT
+#     response = openai.ChatCompletion.create(
+#         model="gpt-3.5-turbo",
+#         messages=[{"role":"user", "content":prompt}],
+#     )
+#     response_msg = response["choices"][0]["message"]["content"]
 
-    color_palettes = ast.literal_eval(response_msg)
+#     color_palettes = ast.literal_eval(response_msg)
 
-    return color_palettes
+#     return color_palettes
 

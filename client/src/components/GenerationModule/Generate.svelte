@@ -32,7 +32,7 @@
 
     let selected_index;
 
-    let n_textures = 8;
+    let n_textures = 4;
 
     onMount(async () => {
         // const obj_and_part_resp= await fetch('./get_objects_and_parts');
@@ -52,7 +52,6 @@
         }
 
         texture_str += ",  texture map, seamless, 4k";
-
         const results_response = await fetch("/generate_textures", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -74,8 +73,6 @@
     async function apply_textures() {
         rendering_texture_pairs=[];
         selected_obj_parts_dict = {};
-        
-
         if (selected_object_parts.length <= 0) { alert("Please select at least 1 object part"); return }
         is_loading=true;
         for (let i = 0; i < selected_object_parts.length; i++) {
@@ -88,7 +85,6 @@
                 selected_obj_parts_dict[obj] = [part]; 
             }
         }
-
         const results_response = await fetch("/apply_textures", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -110,12 +106,10 @@
             return;
         }
         let selected_render_texture_pair = rendering_texture_pairs[index];
-
         let selected_rendering_path = selected_render_texture_pair.rendering; 
         let selected_texture_path = selected_render_texture_pair.texture; 
         let selected_rendering_info = selected_render_texture_pair.info; 
         let selected_info_path = selected_render_texture_pair.info_path;
-
         const response = await fetch("/apply_to_current_rendering", {
             method: "POST",
             headers: {"Content-Type": "application/json"},

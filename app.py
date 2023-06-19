@@ -579,6 +579,12 @@ def base():
 def home(path):
     return send_from_directory('./client/public', path)
 
+'''
+STATIC_IMDIR = os.path.join(CWD,"client","public")
+SERVER_IMDIR = os.path.join(STATIC_IMDIR,"gen_images") 
+CLIENT_IMDIR = os.path.join("gen_images")
+LATEST_RENDER_ID=0
+'''
 if __name__ == "__main__":
 
     # Here, you should make the necessary dirs under client/public.
@@ -587,6 +593,8 @@ if __name__ == "__main__":
     # texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
     texture_generator = DALLE2()
     emptydir(SERVER_IMDIR,delete_dirs=False)
+    emptydir(os.path.join(SERVER_IMDIR,"renderings","current"),delete_dirs=True)
+    emptydir(os.path.join(SERVER_IMDIR,"renderings","saved"),delete_dirs=True)
 
     products = [
         "nightstand_family",

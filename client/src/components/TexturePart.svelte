@@ -167,8 +167,12 @@
 
       selected_objs_and_parts.update(value => {
         value[index].model.children[0].material.color.setHex(hexNumber);
+        value[index].model.children[0].material.color_hex = hexNumber;
         return value;
       });
+
+      current_texture_parts[part_parent_name][part_name]['mat_color'] = hexNumber;
+      curr_texture_parts.set(current_texture_parts);
     }
 
     function suggestSimilarMaterials() {
@@ -288,6 +292,16 @@
   <DynamicImage bind:this={image} imagepath={material_url} alt={material_name} size={"200px"}/>
   <div id="texture-details">
         <div class="texture-name">Material: {material_name}</div>
+        {#if current_texture_parts[part_parent_name][part_name]['mat_color']}
+          <div class="texture-name">Color: {current_texture_parts[part_parent_name][part_name]['mat_color']}</div>
+        {:else}
+          <div class="texture-name">Color: None</div>
+        {/if}
+        {#if current_texture_parts[part_parent_name][part_name]['mat_finish']}
+          <div class="texture-name">Finish: {current_texture_parts[part_parent_name][part_name]['mat_finish']}</div>
+        {:else}
+        <div class="texture-name">Finish: None</div>
+        {/if}
         <div class="control">
           <button on:click|preventDefault={suggestSimilarMaterials}>Suggest similar materials </button>
           <button on:click|preventDefault={requestMaterialFeedback}> Request feedback </button>
@@ -326,8 +340,8 @@
         <RangeSlider on:change={updateFinish} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
-    
   </div>
+
   <div class="card container tab-content " class:active={activeTab==='adjust-texture-map'}>
     <h5><b>Adjust Texture Map</b></h5>
     <div class="control">
@@ -384,7 +398,7 @@
           {#if selected_palette_idx != undefined && palettes.length > 0}
               {#each palettes[selected_palette_idx]['palette'] as swatch, i }
                   <label class="swatch selectable" style="background-color: {swatch};" class:selected={selected_swatch_idx===i}>
-                    <input type=radio bind:group={selected_swatch_idx} name={swatch} value={i}>
+                    <input type=radio bind:group={selected_swatch_idx} name={swatch} value={i} on:change={() => updateColor()}>
                   </label>
               {/each}
           {/if}
@@ -439,7 +453,7 @@
     {:else}
       <input id="current-swatch" type="color"  
         bind:value={palettes[selected_palette_idx]['palette'][selected_swatch_idx]}
-        on:change={updateColor}
+        on:change={() => updateColor()}
       >
     {/if}
   </div>
