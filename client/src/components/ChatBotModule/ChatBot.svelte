@@ -9,6 +9,7 @@
     import {actions_panel_tab} from '../../stores.js';
     import {generate_tab_page} from '../../stores.js';
     import {createEventDispatcher} from 'svelte';
+    import SvelteMarkdown from 'svelte-markdown';
 
 
     const dispatch = createEventDispatcher();
@@ -226,17 +227,21 @@
         <div class="message">
             <div class="{message.role}">
                 <strong>{message.role}: </strong>
-                <p> {message.message} </p>
+                <SvelteMarkdown source={message.message} />
+                <!-- <p> {message.message} </p> -->
                 {#if message.type == "suggested_materials"}
                     {#each message.content as m, i}
-                        <MaterialCard material_path={m["filepath"]} material_name={m["name"]} material_info={m["reason"]} index={i}/>
-                        <button 
+                        <div style="display:flex; flex-direction:row;">
+                            <MaterialCard material_path={m["filepath"]} material_name={m["name"]} material_info={m["reason"]} index={i}/>
+                            <button 
                             on:click|preventDefault={()=> generate(m["name"])}
                             style="align-items: center; justify-content: center; cursor: pointer;"
-                        >
-                            Generate
-                            <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
-                        </button>
+                            >
+                                Generate more!
+                                <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
+                            </button>
+                        </div>
+                        
                     {/each}
                 
                 {:else if message.type=="suggested_color_palettes"}
@@ -263,8 +268,10 @@
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
             </div>
         </div>
-        
     {/if}
+    <div class="user" style="min-height: 200px; width: 100%;"> 
+
+    </div> <!-- Filler div  -->
 
 </div>
 

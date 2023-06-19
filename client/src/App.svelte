@@ -27,7 +27,11 @@
 
 	let saved_renderings = [];
 	let selected_saved_rendering_idx; 
+
+
 	let is_loading=false;
+	let is_loading_rendering=false;
+	let is_loading_saved_renderings = false;
 
 	let information_panel; 
 	let threed_display;
@@ -95,6 +99,8 @@
 
 	async function loadRendering(idx) {
 		let selected = saved_renderings[idx];
+		console.log(selected);
+		debugger;
 		is_loading=true;
 
 		const response = await fetch("/apply_to_current_rendering", {

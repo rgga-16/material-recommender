@@ -6,6 +6,7 @@ import time, os
 import openai
 openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
 from utils import image
+from PIL import Image 
 
 import pathlib as p
 
@@ -29,14 +30,20 @@ class DALLE2():
         images_b64 = []
         images = []
         for _ in range(n):
-            response = openai.Image.create(
-                prompt=texture_str,
-                n=n,
-                # size=f"{gen_imsize}x{gen_imsize}",
-                size=f"{512}x{512}",
-                response_format="b64_json"
-            )
-            image_b64 = response['data'][0]['b64_json']
+            try: 
+                response = openai.Image.create(
+                    prompt=texture_str,
+                    n=n,
+                    # size=f"{gen_imsize}x{gen_imsize}",
+                    size=f"{512}x{512}",
+                    response_format="b64_json"
+                )
+                image_b64 = response['data'][0]['b64_json']
+            except openai.error.OpenAIError as e:
+                print(e.http_status)
+                print(e.error)
+                blank_img = Image.new('RGB',(512,512),color='black')
+                image_b64 = image.im_2_b64(blank_img)  
             im = image.b64_2_img(image_b64).convert('RGB')
             images.append(im)
             images_b64.append(image_b64)
