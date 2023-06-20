@@ -9,6 +9,12 @@ export const models_setup = writable({});
 
 export const chatbot_input_message = writable(""); //Keeps track of the input message in the chatbot
 
+export const design_brief = writable(`
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam iaculis leo mi, eget viverra ligula euismod ac. Integer placerat tempor accumsan. Quisque in nibh non metus pellentesque cursus eget nec elit. Interdum et malesuada fames ac ante ipsum primis in faucibus. Fusce at arcu nec velit faucibus luctus. Morbi imperdiet nec risus et elementum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Nullam sed odio ut quam auctor vehicula. Ut eget leo pharetra ex feugiat scelerisque ac in nisl. Aenean tristique quam magna, vitae iaculis sem volutpat ut.
+
+    Curabitur at ultrices purus, non mollis neque. Aenean odio arcu, suscipit eu posuere id, facilisis blandit magna. In sed feugiat mi. Vivamus accumsan eu tellus ac porttitor. In efficitur bibendum leo, ultrices malesuada lectus varius vel. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum ullamcorper lacus quis nibh laoreet facilisis. Nam mattis, sem id convallis tempor, orci dui hendrerit justo, et pellentesque odio velit iaculis nunc.
+`); //Keeps track of the design brief
+
 // selected_objs_and_parts = [
 //     { part_name: "part1", 
 //       obj_name: "obj1",

@@ -11,22 +11,22 @@ from langchain.tools import DuckDuckGoSearchResults
 
 
 system_prompt = '''
-    I want you to act as an interior and furniture design expert with expert knowledge of materials. Your role is to:
+I want you to act as an interior and furniture design expert with expert knowledge of materials. Your role is to:
 
-    1) Suggest materials and color palettes when asked, depending on the criteria to suggest them.
-    2) Provide feedback on materials when asked, depending on the criteria to provide feedback.
+1) Suggest materials and color palettes when asked, depending on the criteria to suggest them.
+2) Provide feedback on materials when asked, depending on the criteria to provide feedback.
 
-    Now, introduce yourself to the user.
+Now, introduce yourself to the user.
 '''
 
 n_material_suggestion_prompts=5
 materials_suggestion_prompt = f'''
-    Brainstorm prompts that the user can ask you to suggest materials. 
-    Make sure that these prompts of suggesting materials are based on criteria to suggest materials such as 
-    price (relatively expensive, relatively low-cost), a specific interior design style (e.g. Scandinavian, Contemporary), 
-    environmental sustainability, durability, setting (e.g. outdoor, indoor, coastal, tropical), local availability in a certain city, state, or province etc.
-    Make the prompts concise.
-    Return {n_material_suggestion_prompts} prompts.
+Brainstorm prompts that the user can ask you to suggest materials. 
+Make sure that these prompts of suggesting materials are based on criteria to suggest materials such as 
+price (relatively expensive, relatively low-cost), a specific interior design style (e.g. Scandinavian, Contemporary), 
+environmental sustainability, durability, setting (e.g. outdoor, indoor, coastal, tropical), local availability in a certain city, state, or province etc.
+Make the prompts concise.
+Return {n_material_suggestion_prompts} prompts.
 '''
 
 texture_map_keywords_prompt_with_3d_model_context= '''
@@ -44,7 +44,9 @@ I want you to return the keywords only as a Python list. Do not say anything els
 message_history = []
 temperature=0.0
 model_name = "gpt-3.5-turbo"
-max_tokens=4097
+max_tokens = 4097
+# model_name = "gpt-3.5-turbo-16k"
+# max_tokens=16383
 encoding = tiktoken.get_encoding("cl100k_base")
 # encoding = tiktoken.encoding_for_model(model_name)
 
@@ -144,7 +146,7 @@ def query(prompt,role="user"):
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model=model_name,
             messages=message_history,
             temperature=temperature
         )
@@ -154,12 +156,35 @@ def query(prompt,role="user"):
         response_msg = f"Error: {e}"
     return response_msg
 
-def suggest_materials(prompt,role="user", use_internet=True):
+def suggest_materials(prompt,role="user", use_internet=True, design_brief=None):
     refined_prompt = f"{prompt}"
     if use_internet:
         refined_prompt,_ = internet_search(refined_prompt,role)
     initial_response = query(refined_prompt,role)
     intro_text = initial_response.split('\n')[0].strip()
+
+    if design_brief:
+        context_aware_prompt = f''' 
+        Now, I want you to answer again but consider the following design brief for context: 
+        ==========================
+        {design_brief}.
+        ==========================
+        Some parts of the design brief may be relevant to the question or instruction, while others may not be relevant.
+        '''
+
+        if use_internet:
+            context_aware_prompt += '''
+            You may refer to the sources retrieved from the internet in the previous message.
+            Make sure to cite results using [[NUMBER](URL)] notation after the reference.
+            Make sure that you answer the question or fulfill the instruction by both using the sources from the internet and also in the context of the design brief.
+            '''
+        else: 
+            context_aware_prompt += '''
+            Make sure that you answer the question or fulfill the instruction in the context of the design brief.
+            '''
+        context_aware_response = query(context_aware_prompt,role)
+        intro_text = context_aware_response.split('\n')[0].strip()
+
     if use_internet: 
         python_dict_prompt = f'''
             Now, return the suggested materials and their detailed reasons from the previous response as a Python dictionary. 
@@ -383,7 +408,7 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
     init_history_clone.append({"role":"user", "content":material_feedback_prompt})
 
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k",
+        model=model_name,
         messages=init_history_clone,
         temperature=0.1
     )
@@ -430,7 +455,7 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
 
     
     suggestions_dict_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k",
+        model=model_name,
         messages=init_history_clone,
         temperature=0.0
     )
@@ -448,13 +473,9 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
 
     suggestions_dict_str = suggestions_dict_str.strip()
     suggestions_dict= ast.literal_eval(suggestions_dict_str)
-    print(suggestions_dict)
+    # print(suggestions_dict)
 
     return intro_text, material_feedback, suggestions_dict, references
-
-
-
-
 
 
 # DUMP (OLD CODE)

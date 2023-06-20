@@ -5,10 +5,12 @@
     import ColorPalette from '../SuggestModule/ColorPalette.svelte';
     import {saved_color_palettes} from '../../stores.js';
     import {chatbot_input_message} from '../../stores.js';
+    import {design_brief} from '../../stores.js';
 
     import {actions_panel_tab} from '../../stores.js';
     import {generate_tab_page} from '../../stores.js';
     import {createEventDispatcher} from 'svelte';
+    import {get} from 'svelte/store';
     import SvelteMarkdown from 'svelte-markdown';
 
 
@@ -41,6 +43,8 @@
         expanded_suggested_questions = !expanded_suggested_questions;
     }
 
+    let use_design_brief = false;
+
 
     let is_loading_response=false;
     let is_loading_material_queries=false;
@@ -58,13 +62,19 @@
         });
         messages = messages;
         is_loading_response=true;
+
+        let context = null;
+        if(use_design_brief) {
+            context = get(design_brief);
+        }
         const response = await fetch("/suggest_materials", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 "prompt": inputMessage,
                 "role":"user",
-                "use_internet": use_internet
+                "use_internet": use_internet,
+                "context": context
             }),
         });
         const json = await response.json();
@@ -209,16 +219,16 @@
         dispatch('proceedToGenerate',material_name)
     }
 
-    // onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
-    //     await init_query();
-    //     // If the chatbot_input_message, a global store, is updated, update the inputMessage variable and the text in the textbox message area.
-    //     chatbot_input_message.subscribe(value => {
-    //         inputMessage = value;
-    //         const textarea = document.getElementById("textarea");
-    //         textarea.innerHTML='';
-    //         textarea.value=inputMessage;
-    //     });
-    // });
+    onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
+        await init_query();
+        // If the chatbot_input_message, a global store, is updated, update the inputMessage variable and the text in the textbox message area.
+        chatbot_input_message.subscribe(value => {
+            inputMessage = value;
+            const textarea = document.getElementById("textarea");
+            textarea.innerHTML='';
+            textarea.value=inputMessage;
+        });
+    });
 
 </script>
 
@@ -318,6 +328,10 @@
     <label>
         <input type="checkbox" bind:checked={use_internet} >
         Use web search
+    </label>
+    <label>
+        <input type="checkbox" bind:checked={use_design_brief} >
+        Based on design brief
     </label>
     <button on:click|preventDefault={()=>suggest_materials()}>Suggest Materials</button>    
     <button on:click|preventDefault={()=>suggest_color_palettes()}>Suggest Colors</button>   
