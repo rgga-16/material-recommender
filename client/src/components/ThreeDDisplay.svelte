@@ -732,7 +732,7 @@
 
             camera.updateMatrixWorld();
 
-            highlightObject();
+            // highlightObject();
 
             renderer.render( scene, camera );
         }

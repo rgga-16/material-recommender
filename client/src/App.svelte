@@ -36,6 +36,18 @@
 	let information_panel; 
 	let threed_display;
 
+	const saved_renderings_height = 35;
+	// const display_panel_height = 65;
+	const actions_panel_width = 23;
+	const information_panel_width = 27;
+
+
+	let curr_saved_renderings_height=saved_renderings_height;
+	let curr_actions_panel_width = actions_panel_width;
+	let curr_information_panel_width = information_panel_width;
+	$: curr_display_panel_width = 100 - curr_actions_panel_width - curr_information_panel_width;
+	$: curr_display_panel_height = 100 - curr_saved_renderings_height;
+
 	let current_rendering; 
 	async function getSavedRenderings() {
 		let response = await fetch('/get_saved_renderings');
@@ -45,8 +57,6 @@
 	}
 	const saved_renderings_promise = getSavedRenderings();
 
-
-	
 
 	async function updateCurrentRendering() {
 		is_loading=true;
@@ -276,20 +286,63 @@
 		displayHeight.set(threediv.offsetHeight);
 	});
 
+	let actions_panel_collapsed=false;
+	function collapse_actions_panel() {
+		if(actions_panel_collapsed===true) {
+			curr_actions_panel_width = actions_panel_width; 
+		} else {
+			curr_actions_panel_width = 0.7;
+		}
+		actions_panel_collapsed = !actions_panel_collapsed;
+	}
+	
+	let information_panel_collapsed=false;
+	function collapse_information_panel() {
+		if(information_panel_collapsed===true) {
+			curr_information_panel_width = information_panel_width; 
+		} else {
+			curr_information_panel_width = 0.0;
+		}
+		information_panel_collapsed = !information_panel_collapsed;
+	}
+
+	let saved_renderings_collapsed=false; 
+	function collapse_saved_renderings() {
+		if(saved_renderings_collapsed===true) {
+			curr_saved_renderings_height = saved_renderings_height; 
+		} else {
+			curr_saved_renderings_height = 0.0;
+		}
+		saved_renderings_collapsed = !saved_renderings_collapsed;
+	}
+
 </script>
 
 <main>
 
 	<div class="container">
 		<!-- Left Section -->
-		<div class="actions-panel" class:collapsed={ui_collapsed}>
+		<div class="actions-panel" class:collapsed={actions_panel_collapsed} style="width: {curr_actions_panel_width}%;">
+			
+			<button class="collapse-button"on:click={() => collapse_actions_panel()} 
+				style={actions_panel_collapsed ? "top: 50%; right: -175%; transform:rotate(270deg);" : "top: 50%; right: -7%; transform:rotate(270deg);"}
+			>
+				{#if actions_panel_collapsed}
+					<!-- Add the down arrow! -->
+					Expand
+					<img src="./logos/dropdown-svgrepo-com.svg" alt="Select a palette" style="width: 20px; height: 20px;" />
+				{:else}
+					<!-- Add the up arrow -->
+					Collapse 
+					<img src="./logos/dropup-svgrepo-com.svg" alt="Select a palette" style="width: 20px; height: 20px;" />
+				{/if}
+			</button>
 			<ActionsPanel onCallUpdateCurrentRendering={updateCurrentRendering}/> 
-			<!-- <button on:click={()=>collapseDiv(ui_collapsed)}> Hide </button> -->
 		</div>
 
 		<!-- Middle Section  -->
-		<div class="renderings">
-			<div class="display-panel" id="display">
+		<div class="renderings" style="width: {curr_display_panel_width}%;">
+			<div class="display-panel" id="display" style="height: {curr_display_panel_height}%;">
 				<div class="w3-bar w3-grey tabs">
 					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='rendering_display'} on:click={()=>switchDisplayTab('rendering_display')} id="rendering-display-btn">Rendering View</button>
 					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='3d_display'} on:click={()=>switchDisplayTab('3d_display')} id="suggest-colors-btn">3D View</button>
@@ -340,7 +393,16 @@
 			
 
 			<!-- Display of saved renderings -->
-			<div class="saved-renderings">
+			<div class="saved-renderings" style="height: {curr_saved_renderings_height}%;">
+				<button class="collapse-button"on:click={() => collapse_saved_renderings()} style="top: 0%; right: 50%;">
+					{#if saved_renderings_collapsed}
+						Expand
+						<img src="./logos/dropup-svgrepo-com.svg" alt="Select a palette" style="width: 20px; height: 20px;" />
+					{:else}
+						Collapse
+						<img src="./logos/dropdown-svgrepo-com.svg" alt="Select a palette" style="width: 20px; height: 20px;" />
+					{/if}
+				</button>
 				{#await saved_renderings_promise}
 					<pre> Loading saved renderings. Please wait. </pre>
 				{:then data} 
@@ -373,7 +435,19 @@
 			</div>
 		</div>
 
-		<div class="information-panel">
+		<div class="information-panel" style="width: {curr_information_panel_width}%;">
+			
+			<button class="collapse-button"on:click={() => collapse_information_panel()} 
+				style={information_panel_collapsed ? "top: 50%; left: -7%; transform:rotate(270deg);" : "top: 50%; left: -7%; transform:rotate(270deg);" }
+			>
+				{#if information_panel_collapsed}
+					<!-- Expand -->
+					<img src="./logos/dropup-svgrepo-com.svg" alt="Select a palette" style="width: 20px; height: 20px;" />
+				{:else}
+					Collapse
+					<img src="./logos/dropdown-svgrepo-com.svg" alt="Select a palette" style="width: 20px; height: 20px;" />
+				{/if}
+			</button>
 			{#await promise}
 				<pre> Loading rendering information. Please wait. </pre>
 			{:then data} 
@@ -402,22 +476,32 @@
 		width: 99%;
 	}
 
+	.collapse-button {
+		position: absolute;
+		
+		z-index: 2;
+	}
+
+	.collapsed {
+		overflow: hidden;
+		transition: width 0.5 ease-out;
+	}
+
 	.actions-panel {
-		width: 23%;
+		position: relative;
 		background-color: lightgray;
 		height: inherit;
 		border: 2px solid black;
 	}
 
 	.information-panel {
-		width: 27%; 
+		position: relative;
 		background-color: lightgray;
 		border: 2px solid black;
 		height: inherit;
 	}
 
 	.renderings {
-		width: 50%;
 		height: inherit;
 		padding: 5px;
 	}
@@ -431,7 +515,6 @@
 		flex-direction: column;
 		padding:0px 0px 0px 0px;
 		margin-bottom: 5px;
-		height: 65%;
 	}
 
 	.threed-display {
@@ -494,10 +577,11 @@
 	}
 
 	.saved-renderings{
+		position: relative;
 		background-color: lightgray;
 		border: 2px solid black;
 		padding: 5px;
-		height: 35%;
+		
 	}
 
 	.saved-renderings-list{
@@ -535,18 +619,6 @@
 		opacity:0; 
 		position:fixed; 
 		width:0;
-	}
-
-	.user-interface button {
-		position:relative;
-		right:0;
-		width:2rem;
-		writing-mode: vertical-lr;
-		text-orientation: upright;
-	}
-
-	.collapsed {
-		display:none;
 	}
 
 	.tabs   {

@@ -446,7 +446,6 @@
 
     <!-- Color swatch -->
     {#if selected_swatch_idx===undefined}
-
       <div id="current-swatch">
         <pre> No color</pre>
       </div>
@@ -541,19 +540,6 @@
       {/if}
   </div>
 
-  <!-- <div class="card container tab-content" class:active={activeTab==='view-feedback'}>
-    <h5> <b> Feedback </b></h5>
-      {#if feedback}
-        <SvelteMarkdown source={feedback} />
-      {:else if is_loading_feedback}
-        <div class="images-placeholder">
-          Requesting feedback...
-          <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
-        </div>
-      {:else}
-        <p> No feedback yet. </p>
-      {/if}
-  </div> -->
 
 
 </div>
