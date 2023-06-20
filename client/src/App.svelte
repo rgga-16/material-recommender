@@ -12,6 +12,7 @@
 	import {displayWidth} from './stores.js';
 	import {displayHeight} from './stores.js';
 	import {objects_3d} from './stores.js';
+	import {design_brief} from './stores.js';
 	import {get} from 'svelte/store';
 	import {onMount} from "svelte";	
 
@@ -37,7 +38,6 @@
 	let threed_display;
 
 	const saved_renderings_height = 35;
-	// const display_panel_height = 65;
 	const actions_panel_width = 23;
 	const information_panel_width = 27;
 
@@ -47,6 +47,32 @@
 	let curr_information_panel_width = information_panel_width;
 	$: curr_display_panel_width = 100 - curr_actions_panel_width - curr_information_panel_width;
 	$: curr_display_panel_height = 100 - curr_saved_renderings_height;
+
+	let show_design_brief=false;
+	function showDesignBrief() {
+		show_design_brief=true;
+	}
+
+	let design_brief_textarea;
+	function editDesignBrief() {
+		design_brief_textarea.readOnly=false;
+	}
+
+	
+	let design_brief_text="";
+	design_brief.subscribe(value => {
+		design_brief_text=value;
+	});
+
+	function updateDesignBrief() {
+		design_brief.set(design_brief_text);
+		design_brief_textarea.readOnly=true;
+	}
+
+	function hideDesignBrief() {
+		show_design_brief=false;
+	}
+
 
 	let current_rendering; 
 	async function getSavedRenderings() {
@@ -87,7 +113,7 @@
 	}
 
 	async function saveRendering() {
-
+		is_loading=true;
 		let curr_rendering_dict = {
 			"rendering_path": current_rendering_path,
 			"texture_parts": current_texture_parts,
@@ -102,7 +128,7 @@
         const data = await response.json();
 		saved_renderings = [];
 		selected_saved_rendering_idx=undefined;
-		is_loading=true;
+		
         saved_renderings = await data["saved_renderings"]
 		is_loading=false;
 	}
@@ -266,6 +292,7 @@
 
 	async function update_3dmodels_and_render() {
 		is_loading=true;
+		threed_display.removeHighlights();
 		const save_3d_resp = await save_3d_models();
 		const render_resp = await render();
 		is_loading=false;
@@ -273,7 +300,7 @@
 		switchDisplayTab('rendering_display');
 	}
 
-	async function save_scene() {
+	async function render_and_save_scene() {
 		await update_3dmodels_and_render();
 		saveRendering();
 	}
@@ -330,11 +357,11 @@
 				{#if actions_panel_collapsed}
 					<!-- Add the down arrow! -->
 					Expand
-					<img src="./logos/dropdown-svgrepo-com.svg" alt="Select a palette" style="width: 20px; height: 20px;" />
+					<img src="./logos/dropdown-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 				{:else}
 					<!-- Add the up arrow -->
 					Collapse 
-					<img src="./logos/dropup-svgrepo-com.svg" alt="Select a palette" style="width: 20px; height: 20px;" />
+					<img src="./logos/dropup-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 				{/if}
 			</button>
 			<ActionsPanel onCallUpdateCurrentRendering={updateCurrentRendering}/> 
@@ -343,6 +370,7 @@
 		<!-- Middle Section  -->
 		<div class="renderings" style="width: {curr_display_panel_width}%;">
 			<div class="display-panel" id="display" style="height: {curr_display_panel_height}%;">
+				<button id="design-brief-btn" on:click = {() => showDesignBrief()}> View Design Brief </button>
 				<div class="w3-bar w3-grey tabs">
 					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='rendering_display'} on:click={()=>switchDisplayTab('rendering_display')} id="rendering-display-btn">Rendering View</button>
 					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='3d_display'} on:click={()=>switchDisplayTab('3d_display')} id="suggest-colors-btn">3D View</button>
@@ -359,9 +387,14 @@
 						{:then data} 
 							<div class="image">
 								<DynamicImage bind:this={current_rendering} imagepath={current_rendering_path} alt="Current rendering" size={"80%"}/>
-								<button on:click|preventDefault={save_scene}>Save Scene</button>
+								
 								<!-- <button on:click|preventDefault={saveRendering}> Save rendering </button> -->
 							</div>
+							<div class="display-buttons"> 
+								<button on:click|preventDefault={update_3dmodels_and_render}> Render </button>
+								<button on:click|preventDefault={saveRendering}>Save Scene</button>
+							</div>
+
 						{/await}
 					{/if}
 				</div>
@@ -376,7 +409,7 @@
 							
 							<div class="display-buttons">
 								<button on:click|preventDefault={update_3dmodels_and_render}> Render </button>
-								<button on:click|preventDefault={save_scene}>Save Scene</button>
+								<button on:click|preventDefault={render_and_save_scene}>Save Scene</button>
 							</div>
 							
 							{#if is_loading}
@@ -397,10 +430,10 @@
 				<button class="collapse-button"on:click={() => collapse_saved_renderings()} style="top: 0%; right: 50%;">
 					{#if saved_renderings_collapsed}
 						Expand
-						<img src="./logos/dropup-svgrepo-com.svg" alt="Select a palette" style="width: 20px; height: 20px;" />
+						<img src="./logos/dropup-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 					{:else}
 						Collapse
-						<img src="./logos/dropdown-svgrepo-com.svg" alt="Select a palette" style="width: 20px; height: 20px;" />
+						<img src="./logos/dropdown-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 					{/if}
 				</button>
 				{#await saved_renderings_promise}
@@ -442,10 +475,10 @@
 			>
 				{#if information_panel_collapsed}
 					<!-- Expand -->
-					<img src="./logos/dropup-svgrepo-com.svg" alt="Select a palette" style="width: 20px; height: 20px;" />
+					<img src="./logos/dropup-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 				{:else}
 					Collapse
-					<img src="./logos/dropdown-svgrepo-com.svg" alt="Select a palette" style="width: 20px; height: 20px;" />
+					<img src="./logos/dropdown-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 				{/if}
 			</button>
 			{#await promise}
@@ -456,11 +489,49 @@
 			
 		</div>
 
+		<div id="design-brief-popup" class:show={show_design_brief} >
+			<div id="design-brief-header" style="width:100%; height:auto; display:flex; flex-direction: row; background:lightgrey; justify-content:space-between;padding: 5px;">
+				<h3>Design Brief</h3>
+				<button  on:click|preventDefault={() => hideDesignBrief()}  >
+					<img src="./logos/exit-svgrepo-com.svg" alt="" style="width: 30px; height: 30px;" />
+				</button>	
+				
+			</div>
+			<div id="design-brief-body" style="overflow:auto; flex-grow:1;">
+				<textarea placeholder="No design brief yet. Please write your design brief here."readonly={true} bind:this={design_brief_textarea} bind:value={design_brief_text} style="width:100%; height:100%;"></textarea>
+			</div>
+			<div id="design-brief-footer" style="width:100%; height:auto; display:flex; flex-direction: row; background:lightgrey; align-content:center; justify-content:center;padding: 5px;">
+				<button on:click|preventDefault={()=>editDesignBrief()}> Edit </button>
+				<button on:click|preventDefault={() => {updateDesignBrief(); hideDesignBrief()}}> Save </button>
+			</div>
+		</div>
 	</div>
 </main>
 
 
 <style>
+	#design-brief-popup {
+		display: none;
+		position: absolute;
+		z-index: 9999;
+		top: 50%;
+		left: 50%;
+		width: 80%;
+		height: 80%;
+		transform: translate(-50%, -50%);
+		overflow: auto;
+		background: white; 
+		border: 2px solid black;
+		padding: 5px; 
+	}
+
+	#design-brief-popup.show {
+		display: flex; 
+		flex-direction: column;
+
+	}
+
+
 	main{
 		display: flex;
 		flex-direction: column;
@@ -470,6 +541,7 @@
 		width: 99vw;
 	}
 	.container {
+		position: relative;
 		display: flex;
 		flex-direction: row;
 		height: 99%;
@@ -507,6 +579,7 @@
 	}
 
 	.display-panel {
+		position: relative; 
 		justify-content: center;
 		align-items: center;
 		background-color: lightgray;
@@ -540,6 +613,13 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
+	}
+
+	#design-brief-btn {
+		position: absolute;
+		z-index: 9999;
+		top: 0;
+		right: 0;
 	}
 
 	.rendering-display {
