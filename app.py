@@ -39,6 +39,20 @@ def format_references(references):
         references_str+=f"{ref['number']}. [{ref['title']}]({ref['url']})\n"
     return references_str
 
+@app.route("/move_image", methods=['POST'])
+def move_image():
+    form_data = request.get_json()
+    src_url = form_data["src_url"]
+    src_filename = os.path.basename(src_url)
+    curr_textureparts_path = form_data["curr_textureparts_path"]
+    curr_dir = os.path.dirname(curr_textureparts_path)
+
+    dest_url = os.path.join(curr_dir, src_filename)
+    Image.open(src_url).save(dest_url)
+
+
+    return jsonify({"dest_url":dest_url})
+
 @app.route("/feedback_materials", methods=['POST'])
 def feedback_materials():
     form_data = request.get_json()
@@ -84,7 +98,8 @@ def feedback_materials():
 @app.route("/suggest_materials", methods=['POST'])
 def suggest_materials():
     form_data = request.get_json()
-    intro_text, suggested_materials_dict = gpt3.suggest_materials(form_data["prompt"],role=form_data["role"],use_internet=form_data["use_internet"])
+    context = form_data["context"]
+    intro_text, suggested_materials_dict = gpt3.suggest_materials(form_data["prompt"],role=form_data["role"],use_internet=form_data["use_internet"],design_brief=context)
     suggested_materials = []
     for sm in suggested_materials_dict:
         texture_prompt = f"{sm}, texture map, seamless, 4k"
@@ -96,7 +111,9 @@ def suggest_materials():
             "reason":suggested_materials_dict[sm],
             "filepath":savepath
         })
-    return jsonify({"intro_text":intro_text,"role":"assistant","suggested_materials":suggested_materials})\
+    return jsonify({"intro_text":intro_text,"role":"assistant","suggested_materials":suggested_materials})
+
+
 
 @app.route("/suggest_colors", methods=['POST'])
 def suggest_colors():
@@ -630,4 +647,4 @@ if __name__ == "__main__":
     
     print(f"Latest rendering ID: {LATEST_RENDER_ID}")
 
-    app.run(debug=True)
+    app.run(debug=True,port=2099)

@@ -27,7 +27,6 @@
     import {displayWidth} from '../stores.js';
     import {displayHeight} from '../stores.js';
 
-
     import { onMount } from 'svelte';
     
     export let information_panel;
@@ -136,6 +135,37 @@
 
     let mouseDown=false;
     let shiftPressed=false;
+
+    export function removeHighlights() {
+        if(HIGHLIGHTED) {
+            HIGHLIGHTED.material.emissive.setHex(0x000000);
+            HIGHLIGHTED=null;
+        }
+
+        if (SELECTEDS.length > 0) {
+                for (let i = 0; i < SELECTEDS.length; i++) {
+                    SELECTEDS[i].material.emissive.setHex(0x000000);
+                }
+                SELECTEDS = [];
+                SELECTED_INFOS = [];
+                selected_objs_and_parts.set(SELECTED_INFOS);
+        }
+    }
+
+    async function moveTextureMap(src_url) {
+        const response = await fetch("/move_image", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                "src_url": src_url,
+                "curr_textureparts_path": get(curr_textureparts_path),
+            }),
+        });
+
+        const data = await response.json();
+        const dest_url = await data["dest_url"];
+        return dest_url;
+    }
 
     function onPointerClick(event) {
         event.preventDefault();
@@ -309,7 +339,7 @@
         return (event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom);
     }
 
-    function onPointerMove(event) {
+    async function onPointerMove(event) {
         if (isMouseOver3DScene) {
             const rect = renderer.domElement.getBoundingClientRect();
             pointer.x = ((event.clientX-rect.left) / width) * 2 - 1;
@@ -325,26 +355,20 @@
                                 let SELECTED_INFO = SELECTED_INFOS[index];
                                 let selected_object_name = SELECTED_INFO.name;
                                 let selected_parent_object = SELECTED_INFO.parent;
-
-                                // selected.prev_material = selected.material.clone();
                                 
                                 let cloned_texture_parts = get(curr_texture_parts);
 
                                 let prev_texture_parts = Object.assign( {}, cloned_texture_parts); 
-                                console.log("BEFORE");
-                                console.log(prev_texture_parts);
+                                // console.log("BEFORE");
+                                // console.log(prev_texture_parts);
 
                                 selected = changeTexture(selected,dragged_texture_url);
 
-                                // BUG: I get the following error whenever I try to render or save the scene.
-                                //
-                                // error for {object}: TypeError: Cannot read properties of null (reading 'toArray')
-                                // 
-                                // This happens on objects that have been updated with a new texture.
-                                // Happens after changeTexture function.
+                                let dest_url = await moveTextureMap(dragged_textureimg_url);
 
                                 cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"] = dragged_texture_name;
-                                cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"] = dragged_textureimg_url;
+                                // cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"] = dragged_textureimg_url;
+                                cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"] = dest_url;
 
                                 curr_texture_parts.set(cloned_texture_parts);
                                 
@@ -384,27 +408,6 @@
                 }
 
             }
-
-            // if (mouseDown) { //If the mouse is being held down
-            //     // Problem: when the user clicks outside the canvas and drags into the canvas, the mouseDown while moving is not detected.
-            //     if(dragging && SELECTEDS.length > 0) {
-            //         for (const selected of SELECTEDS) {
-            //             selected.prev_material = selected.material.clone();
-            //             changeTexture(selected,dragged_texture_url);
-            //         }
-            //     }
-            // } else {
-            //     if (SELECTEDS.length > 0) {
-            //         for (const selected of SELECTEDS) {
-            //             if (selected.prev_material) {
-            //                 selected.material = selected.prev_material.clone();
-            //                 selected.prev_material = null;
-            //             }
-            //         }
-            //         transferred_texture_url.set(null);
-            //         isDraggingImage.set(false);
-            //     }
-            // }
         }
 
     }
@@ -413,79 +416,6 @@
         if (event.button === 0) {
             mouseDown = true;
 
-            // if (isMouseOver3DScene) {
-            //     const rect = renderer.domElement.getBoundingClientRect();
-            //     pointer.x = ((event.clientX-rect.left) / width) * 2 - 1;
-            //     pointer.y = -((event.clientY-rect.top) / height) * 2 + 1;
-
-            //     if(dragging) {
-            //         if (dragged_texture_url) {
-            //             if(SELECTEDS.length > 0) {
-            //                 for (let selected of SELECTEDS) {
-            //                     const index = SELECTED_INFOS.findIndex(item => item.name === selected.model_name && item.parent === selected.model_parent);
-
-            //                     let SELECTED_INFO = SELECTED_INFOS[index];
-            //                     let selected_object_name = SELECTED_INFO.name;
-            //                     let selected_parent_object = SELECTED_INFO.parent;
-
-            //                     // selected.prev_material = selected.material.clone();
-                                
-            //                     let cloned_texture_parts = get(curr_texture_parts);
-
-            //                     let prev_texture_parts = Object.assign( {}, cloned_texture_parts); 
-            //                     console.log("BEFORE");
-            //                     console.log(prev_texture_parts);
-
-            //                     selected = changeTexture(selected,dragged_texture_url);
-
-            //                     // BUG: I get the following error whenever I try to render or save the scene.
-            //                     //
-            //                     // error for {object}: TypeError: Cannot read properties of null (reading 'toArray')
-            //                     // 
-            //                     // This happens on objects that have been updated with a new texture.
-            //                     // Happens after changeTexture function.
-
-            //                     cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"] = dragged_texture_name;
-            //                     cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"] = dragged_textureimg_url;
-
-            //                     curr_texture_parts.set(cloned_texture_parts);
-                                
-            //                     console.log("AFTER");    
-            //                     console.log(get(curr_texture_parts));
-
-            //                     console.log("SELECTED OBJECT");
-            //                     console.log(selected);
-            //                     const models3d_idx = model3d_infos.findIndex(item => item.name === selected_object_name && item.parent === selected_parent_object);
-                                
-            //                     console.log("The selected object in models3d");
-            //                     console.log(model3d_infos[models3d_idx]);
-
-            //                     console.log("The selectd object in objects_3d");
-            //                     console.log(get(objects_3d)[models3d_idx]);
-
-            //                     // Code for updating the objects_3d model with the model with the updated texture
-            //                     model3d_infos[models3d_idx]['model']['children'][0] = selected;
-            //                     objects_3d.set(model3d_infos);
-            //                     console.log("UPDATED OBJECTS_3D");
-            //                     console.log(get(objects_3d))
-
-            //                     information_panel.displayTexturePart();
-            //                 }
-            //                 transferred_texture_name.set(null);
-            //                 transferred_texture_url.set(null);
-            //                 transferred_textureimg_url.set(null);
-            //                 isDraggingImage.set(false);
-            //             } else {
-            //                 transferred_texture_name.set(null);
-            //                 transferred_texture_url.set(null);
-            //                 transferred_textureimg_url.set(null);
-            //                 isDraggingImage.set(false);
-            //                 alert("No selected object. Please select an object first.");
-            //             }
-            //         }
-            //     }
-
-            // }
         }
     }
 
@@ -493,82 +423,6 @@
         if(event.button===0) {
             mouseDown = false;
 
-            // if (isMouseOver3DScene) {
-            //     const rect = renderer.domElement.getBoundingClientRect();
-            //     pointer.x = ((event.clientX-rect.left) / width) * 2 - 1;
-            //     pointer.y = -((event.clientY-rect.top) / height) * 2 + 1;
-
-            //     if(dragging) {
-            //         if (dragged_texture_url) {
-            //             if(SELECTEDS.length > 0) {
-            //                 for (let selected of SELECTEDS) {
-            //                     const index = SELECTED_INFOS.findIndex(item => item.name === selected.model_name && item.parent === selected.model_parent);
-
-            //                     let SELECTED_INFO = SELECTED_INFOS[index];
-            //                     let selected_object_name = SELECTED_INFO.name;
-            //                     let selected_parent_object = SELECTED_INFO.parent;
-
-            //                     // selected.prev_material = selected.material.clone();
-                                
-            //                     let cloned_texture_parts = get(curr_texture_parts);
-
-            //                     let prev_texture_parts = Object.assign( {}, cloned_texture_parts); 
-            //                     console.log("BEFORE");
-            //                     console.log(prev_texture_parts);
-
-            //                     selected = changeTexture(selected,dragged_texture_url);
-
-            //                     // BUG: I get the following error whenever I try to render or save the scene.
-            //                     //
-            //                     // error for {object}: TypeError: Cannot read properties of null (reading 'toArray')
-            //                     // 
-            //                     // This happens on objects that have been updated with a new texture.
-            //                     // Happens after changeTexture function.
-
-            //                     cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"] = dragged_texture_name;
-            //                     cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"] = dragged_textureimg_url;
-
-            //                     curr_texture_parts.set(cloned_texture_parts);
-                                
-            //                     console.log("AFTER");    
-            //                     console.log(get(curr_texture_parts));
-
-            //                     console.log("SELECTED OBJECT");
-            //                     console.log(selected);
-            //                     const models3d_idx = model3d_infos.findIndex(item => item.name === selected_object_name && item.parent === selected_parent_object);
-                                
-            //                     console.log("The selected object in models3d");
-            //                     console.log(model3d_infos[models3d_idx]);
-
-            //                     console.log("The selectd object in objects_3d");
-            //                     console.log(get(objects_3d)[models3d_idx]);
-
-            //                     // Code for updating the objects_3d model with the model with the updated texture
-            //                     model3d_infos[models3d_idx]['model']['children'][0] = selected;
-            //                     objects_3d.set(model3d_infos);
-            //                     console.log("UPDATED OBJECTS_3D");
-            //                     console.log(get(objects_3d))
-
-                                
-
-
-            //                     information_panel.displayTexturePart();
-            //                 }
-            //                 transferred_texture_name.set(null);
-            //                 transferred_texture_url.set(null);
-            //                 transferred_textureimg_url.set(null);
-            //                 isDraggingImage.set(false);
-            //             } else {
-            //                 transferred_texture_name.set(null);
-            //                 transferred_texture_url.set(null);
-            //                 transferred_textureimg_url.set(null);
-            //                 isDraggingImage.set(false);
-            //                 alert("No selected object. Please select an object first.");
-            //             }
-            //         }
-            //     }
-
-            // }
         }
     }
 
@@ -732,7 +586,7 @@
 
             camera.updateMatrixWorld();
 
-            // highlightObject();
+            highlightObject();
 
             renderer.render( scene, camera );
         }
