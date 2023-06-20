@@ -209,16 +209,16 @@
         dispatch('proceedToGenerate',material_name)
     }
 
-    onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
-        await init_query();
-        // If the chatbot_input_message, a global store, is updated, update the inputMessage variable and the text in the textbox message area.
-        chatbot_input_message.subscribe(value => {
-            inputMessage = value;
-            const textarea = document.getElementById("textarea");
-            textarea.innerHTML='';
-            textarea.value=inputMessage;
-        });
-    });
+    // onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
+    //     await init_query();
+    //     // If the chatbot_input_message, a global store, is updated, update the inputMessage variable and the text in the textbox message area.
+    //     chatbot_input_message.subscribe(value => {
+    //         inputMessage = value;
+    //         const textarea = document.getElementById("textarea");
+    //         textarea.innerHTML='';
+    //         textarea.value=inputMessage;
+    //     });
+    // });
 
 </script>
 
