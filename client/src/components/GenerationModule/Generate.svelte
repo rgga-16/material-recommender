@@ -4,6 +4,7 @@
     import NumberSpinner from "svelte-number-spinner";
     import GeneratedRenderings from './GeneratedRenderings.svelte';
     import GeneratedTextures from './GeneratedTextures.svelte';
+    import GeneratedTextures2 from './GeneratedTextures2.svelte';
     import RefineTexture from './RefineTexture.svelte';
     import {curr_rendering_path} from '../../stores.js';
     import {curr_texture_parts} from '../../stores.js';
@@ -12,6 +13,7 @@
     import {generate_tab_page} from '../../stores.js';
     import {generated_texture_name} from '../../stores.js';
     import { get } from 'svelte/store';
+    import ActionsPanel from '../ActionsPanel.svelte';
 
     export let onCallUpdateCurrentRendering
     function callUpdateCurrentRendering() {
@@ -29,6 +31,9 @@
     let is_loading;
     let generated_textures = [];
     let selected_textures = [];
+    let selected_texture;
+
+
 
     let selected_index;
 
@@ -40,9 +45,40 @@
         // objs_and_parts = obj_and_part_json;
     }); 
 
+    async function generate_similar_textures(texture_str) {
+        input_material = texture_str
+        is_loading=true; 
+        generated_textures=[];
+        if(selected_prompt_keywords.length > 0) {
+            for (let i = 0; i < selected_prompt_keywords.length; i++) {
+                texture_str += ", " + selected_prompt_keywords[i];
+            }
+        }
+        // console.log(selected_texture);
+
+        texture_str += ",  texture map, seamless, 4k";
+        const results_response = await fetch("/generate_similar_textures", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                "texture_string": texture_str,
+                "n":n_textures,
+                "imsize":448,
+                "impath":selected_texture,
+            }),
+        });
+        selected_texture=null;
+        const results_json = await results_response.json();
+        generated_textures = results_json["results"];
+        is_loading=false;
+
+        generated_texture_name.set(input_material);
+    }
+
     export async function generate_textures(texture_str) {
         input_material=texture_str;
         is_loading=true; 
+        selected_texture=null;
         generated_textures=[];
 
         if(selected_prompt_keywords.length > 0) {
@@ -284,13 +320,15 @@
             </div>
 
             <div class="row">
-                <button on:click|preventDefault={generate_textures(input_material)}> Generate Material </button>
+                <button disabled={!selected_texture} on:click|preventDefault={() => generate_similar_textures(input_material)}> Generate Similar Textures</button>
+                <button on:click|preventDefault={() => generate_textures(input_material)}> Generate Textures </button>
             </div>
 
         {#if generated_textures.length > 0}
                 <p> Texture map results for: {get(generated_texture_name)}</p>
-                <GeneratedTextures pairs= {generated_textures} texture_name={get(generated_texture_name)} bind:selected_texturepaths={selected_textures}/>
-                <p> {selected_textures.length}/{n_textures} textures selected. {#if selected_textures.length<=0} Please select at least 1 texture map to proceed.{/if}</p>
+                <GeneratedTextures pairs= {generated_textures} texture_name={get(generated_texture_name)} bind:selected_texture={selected_texture}/>
+                <!-- <GeneratedTextures2 pairs= {generated_textures} texture_name={get(generated_texture_name)} bind:selected_texture={selected_texture}/> -->
+                <!-- <p> {selected_textures.length}/{n_textures} textures selected. {#if selected_textures.length<=0} Please select at least 1 texture map to proceed.{/if}</p> -->
         {:else if is_loading==true}
             <div class="images-placeholder">
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
@@ -300,11 +338,11 @@
                 <pre>No material textures generated yet.</pre>
             </div>
         {/if}
-        <div class="carousel-nav-btns">
+        <!-- <div class="carousel-nav-btns">
             {#if generated_textures.length > 0}
                 <button disabled={selected_textures.length<=0} on:click|preventDefault={()=>next_page()}> Next </button>
             {/if}
-        </div>
+        </div> -->
     </div>
 
     <div class="page" class:hidden={current_page!=1} id="apply_textures">
