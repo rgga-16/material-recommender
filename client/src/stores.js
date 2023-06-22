@@ -10,9 +10,25 @@ export const models_setup = writable({});
 export const chatbot_input_message = writable(""); //Keeps track of the input message in the chatbot
 
 export const design_brief = writable(`
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam iaculis leo mi, eget viverra ligula euismod ac. Integer placerat tempor accumsan. Quisque in nibh non metus pellentesque cursus eget nec elit. Interdum et malesuada fames ac ante ipsum primis in faucibus. Fusce at arcu nec velit faucibus luctus. Morbi imperdiet nec risus et elementum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Nullam sed odio ut quam auctor vehicula. Ut eget leo pharetra ex feugiat scelerisque ac in nisl. Aenean tristique quam magna, vitae iaculis sem volutpat ut.
+Design Brief for an Interior Bedroom
 
-    Curabitur at ultrices purus, non mollis neque. Aenean odio arcu, suscipit eu posuere id, facilisis blandit magna. In sed feugiat mi. Vivamus accumsan eu tellus ac porttitor. In efficitur bibendum leo, ultrices malesuada lectus varius vel. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum ullamcorper lacus quis nibh laoreet facilisis. Nam mattis, sem id convallis tempor, orci dui hendrerit justo, et pellentesque odio velit iaculis nunc.
+Project Overview: The project is to design an interior bedroom for a young couple who just moved in to a newly-built condominium unit in Bonifacio Global City (BGC), Taguig, Philippines. The bedroom should be a comfortable and stylish space that reflects their personalities and taste. The couple prefers a modern and minimalist design with a touch of warmth and elegance.
+
+Design Objectives: Create a functional and comfortable space for the couple to relax and sleep in. Incorporate a modern and minimalist design style with a touch of warmth and elegance. Use a color scheme that is soothing and relaxing with pops of bold color to add interest and personality. Maximize storage space to keep the room organized and clutter-free. Incorporate lighting that is both functional and decorative. Use sustainable and eco-friendly materials wherever possible.
+
+Design Elements Location: The interior bedroom will be located in a newly-built condominium situated in Bonifacio Global City (BGC), Taguig, Philippines.
+
+Color Scheme: The color scheme for the bedroom should be soothing and relaxing, with pops of bold color to add interest. The walls should be painted in a light shade of beige or white, while the bedding and curtains can be in a darker shade of gray or navy blue. Bold pops of color can be added through decorative pillows, artwork, and accessories.
+
+Furniture: The bedroom should have a queen-sized bed with a stylish headboard and luxurious linens. A bedside table with a lamp should be placed on either side of the bed. A sleek dresser with drawers and a mirror should be placed against one wall, while a comfortable yet stylish armchair can be placed in one corner for reading or relaxing.
+
+Storage: The bedroom should have ample storage space to keep the room organized and clutter-free. The dresser should have enough drawers to store clothing, while a built-in closet with shelves and hanging space should be included for additional storage.
+
+Lighting: The bedroom should have both functional and decorative lighting. A sleek pendant light or chandelier can be used for general lighting, while bedside lamps can be used for reading. A stylish floor lamp with a decorative shade can be placed in a corner for additional lighting.
+
+Materials: Sustainable and eco-friendly materials should be used wherever possible. The flooring can be made of bamboo or wood, while the bedding can be made of organic cotton. The furniture can be made of FSC certified wood or recycled materials. The lighting fixtures can be energy-efficient LED bulbs.
+
+Conclusion: The interior bedroom design should be a comfortable and stylish space that reflects the couple's personalities and taste. The design should incorporate a modern and minimalist style with a touch of warmth and elegance. The color scheme should be soothing with pops of bold color, and ample storage space should be included to keep the room organized and clutter-free. Sustainable and eco-friendly materials should be used wherever possible. The interior bedroom will be located in a newly-built condominium situated in Bonifacio Global City (BGC), Taguig, Philippines.
 `); //Keeps track of the design brief
 
 // selected_objs_and_parts = [
