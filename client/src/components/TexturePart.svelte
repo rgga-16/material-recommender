@@ -160,6 +160,22 @@
 
     }
 
+    function addNewColorPalete() {
+      palettes.push({
+        name: 'New Palette',
+        palette: [
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF",
+        ]
+      });
+      palettes=palettes;
+      saved_color_palettes.set(palettes);
+      
+    }
+
     function updateColor() {
       let color = palettes[selected_palette_idx]['palette'][selected_swatch_idx];
       // console.log(selected_palette_idx);
@@ -195,6 +211,7 @@
     let references=undefined; 
     let activeAspect;
     async function requestMaterialFeedback() {
+      const start = performance.now();
       feedback=undefined;
       formatted_feedback=undefined; intro_text=undefined; references=undefined;
       switchTab("view-feedback");
@@ -244,8 +261,8 @@
       current_texture_parts[part_parent_name][part_name]['feedback']['references'] = references;
       curr_texture_parts.set(current_texture_parts);
 
-      // console.log(get(curr_texture_parts));
-      // console.log(current_texture_parts);
+      const end = performance.now();
+      console.log("Requesting material feedback took " + (end - start) + " milliseconds.");
     }
 
     let activeTab='adjust-finish';
@@ -273,7 +290,6 @@
         activeAspect= Object.keys(formatted_feedback)[0];
       }
       console.log(parents);
-
       gen_module = get(generate_module);
     });
 
@@ -283,7 +299,6 @@
       roughness = [finish_suggestion["roughness"]];
       metalness = [finish_suggestion["metalllic"]];
       updateFinish();
-      
     }
 
     function generate(material_name) {
@@ -291,8 +306,6 @@
       generate_tab_page.set(0);
       gen_module.generate_textures(material_name);
     }
-
-
 </script>
 
 <div class="card container">
@@ -434,6 +447,7 @@
                       <input type=radio bind:group={selected_palette_idx} name={j+1} value={j+1}>
                     </label>
                   {/each}
+                  <button on:click|preventDefault={() => addNewColorPalete()}> Add new </button>
                 {:else}
                   {#each palettes as p,j}
                     <label class="control container palette selectable" class:selected={selected_palette_idx===j}>
@@ -443,6 +457,7 @@
                       <input type=radio bind:group={selected_palette_idx} name={j} value={j}>
                     </label>
                   {/each}
+                  <button on:click|preventDefault={() => addNewColorPalete()}> Add new </button>
                 {/if}
             </div>
           {/if}
@@ -485,7 +500,7 @@
 
   </div>
 
-  <div class="card container tab-content" class:active={activeTab==='view-feedback'}>
+  <div class="card container tab-content" class:active={activeTab==='view-feedback'} style="flex-wrap:wrap;">
     <h5> <b> Feedback </b></h5>
       {#if formatted_feedback}
         <SvelteMarkdown source={intro_text} />
@@ -544,7 +559,8 @@
             </div>
           </div>
         {/each}
-
+        
+        <h6> <b> <u> References </u>  </b></h6>
         <SvelteMarkdown source={references} />
       {:else if is_loading_feedback}
         <div class="images-placeholder">
