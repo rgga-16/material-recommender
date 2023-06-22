@@ -1,7 +1,7 @@
 from flask import Flask, send_from_directory, request, jsonify, send_file
-import random, requests, json, copy, shutil, os, base64, io
+import random, requests, json, copy, shutil, os, base64, io, time
 from PIL import Image
-from texture_transfer_3d import TextureDiffusion, DALLE2
+from texture_transfer_3d import TextureDiffusion, DALLE2, text2texture_similar
 from configs import *
 
 
@@ -69,23 +69,33 @@ def feedback_materials():
         for suggestion in suggestions_dict[aspect]['suggestions']:
             type=suggestion[1]; name=suggestion[0]
             if type=="material":
+                material_creation_start_time = time.time()
                 texture_prompt = f"{name}, texture map, seamless, 4k"
                 image, _ = generate_textures(texture_prompt,n=1, imsize=448); image=image[0]
                 b64_url = im_2_b64(image)
                 suggestion.append(b64_url.decode('utf-8'))
+                material_creation_end_time = time.time()
+                print(f"Time to create suggested material: {material_creation_end_time-material_creation_start_time}")
             elif type=="attachment":
+                attachment_creation_start_time = time.time()
                 texture_prompt = f"{name}, photorealistic, 4k"
                 image, _ = generate_textures(texture_prompt,n=1, imsize=448); image=image[0]
                 b64_url = im_2_b64(image)
                 suggestion.append(b64_url.decode('utf-8'))
+                attachment_creation_end_time = time.time()
+                print(f"Time to create suggested attachment: {attachment_creation_end_time-attachment_creation_start_time}")
             elif type=="finish": 
+                finish_creation_start_time = time.time()
                 suggested_finish_settings = gpt3.suggest_finish_settings(name, material_name, object_name, part_name)
                 suggestion.append(suggested_finish_settings)
+                finish_creation_end_time = time.time()
+                print(f"Time to create suggested finish: {finish_creation_end_time-finish_creation_start_time}")
             else: 
                 texture_prompt = f"{name}, photorealistic, 4k"
                 image, _ = generate_textures(texture_prompt,n=1, imsize=448); image=image[0]
                 b64_url = im_2_b64(image)
                 suggestion.append(b64_url.decode('utf-8'))
+    # suggestions_creation_end_time = time.time()
 
                 
     return jsonify({
@@ -318,6 +328,34 @@ def get_image():
     _, file_extension = os.path.splitext(img_path)
 
     return send_file(img_path,mimetype=f'image/{file_extension[1:]}')
+
+@app.route("/generate_similar_textures",methods=['POST'])
+def generate_similar_textures():
+    form_data = request.get_json()
+    texture_str = form_data["texture_string"]
+    n_textures = form_data["n"]
+    n_textures-=1
+    impath = form_data["impath"]
+
+    similar_textures = text2texture_similar(texture_str,impath,n_textures,gen_imsize=256)
+
+    # texture_filenames = []
+    texture_loadpaths = [{
+        'rendering': None,
+        'texture': impath
+    }]
+    for i in range(0,len(similar_textures)):
+        texture_filename = f"{texture_str}_similar_{i+1}.png"
+        # texture_filenames.append(f"{texture_str}_similar_{i}.png")
+        savepath = os.path.join(SERVER_IMDIR,texture_filename)
+        similar_textures[i].save(savepath)
+        texture_loadpaths.append({
+            'rendering': None,
+            'texture': savepath
+        })
+    return {"results": texture_loadpaths}
+
+
 
 @app.route("/generate_textures", methods=['POST'])
 def generate_textures_():
