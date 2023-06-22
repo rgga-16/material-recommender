@@ -350,8 +350,9 @@ materials_feedbacks = []
 '''
 attached_parts: list of tuples (object_name, part_name, material_name)
 '''
-def provide_material_feedback(material_name, object_name, part_name, use_internet=False, attached_parts=None, design_context=None):
+def provide_material_feedback(material_name, object_name, part_name, use_internet=False, attached_parts=None, design_brief=None):
     
+    aspects = ["durability", "environmental durability", "maintenance", "environmental impact and sustainability", "assembly", "cost", "material_availability"]
     if(object_name==part_name):
         part_name=""
     material_feedback_prompt_head = f"I have a {object_name} {part_name} made out of {material_name}. "
@@ -362,14 +363,15 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
         for attached_part in attached_parts:
             materials_context += f'''It is attached to a {attached_part[0]} {attached_part[1]} made out of {attached_part[2]}. '''
 
-    material_feedback_prompt_tail = f'''\nPlease provide feedback on the material used based on the following aspects: durability, maintenance, sustainability, assembly, and cost. 
+    material_feedback_prompt_tail = f'''\nPlease provide feedback on the material used based on the following aspects: {", ".join(aspects[:-1])} {", and " + aspects[-1]}. 
     For each aspect, if you gave critical feedback on that aspect, please provide up to 5 suggestions 
     (e.g. alternative materials, adding material finishes, assembly attachments) to improve the aspect. 
     Make sure that you also consider the object the material is used on.
     '''
 
+    
     if use_internet:
-        aspects = ["durability", "maintenance", "sustainability", "assembly", "cost"]
+        
         results = []
         material_feedback_prompt_tail += f'''\n 
         Here are sources from the internet that you can refer to and cite when providing feedback: \n
@@ -389,6 +391,14 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
                 CONTENT:{r['snippet']}
                 '''
 
+                //
+
+                TEST THE FEEDBACK ONE MORE TIME IF IT ACTUALLY READS THE DESIGN BRIEF AND EVALUATES IT BASED ON SOURCING, MATERIAL AVAILABILITY,
+                AND ENVIRONMENTAL DURABILITY!!!!! 
+
+                THEN ADJUST PROMPTING THE DESIGN BRIEF CREATION SUCH THAT IT VAGUELY SPECIFIES MATERIALS AND COLORS
+                //
+
                 references.append({
                     "number":src_idx,
                     "url":r['link'],
@@ -402,60 +412,97 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
         '''
 
     material_feedback_prompt = material_feedback_prompt_head + materials_context + material_feedback_prompt_tail + "\nRespond using Markdown."
-    print(material_feedback_prompt)
+    # print(material_feedback_prompt)
     global init_history
     init_history_clone = copy.deepcopy(init_history)
     init_history_clone.append({"role":"user", "content":material_feedback_prompt})
 
     response = openai.ChatCompletion.create(
-        model=model_name,
+        model="gpt-3.5-turbo-16k",
         messages=init_history_clone,
         temperature=0.1
     )
 
     material_feedback = response["choices"][0]["message"]["content"]
     init_history_clone.append({"role":"assistant", "content":material_feedback})
-
     intro_text = material_feedback.split('\n')[0].strip()
 
+    if design_brief: 
+        context_aware_prompt = f''' 
+        Now, I want you to answer again but consider the following design brief for context:
+        ==========================
+        {design_brief}.
+        ==========================
+        Some parts of the design brief may be relevant to the question or instruction, while others may not be relevant.
+        '''
+        if use_internet:
+            context_aware_prompt += '''
+            You may refer to the sources retrieved from the internet in the previous message.
+            Make sure to cite results using [[NUMBER](URL)] notation after the reference.
+            Make sure that you answer the question or fulfill the instruction by both using the sources from the internet and also in the context of the design brief.
+            '''
+        else: 
+            context_aware_prompt += '''
+            Make sure that you answer the question or fulfill the instruction in the context of the design brief.
+            '''
+        init_history_clone.append({"role":"user", "content":context_aware_prompt})
+        context_aware_response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo-16k",
+            messages=init_history_clone,
+            temperature=0.7
+        )
+        context_aware_feedback = context_aware_response["choices"][0]["message"]["content"]
+        init_history_clone.append({"role":"assistant", "content":context_aware_feedback})
+        intro_text = context_aware_feedback.split('\n')[0].strip()
+
+
     #########################################
-    follow_up_prompt2 = f'''
+    follow_up_prompt = f'''
     Based on the feedback, return a Python dictionary. Each key should be an aspect. The values of each aspect are "feedback" and "suggestions".
     "feedback" is the key to the feedback you provided for that aspect. Make sure that the feedback is in Markdown format and it is exactly the same as the feedback you provided for that aspect in the previous response.
     "suggestions" is a list of lists where each list contains the name of the suggested item and item type.
     The item type must either be one of the following: material, finish, attachment, or other.
     Here is a template:
     '''
-    dict_template2 = {
-        "durability": {
-            "feedback": "durability feedback",
-            "suggestions": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]]
-        },
-        "maintenance": {
-            "feedback": "maintenance feedback",
-            "suggestions": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]]
-        },
-        "sustainability": {
-            "feedback": "sustainability feedback",
-            "suggestions": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]]
-        },
-        "assembly": {
-            "feedback": "assembly feedback",
-            "suggestions": [["assembly_attachment_1","attachment"], ["assembly_attachment_2","attachment"]]
-        },
-        "cost": {
-            "feedback": "cost feedback",
-            "suggestions": [["material1","material"],["material2","material"]]
+
+    dict_template2 = {}
+    for i in range(len(aspects)):
+        aspect = aspects[i]
+        dict_template2[aspect] = {
+            "feedback": f"{aspect} feedback",
+            "suggestions": [["item1","item_type"], ["item2","item_type"]]
         }
-    }
-    dict_template2_str = json.dumps(dict_template2, indent=4)
-    follow_up_prompt2 += dict_template2_str
-    init_history_clone.append({"role":"user", "content":follow_up_prompt2})
+
+    # dict_template = {
+    #     "durability": {
+    #         "feedback": "durability feedback",
+    #         "suggestions": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]]
+    #     },
+    #     "maintenance": {
+    #         "feedback": "maintenance feedback",
+    #         "suggestions": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]]
+    #     },
+    #     "sustainability": {
+    #         "feedback": "sustainability feedback",
+    #         "suggestions": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]]
+    #     },
+    #     "assembly": {
+    #         "feedback": "assembly feedback",
+    #         "suggestions": [["assembly_attachment_1","attachment"], ["assembly_attachment_2","attachment"]]
+    #     },
+    #     "cost": {
+    #         "feedback": "cost feedback",
+    #         "suggestions": [["material1","material"],["material2","material"]]
+    #     }
+    # }
+    dict_template_str = json.dumps(dict_template2, indent=4)
+    follow_up_prompt += dict_template_str
+    init_history_clone.append({"role":"user", "content":follow_up_prompt})
     #########################################
 
     
     suggestions_dict_response = openai.ChatCompletion.create(
-        model=model_name,
+        model="gpt-3.5-turbo-16k",
         messages=init_history_clone,
         temperature=0.0
     )
@@ -472,9 +519,12 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
         suggestions_dict_str = suggestions_dict_str[:end_index+1].strip()
 
     suggestions_dict_str = suggestions_dict_str.strip()
-    suggestions_dict= ast.literal_eval(suggestions_dict_str)
-    # print(suggestions_dict)
 
+    try:
+        suggestions_dict= ast.literal_eval(suggestions_dict_str)
+    except SyntaxError as e:
+        intro_text = f"Sorry, please try again. We got the following error: {e}."
+        suggestions_dict = {}
     return intro_text, material_feedback, suggestions_dict, references
 
 

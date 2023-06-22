@@ -60,8 +60,9 @@ def feedback_materials():
     object_name = form_data["object_name"]
     part_name = form_data["part_name"]
     attached_parts = form_data["attached_parts"]
+    design_brief = form_data["design_brief"]
 
-    intro_text, response, suggestions_dict, references = gpt3.provide_material_feedback(material_name, object_name, part_name, use_internet=True, attached_parts=attached_parts)
+    intro_text, response, suggestions_dict, references = gpt3.provide_material_feedback(material_name, object_name, part_name, use_internet=True, attached_parts=attached_parts,design_brief=design_brief)
     references_str = format_references(references)
 
     for aspect in suggestions_dict:

@@ -32,6 +32,7 @@
     export let material_url;
     export let material_color=null; //Color code of the material
 
+    let use_design_brief = false;
 
     /**
      * parents = [
@@ -198,6 +199,11 @@
       formatted_feedback=undefined; intro_text=undefined; references=undefined;
       switchTab("view-feedback");
 
+      let context=null; 
+      if(use_design_brief) {
+        context = get(design_brief);
+      }
+
       let attached_parts = [];
       for (const p in parents) {
         const parent = parents[p]; const obj = parent[0]; const part = parent[1];
@@ -214,6 +220,7 @@
                 "object_name":part_parent_name,
                 "part_name":part_name,
                 "attached_parts":attached_parts,
+                "design_brief":context
               }),
       });
 
@@ -306,6 +313,10 @@
         <div class="control">
           <button on:click|preventDefault={suggestSimilarMaterials}>Suggest similar materials </button>
           <button on:click|preventDefault={requestMaterialFeedback}> Request feedback </button>
+          <label>
+            <input type="checkbox" bind:checked={use_design_brief} >
+            Based on design brief
+          </label>
         </div>
         
         <!-- <div>Material finish: {material_finish}</div> -->
@@ -433,8 +444,6 @@
                     </label>
                   {/each}
                 {/if}
-                
-                
             </div>
           {/if}
       </div>
@@ -495,36 +504,42 @@
             <div class="card container">
               <h6> <b> <u> Suggestions </u>  </b></h6>
               <div class="control" style="justify-content:space-between;">
-                {#each formatted_feedback[aspect]['suggestions'] as suggestion}
-                  <div class="card container" style="height:100%;">
-                    {#if suggestion[1] === "material" && suggestion.length===3} 
-                      <span> <b> {suggestion[0]} </b></span>
-                      <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"} is_draggable={true}/>
-                      <span> <b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                {#if formatted_feedback[aspect]['suggestions'].length <= 0}
+                  <p> No suggestions provided. </p>
+                {:else}
+                  {#each formatted_feedback[aspect]['suggestions'] as suggestion}
+                    <div class="card container" style="height:100%;">
+                      {#if suggestion[1] === "material" && suggestion.length===3} 
+                        <span> <b> {suggestion[0]} </b></span>
+                        <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"} is_draggable={true}/>
+                        <span> <b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
 
-                      <button  on:click={() => {generate(suggestion[0])}}> 
-                        Generate more! 
-                        <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
-                      </button>
-                    {:else if suggestion[1] === "attachment" && suggestion.length===3}
-                      <span> <b> {suggestion[0]} </b></span>
-                      <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"}/>
-                      <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
-                    {:else if suggestion[1] === "finish" && suggestion.length===3}
-                      <span> <b> {suggestion[0]} </b></span>
-                      <div class="card container">
-                        <span> Opacity: {suggestion[2]["opacity"]}</span>
-                        <span> Roughness: {suggestion[2]["roughness"]}</span>
-                        <span> Metalness: {suggestion[2]["metallic"]}</span>
-                      </div>
-                      <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
-                      <button  on:click={() => {applyFinishSuggestion(suggestion[2])}}> Apply Finish </button>
-                    {:else}
-                      <span> <b> {suggestion[0]} </b></span>
-                      <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
-                    {/if} 
-                  </div>
-                {/each}
+                        <button  on:click={() => {generate(suggestion[0])}}> 
+                          Generate more! 
+                          <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
+                        </button>
+                      {:else if suggestion[1] === "attachment" && suggestion.length===3}
+                        <span> <b> {suggestion[0]} </b></span>
+                        <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"}/>
+                        <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                      {:else if suggestion[1] === "finish" && suggestion.length===3}
+                        <span> <b> {suggestion[0]} </b></span>
+                        <div class="card container">
+                          <span> Opacity: {suggestion[2]["opacity"]}</span>
+                          <span> Roughness: {suggestion[2]["roughness"]}</span>
+                          <span> Metalness: {suggestion[2]["metallic"]}</span>
+                        </div>
+                        <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                        <button  on:click={() => {applyFinishSuggestion(suggestion[2])}}> Apply Finish </button>
+                      {:else}
+                        <span> <b> {suggestion[0]} </b></span>
+                        <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                      {/if} 
+                    </div>
+                  {/each}
+                {/if}
+
+                
               </div>
             </div>
           </div>
