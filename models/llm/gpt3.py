@@ -2,7 +2,7 @@
 import os, copy
 import openai, tiktoken
 openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
-import re , ast, json
+import re , ast, json, time
 import yake 
 from datetime import datetime
 
@@ -60,7 +60,7 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
     except KeyError:
         print("Warning: model not found. Using cl100k_base encoding.")
         encoding = tiktoken.get_encoding("cl100k_base")
-    if model == "gpt-3.5-turbo":
+    if model == "gpt-3.5-turbo" or model=="gpt-3.5-turbo-16k":
         print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
         return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301")
     elif model == "gpt-4":
@@ -257,7 +257,15 @@ def suggest_finish_settings(finish_name, material_name, object_name, part_name, 
         suggested_settings_str = suggested_settings_str[:end_index+1].strip()
     suggested_settings_str = suggested_settings_str.strip()
 
-    suggested_settings = ast.literal_eval(suggested_settings_str)
+    try:
+        suggested_settings = ast.literal_eval(suggested_settings_str)
+    except SyntaxError as e:
+        suggested_settings = {
+            "roughness": 0.5,
+            "metallic": 0.5,
+            "opacity": 0.5
+        }
+        print(f"Sorry, please try again. We got the following error: {e}.")
 
     for key in list(suggested_settings.keys()):
         new_key = key.strip().lower()
@@ -317,7 +325,14 @@ def brainstorm_prompt_keywords(material):
         messages=init_history_clone,
         temperature=0.8
     )
-    keywords = ast.literal_eval(response["choices"][0]["message"]["content"])
+
+    try: 
+        keywords = ast.literal_eval(response["choices"][0]["message"]["content"])
+    except SyntaxError as e:
+        keywords = [["Error. Please try again."]]
+        print(f"Sorry, please try again. We got the following error: {e}.")
+
+
     return keywords
 
 def brainstorm_material_queries(): 
@@ -341,7 +356,11 @@ def brainstorm_material_queries():
         temperature=0.0
     )
 
-    prompts = ast.literal_eval(python_list_response["choices"][0]["message"]["content"])
+    try: 
+        prompts = ast.literal_eval(python_list_response["choices"][0]["message"]["content"])
+    except SyntaxError as e:
+        prompts = ["(Error. Please try again.)"]
+        print(f"Sorry, please try again. We got the following error: {e}.")
 
     return prompts
 
@@ -351,8 +370,8 @@ materials_feedbacks = []
 attached_parts: list of tuples (object_name, part_name, material_name)
 '''
 def provide_material_feedback(material_name, object_name, part_name, use_internet=False, attached_parts=None, design_brief=None):
-    
-    aspects = ["durability", "environmental durability", "maintenance", "environmental impact and sustainability", "assembly", "cost", "material_availability"]
+    feedback_model = "gpt-3.5-turbo-16k"
+    aspects = ["durability", "maintenance", "sustainability", "assembly", "cost", "availability"]
     if(object_name==part_name):
         part_name=""
     material_feedback_prompt_head = f"I have a {object_name} {part_name} made out of {material_name}. "
@@ -368,10 +387,8 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
     (e.g. alternative materials, adding material finishes, assembly attachments) to improve the aspect. 
     Make sure that you also consider the object the material is used on.
     '''
-
     
     if use_internet:
-        
         results = []
         material_feedback_prompt_tail += f'''\n 
         Here are sources from the internet that you can refer to and cite when providing feedback: \n
@@ -390,22 +407,12 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
                 TITLE:{r['title']}
                 CONTENT:{r['snippet']}
                 '''
-
-                //
-
-                TEST THE FEEDBACK ONE MORE TIME IF IT ACTUALLY READS THE DESIGN BRIEF AND EVALUATES IT BASED ON SOURCING, MATERIAL AVAILABILITY,
-                AND ENVIRONMENTAL DURABILITY!!!!! 
-
-                THEN ADJUST PROMPTING THE DESIGN BRIEF CREATION SUCH THAT IT VAGUELY SPECIFIES MATERIALS AND COLORS
-                //
-
                 references.append({
                     "number":src_idx,
                     "url":r['link'],
                     "title":r['title'],
                 })
                 src_idx+=1
-        
         material_feedback_prompt_tail += f'''
         Make sure to cite results using [[NUMBER](URL)] notation after the reference. 
         If the provided information from the internet results refers to multiple subjects with the same name, write separate answers for each subject.
@@ -417,11 +424,15 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
     init_history_clone = copy.deepcopy(init_history)
     init_history_clone.append({"role":"user", "content":material_feedback_prompt})
 
+    material_feedback_start_time=time.time()
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k",
+        model=feedback_model,
         messages=init_history_clone,
         temperature=0.1
     )
+    material_feedback_end_time=time.time()
+    material_feedback_time = material_feedback_end_time-material_feedback_start_time
+    print(f"Material feedback time: {material_feedback_time}")
 
     material_feedback = response["choices"][0]["message"]["content"]
     init_history_clone.append({"role":"assistant", "content":material_feedback})
@@ -446,11 +457,16 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
             Make sure that you answer the question or fulfill the instruction in the context of the design brief.
             '''
         init_history_clone.append({"role":"user", "content":context_aware_prompt})
+        
+        context_aware_feedback_start_time=time.time()
         context_aware_response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-16k",
+            model=feedback_model,
             messages=init_history_clone,
             temperature=0.7
         )
+        context_aware_feedback_end_time=time.time()
+        context_aware_feedback_time = context_aware_feedback_end_time-context_aware_feedback_start_time
+        print(f"Context-aware feedback time: {context_aware_feedback_time}")
         context_aware_feedback = context_aware_response["choices"][0]["message"]["content"]
         init_history_clone.append({"role":"assistant", "content":context_aware_feedback})
         intro_text = context_aware_feedback.split('\n')[0].strip()
@@ -473,39 +489,20 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
             "suggestions": [["item1","item_type"], ["item2","item_type"]]
         }
 
-    # dict_template = {
-    #     "durability": {
-    #         "feedback": "durability feedback",
-    #         "suggestions": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]]
-    #     },
-    #     "maintenance": {
-    #         "feedback": "maintenance feedback",
-    #         "suggestions": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]]
-    #     },
-    #     "sustainability": {
-    #         "feedback": "sustainability feedback",
-    #         "suggestions": [["finish1","finish"], ["finish2","finish"], ["material1","material"],["material2","material"]]
-    #     },
-    #     "assembly": {
-    #         "feedback": "assembly feedback",
-    #         "suggestions": [["assembly_attachment_1","attachment"], ["assembly_attachment_2","attachment"]]
-    #     },
-    #     "cost": {
-    #         "feedback": "cost feedback",
-    #         "suggestions": [["material1","material"],["material2","material"]]
-    #     }
-    # }
     dict_template_str = json.dumps(dict_template2, indent=4)
     follow_up_prompt += dict_template_str
     init_history_clone.append({"role":"user", "content":follow_up_prompt})
     #########################################
 
-    
+    suggestions_dict_response_start_time=time.time()
     suggestions_dict_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k",
+        model=feedback_model,
         messages=init_history_clone,
         temperature=0.0
     )
+    suggestions_dict_response_end_time=time.time()
+    suggestions_dict_response_time = suggestions_dict_response_end_time-suggestions_dict_response_start_time
+    print(f"Suggestions dict response time: {suggestions_dict_response_time}")
     suggestions_dict_str= suggestions_dict_response["choices"][0]["message"]["content"]
 
     # Remove text before and after the Python dict

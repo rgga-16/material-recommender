@@ -10,25 +10,40 @@ export const models_setup = writable({});
 export const chatbot_input_message = writable(""); //Keeps track of the input message in the chatbot
 
 export const design_brief = writable(`
-Design Brief for an Interior Bedroom
+Design Brief: Modern Minimalist Master Bedroom for a Filipino Couple
+Demographics
+The clients are a Filipino couple in their early 30s who live in the bustling city of Manila in the Philippines. They are both working professionals who want a cozy bedroom to relax and unwind after a busy day.
 
-Project Overview: The project is to design an interior bedroom for a young couple who just moved in to a newly-built condominium unit in Bonifacio Global City (BGC), Taguig, Philippines. The bedroom should be a comfortable and stylish space that reflects their personalities and taste. The couple prefers a modern and minimalist design with a touch of warmth and elegance.
+Project Background
+The project background is to create a modern minimalist design with warm, inviting tones that are reflective of the clients' lifestyle. The design should have a mix of contemporary and traditional elements.
 
-Design Objectives: Create a functional and comfortable space for the couple to relax and sleep in. Incorporate a modern and minimalist design style with a touch of warmth and elegance. Use a color scheme that is soothing and relaxing with pops of bold color to add interest and personality. Maximize storage space to keep the room organized and clutter-free. Incorporate lighting that is both functional and decorative. Use sustainable and eco-friendly materials wherever possible.
+Preferred Design Style
+The preferred design style for the bedroom is modern minimalist with a touch of Scandinavian aesthetic. It should have a neutral color palette with accents of natural, warm wood textures and matte finishes.
 
-Design Elements Location: The interior bedroom will be located in a newly-built condominium situated in Bonifacio Global City (BGC), Taguig, Philippines.
+Desired Ambience and Feel
+The desired ambience and feel for the bedroom should be calm, soothing, and relaxing. The lighting should be soft and warm with a cozy, intimate atmosphere.
 
-Color Scheme: The color scheme for the bedroom should be soothing and relaxing, with pops of bold color to add interest. The walls should be painted in a light shade of beige or white, while the bedding and curtains can be in a darker shade of gray or navy blue. Bold pops of color can be added through decorative pillows, artwork, and accessories.
+Client's Preferences
+The clients prefer a minimalistic design with clean lines and geometric shapes. They also have a preference for natural materials such as wood in their bedroom. They would also prefer a high-quality mattress, a comfortable duvet, and pillows with a thread count of 400 or higher.
 
-Furniture: The bedroom should have a queen-sized bed with a stylish headboard and luxurious linens. A bedside table with a lamp should be placed on either side of the bed. A sleek dresser with drawers and a mirror should be placed against one wall, while a comfortable yet stylish armchair can be placed in one corner for reading or relaxing.
+Budget
+The budget of the project is around PHP 100,000. This is a moderate budget that should cover the cost of furnishings and decorations.
 
-Storage: The bedroom should have ample storage space to keep the room organized and clutter-free. The dresser should have enough drawers to store clothing, while a built-in closet with shelves and hanging space should be included for additional storage.
+Furniture and Accessories
+The bedroom will contain the following furniture and accessories:
 
-Lighting: The bedroom should have both functional and decorative lighting. A sleek pendant light or chandelier can be used for general lighting, while bedside lamps can be used for reading. A stylish floor lamp with a decorative shade can be placed in a corner for additional lighting.
+A queen-size, low-lying platform bed with wood headboard and built-in sidetables on each side.
+Two white, matte-finished drawers and a cabinet with wood accents.
+A 32-inch TV.
+A neutral, textured carpet.
+Soft, light-colored curtains that allow natural light into the room.
+Several floating shelves to display photo frames and books.
+Pottery planters with easy-to-maintain indoor plants, a few books, and a set of Bang & Olufsen headphones.
+Planned Uses
+The planned uses of the bedroom are for sleeping, relaxation, and lounging. The built-in sidetables on each side of the bed provide ample storage for books, tablets, and devices. The floating shelves will be used to display interiors book collections.
 
-Materials: Sustainable and eco-friendly materials should be used wherever possible. The flooring can be made of bamboo or wood, while the bedding can be made of organic cotton. The furniture can be made of FSC certified wood or recycled materials. The lighting fixtures can be energy-efficient LED bulbs.
-
-Conclusion: The interior bedroom design should be a comfortable and stylish space that reflects the couple's personalities and taste. The design should incorporate a modern and minimalist style with a touch of warmth and elegance. The color scheme should be soothing with pops of bold color, and ample storage space should be included to keep the room organized and clutter-free. Sustainable and eco-friendly materials should be used wherever possible. The interior bedroom will be located in a newly-built condominium situated in Bonifacio Global City (BGC), Taguig, Philippines.
+Location
+The bedroom is located within the city of Manila, by the bay area in a high-rise condominium. The environment is urban, busy, and modern. But the design approach aims to offset the busy environment by creating a relaxing space that almost feels like a retreat or sanctuary - where the couple could spend their downtime, escaping from the hectic energy of the city.
 `); //Keeps track of the design brief
 
 // selected_objs_and_parts = [
