@@ -241,7 +241,7 @@
                 <!-- <p> {message.message} </p> -->
                 {#if message.type == "suggested_materials"}
                     {#each message.content as m, i}
-                        <div style="display:flex; flex-direction:row;">
+                        <!-- <div style="display:flex; flex-direction:row;"> -->
                             <MaterialCard material_path={m["filepath"]} material_name={m["name"]} material_info={m["reason"]} index={i}/>
                             <button 
                             on:click|preventDefault={()=> generate(m["name"])}
@@ -250,7 +250,7 @@
                                 Generate more!
                                 <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
                             </button>
-                        </div>
+                        <!-- </div> -->
                         
                     {/each}
                 
@@ -270,6 +270,7 @@
             </div>
         </div>
     {/each}
+    
     {#if is_loading_response}
         <div class="assistant" style="position:relative; min-height: 20%;">
             <strong>assistant:</strong> 
@@ -279,10 +280,12 @@
             </div>
         </div>
     {/if}
-    <div class="user" style="min-height: 200px; width: 100%;"> 
 
+    <div style="height: 200px; width: 100%; background-color:white; color:white;"> 
+        <p>Lorem ipsum dolor sit amet. Eos libero voluptatem sit excepturi rerum vel porro odio est eligendi voluptatibus. At mollitia quam ea dolorum quae aut nemo ipsum est asperiores quibusdam est voluptatem accusamus. Ut eligendi porro quo autem illum non voluptatem rerum et nobis nisi est molestiae facilis quo magni perferendis.
+
+        Ea Quis molestiae cum minus consequatur At velit internos et omnis neque qui nihil consequatur et acc</p>
     </div> <!-- Filler div  -->
-
 </div>
 
 
