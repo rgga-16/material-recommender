@@ -33,6 +33,7 @@
     export let material_url;
     export let material_color=null; //Color code of the material
 
+    let use_design_brief = false;
 
     /**
      * parents = [
@@ -160,6 +161,22 @@
 
     }
 
+    function addNewColorPalete() {
+      palettes.push({
+        name: 'New Palette',
+        palette: [
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF",
+        ]
+      });
+      palettes=palettes;
+      saved_color_palettes.set(palettes);
+      
+    }
+
     function updateColor() {
       let color = palettes[selected_palette_idx]['palette'][selected_swatch_idx];
       // console.log(selected_palette_idx);
@@ -195,9 +212,15 @@
     let references=undefined; 
     let activeAspect;
     async function requestMaterialFeedback() {
+      const start = performance.now();
       feedback=undefined;
       formatted_feedback=undefined; intro_text=undefined; references=undefined;
       switchTab("view-feedback");
+
+      let context=null; 
+      if(use_design_brief) {
+        context = get(design_brief);
+      }
 
       let attached_parts = [];
       for (const p in parents) {
@@ -215,6 +238,7 @@
                 "object_name":part_parent_name,
                 "part_name":part_name,
                 "attached_parts":attached_parts,
+                "design_brief":context
               }),
       });
 
@@ -238,8 +262,8 @@
       current_texture_parts[part_parent_name][part_name]['feedback']['references'] = references;
       curr_texture_parts.set(current_texture_parts);
 
-      // console.log(get(curr_texture_parts));
-      // console.log(current_texture_parts);
+      const end = performance.now();
+      console.log("Requesting material feedback took " + (end - start) + " milliseconds.");
     }
 
     let activeTab='adjust-finish';
@@ -267,7 +291,6 @@
         activeAspect= Object.keys(formatted_feedback)[0];
       }
       console.log(parents);
-
       gen_module = get(generate_module);
     });
 
@@ -277,7 +300,6 @@
       roughness = [finish_suggestion["roughness"]];
       metalness = [finish_suggestion["metalllic"]];
       updateFinish();
-      
     }
 
     function generate(material_name) {
@@ -285,8 +307,6 @@
       generate_tab_page.set(0);
       gen_module.generate_textures(material_name);
     }
-
-
 </script>
 
 <div class="card container">
@@ -307,6 +327,10 @@
         <div class="control">
           <button on:click|preventDefault={suggestSimilarMaterials}>Suggest similar materials </button>
           <button on:click|preventDefault={requestMaterialFeedback}> Request feedback </button>
+          <label>
+            <input type="checkbox" bind:checked={use_design_brief} >
+            Based on design brief
+          </label>
         </div>
         
         <!-- <div>Material finish: {material_finish}</div> -->
@@ -424,6 +448,7 @@
                       <input type=radio bind:group={selected_palette_idx} name={j+1} value={j+1}>
                     </label>
                   {/each}
+                  <button on:click|preventDefault={() => addNewColorPalete()}> Add new </button>
                 {:else}
                   {#each palettes as p,j}
                     <label class="control container palette selectable" class:selected={selected_palette_idx===j}>
@@ -433,9 +458,8 @@
                       <input type=radio bind:group={selected_palette_idx} name={j} value={j}>
                     </label>
                   {/each}
+                  <button on:click|preventDefault={() => addNewColorPalete()}> Add new </button>
                 {/if}
-                
-                
             </div>
           {/if}
       </div>
@@ -477,7 +501,7 @@
 
   </div>
 
-  <div class="card container tab-content" class:active={activeTab==='view-feedback'}>
+  <div class="card container tab-content" class:active={activeTab==='view-feedback'} style="flex-wrap:wrap;">
     <h5> <b> Feedback </b></h5>
       {#if formatted_feedback}
         <SvelteMarkdown source={intro_text} />
@@ -496,41 +520,48 @@
             <div class="card container">
               <h6> <b> <u> Suggestions </u>  </b></h6>
               <div class="control" style="justify-content:space-between;">
-                {#each formatted_feedback[aspect]['suggestions'] as suggestion}
-                  <div class="card container" style="height:100%;">
-                    {#if suggestion[1] === "material" && suggestion.length===3} 
-                      <span> <b> {suggestion[0]} </b></span>
-                      <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"} is_draggable={true}/>
-                      <span> <b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                {#if formatted_feedback[aspect]['suggestions'].length <= 0}
+                  <p> No suggestions provided. </p>
+                {:else}
+                  {#each formatted_feedback[aspect]['suggestions'] as suggestion}
+                    <div class="card container" style="height:100%;">
+                      {#if suggestion[1] === "material" && suggestion.length===3} 
+                        <span> <b> {suggestion[0]} </b></span>
+                        <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"} is_draggable={true}/>
+                        <span> <b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
 
-                      <button  on:click={() => {generate(suggestion[0])}}> 
-                        Generate more! 
-                        <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
-                      </button>
-                    {:else if suggestion[1] === "attachment" && suggestion.length===3}
-                      <span> <b> {suggestion[0]} </b></span>
-                      <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"}/>
-                      <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
-                    {:else if suggestion[1] === "finish" && suggestion.length===3}
-                      <span> <b> {suggestion[0]} </b></span>
-                      <div class="card container">
-                        <span> Opacity: {suggestion[2]["opacity"]}</span>
-                        <span> Roughness: {suggestion[2]["roughness"]}</span>
-                        <span> Metalness: {suggestion[2]["metallic"]}</span>
-                      </div>
-                      <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
-                      <button  on:click={() => {applyFinishSuggestion(suggestion[2])}}> Apply Finish </button>
-                    {:else}
-                      <span> <b> {suggestion[0]} </b></span>
-                      <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
-                    {/if} 
-                  </div>
-                {/each}
+                        <button  on:click={() => {generate(suggestion[0])}}> 
+                          Generate more! 
+                          <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
+                        </button>
+                      {:else if suggestion[1] === "attachment" && suggestion.length===3}
+                        <span> <b> {suggestion[0]} </b></span>
+                        <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"}/>
+                        <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                      {:else if suggestion[1] === "finish" && suggestion.length===3}
+                        <span> <b> {suggestion[0]} </b></span>
+                        <div class="card container">
+                          <span> Opacity: {suggestion[2]["opacity"]}</span>
+                          <span> Roughness: {suggestion[2]["roughness"]}</span>
+                          <span> Metalness: {suggestion[2]["metallic"]}</span>
+                        </div>
+                        <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                        <button  on:click={() => {applyFinishSuggestion(suggestion[2])}}> Apply Finish </button>
+                      {:else}
+                        <span> <b> {suggestion[0]} </b></span>
+                        <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                      {/if} 
+                    </div>
+                  {/each}
+                {/if}
+
+                
               </div>
             </div>
           </div>
         {/each}
-
+        
+        <h6> <b> <u> References </u>  </b></h6>
         <SvelteMarkdown source={references} />
       {:else if is_loading_feedback}
         <div class="images-placeholder">
