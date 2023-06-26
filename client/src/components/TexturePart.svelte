@@ -13,6 +13,7 @@
     import {generate_tab_page} from '../stores.js';
     import {generate_module} from '../stores.js';
     import {design_brief} from '../stores.js';
+    import {use_chatgpt} from '../stores.js';
 
     import {createEventDispatcher} from 'svelte';
 
