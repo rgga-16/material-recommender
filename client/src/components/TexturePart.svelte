@@ -14,11 +14,10 @@
     import {generate_module} from '../stores.js';
     import {design_brief} from '../stores.js';
     import {use_chatgpt} from '../stores.js';
+    import {get} from 'svelte/store';
 
     import {createEventDispatcher} from 'svelte';
-
     import {curr_texture_parts} from '../stores.js';
-    import { get } from 'svelte/store';
 
     let current_texture_parts;
     curr_texture_parts.subscribe(value => {
@@ -324,14 +323,17 @@
         {:else}
         <div class="texture-name">Finish: None</div>
         {/if}
-        <div class="control">
-          <button on:click|preventDefault={suggestSimilarMaterials}>Suggest similar materials </button>
-          <button on:click|preventDefault={requestMaterialFeedback}> Request feedback </button>
-          <label>
-            <input type="checkbox" bind:checked={use_design_brief} >
-            Based on design brief
-          </label>
-        </div>
+        {#if get(use_chatgpt)}
+          <div class="control">
+            <button on:click|preventDefault={suggestSimilarMaterials}>Suggest similar materials </button>
+            <button on:click|preventDefault={requestMaterialFeedback}> Request feedback </button>
+            <label>
+              <input type="checkbox" bind:checked={use_design_brief} >
+              Based on design brief
+            </label>
+          </div>
+        {/if}
+        
         
         <!-- <div>Material finish: {material_finish}</div> -->
   </div>
@@ -341,7 +343,9 @@
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-texture-map'} on:click={()=>switchTab('adjust-texture-map')} id="adjust-texture-btn">Texture Map</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-color'} on:click={()=>switchTab('adjust-color')} id="adjust-color-btn">Color Finish</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='attached-parts'} on:click={()=>switchTab('attached-parts')} id="attached-parts-btn">Attached Parts</button>
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='view-feedback'} on:click={()=>switchTab('view-feedback')} id="view-feedback-btn">View Feedback</button>
+    {#if get(use_chatgpt)}
+      <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='view-feedback'} on:click={()=>switchTab('view-feedback')} id="view-feedback-btn">View Feedback</button>
+    {/if}
   </div>
 
   <div class="card container tab-content" class:active={activeTab==='adjust-finish'}>
@@ -498,80 +502,83 @@
     {:else}
       <p> This component is not attached to anything. </p>
     {/if}
-
   </div>
 
-  <div class="card container tab-content" class:active={activeTab==='view-feedback'} style="flex-wrap:wrap;">
-    <h5> <b> Feedback </b></h5>
-      {#if formatted_feedback}
-        <SvelteMarkdown source={intro_text} />
-        <div class="w3-bar w3-grey tabs">
+  {#if get(use_chatgpt)}
+    <div class="card container tab-content" class:active={activeTab==='view-feedback'} style="flex-wrap:wrap;">
+      <h5> <b> Feedback </b></h5>
+        {#if formatted_feedback}
+          <SvelteMarkdown source={intro_text} />
+          <div class="w3-bar w3-grey tabs">
+            {#each Object.keys(formatted_feedback) as aspect}
+              <button class="w3-bar-item w3-button tab-btn" class:active={activeAspect===aspect} on:click={() => {activeAspect = aspect;}}>
+                {aspect}
+              </button>
+            {/each}
+          </div>
+
           {#each Object.keys(formatted_feedback) as aspect}
-            <button class="w3-bar-item w3-button tab-btn" class:active={activeAspect===aspect} on:click={() => {activeAspect = aspect;}}>
-              {aspect}
-            </button>
-          {/each}
-        </div>
+            <div class="card container tab-content" class:active={activeAspect===aspect}>
+              <SvelteMarkdown source={formatted_feedback[aspect]['feedback']} />
+              
+              <div class="card container">
+                <h6> <b> <u> Suggestions </u>  </b></h6>
+                <div class="control" style="justify-content:space-between;">
+                  {#if formatted_feedback[aspect]['suggestions'].length <= 0}
+                    <p> No suggestions provided. </p>
+                  {:else}
+                    {#each formatted_feedback[aspect]['suggestions'] as suggestion}
+                      <div class="card container" style="height:100%;">
+                        {#if suggestion[1] === "material" && suggestion.length===3} 
+                          <span> <b> {suggestion[0]} </b></span>
+                          <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"} is_draggable={true}/>
+                          <span> <b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
 
-        {#each Object.keys(formatted_feedback) as aspect}
-          <div class="card container tab-content" class:active={activeAspect===aspect}>
-            <SvelteMarkdown source={formatted_feedback[aspect]['feedback']} />
-            
-            <div class="card container">
-              <h6> <b> <u> Suggestions </u>  </b></h6>
-              <div class="control" style="justify-content:space-between;">
-                {#if formatted_feedback[aspect]['suggestions'].length <= 0}
-                  <p> No suggestions provided. </p>
-                {:else}
-                  {#each formatted_feedback[aspect]['suggestions'] as suggestion}
-                    <div class="card container" style="height:100%;">
-                      {#if suggestion[1] === "material" && suggestion.length===3} 
-                        <span> <b> {suggestion[0]} </b></span>
-                        <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"} is_draggable={true}/>
-                        <span> <b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                          <button  on:click={() => {generate(suggestion[0])}}> 
+                            Generate more! 
+                            <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
+                          </button>
+                        {:else if suggestion[1] === "attachment" && suggestion.length===3}
+                          <span> <b> {suggestion[0]} </b></span>
+                          <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"}/>
+                          <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                        {:else if suggestion[1] === "finish" && suggestion.length===3}
+                          <span> <b> {suggestion[0]} </b></span>
+                          <div class="card container">
+                            <span> Opacity: {suggestion[2]["opacity"]}</span>
+                            <span> Roughness: {suggestion[2]["roughness"]}</span>
+                            <span> Metalness: {suggestion[2]["metallic"]}</span>
+                          </div>
+                          <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                          <button  on:click={() => {applyFinishSuggestion(suggestion[2])}}> Apply Finish </button>
+                        {:else}
+                          <span> <b> {suggestion[0]} </b></span>
+                          <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                        {/if} 
+                      </div>
+                    {/each}
+                  {/if}
 
-                        <button  on:click={() => {generate(suggestion[0])}}> 
-                          Generate more! 
-                          <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
-                        </button>
-                      {:else if suggestion[1] === "attachment" && suggestion.length===3}
-                        <span> <b> {suggestion[0]} </b></span>
-                        <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"}/>
-                        <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
-                      {:else if suggestion[1] === "finish" && suggestion.length===3}
-                        <span> <b> {suggestion[0]} </b></span>
-                        <div class="card container">
-                          <span> Opacity: {suggestion[2]["opacity"]}</span>
-                          <span> Roughness: {suggestion[2]["roughness"]}</span>
-                          <span> Metalness: {suggestion[2]["metallic"]}</span>
-                        </div>
-                        <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
-                        <button  on:click={() => {applyFinishSuggestion(suggestion[2])}}> Apply Finish </button>
-                      {:else}
-                        <span> <b> {suggestion[0]} </b></span>
-                        <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
-                      {/if} 
-                    </div>
-                  {/each}
-                {/if}
-
-                
+                  
+                </div>
               </div>
             </div>
+          {/each}
+          
+          <h6> <b> <u> References </u>  </b></h6>
+          <SvelteMarkdown source={references} />
+        {:else if is_loading_feedback}
+          <div class="images-placeholder">
+            Requesting feedback...
+            <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
           </div>
-        {/each}
-        
-        <h6> <b> <u> References </u>  </b></h6>
-        <SvelteMarkdown source={references} />
-      {:else if is_loading_feedback}
-        <div class="images-placeholder">
-          Requesting feedback...
-          <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
-        </div>
-      {:else}
-        <p> No feedback yet. </p>
-      {/if}
-  </div>
+        {:else}
+          <p> No feedback yet. </p>
+        {/if}
+    </div>
+  {/if}
+
+  
 
 
 
