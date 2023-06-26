@@ -13,13 +13,14 @@
 	import {displayHeight} from './stores.js';
 	import {objects_3d} from './stores.js';
 	import {design_brief} from './stores.js';
+	import {in_japanese} from './stores.js';
+	import {use_chatgpt} from './stores.js';
 	import {get} from 'svelte/store';
 	import {onMount} from "svelte";	
 
 	import * as THREE from 'three';
 	import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 	import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-	import { saveAs } from 'file-saver';
 
 
 	let current_rendering_path;
@@ -309,8 +310,10 @@
 		const response = await fetch("/get_static_dir");
 		const data = await response.text();	
 		const threediv = document.getElementById("display");
+
 		displayWidth.set(threediv.offsetWidth);
 		displayHeight.set(threediv.offsetHeight);
+
 	});
 
 	let actions_panel_collapsed=false;
