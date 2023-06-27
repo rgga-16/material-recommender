@@ -399,15 +399,15 @@
         <h6> <b> Scale </b></h6>
         <div class="control">
           <span>X & Y: </span>
-          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={scale} min=0.0 max=10 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={scale} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
         </div>
         <div class="control">
           <span>X: </span>
-          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={scaleX} min=0.0 max=10 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={scaleX} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
         </div>
         <div class="control">
           <span>Y: </span>
-          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={scaleY} min=0.0 max=10 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={scaleY} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
         </div>
       </div>
     </div>
