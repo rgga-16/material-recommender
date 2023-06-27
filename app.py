@@ -148,7 +148,6 @@ def brainstorm_prompt_keywords():
 
 @app.route("/brainstorm_material_queries", methods=['GET'])
 def brainstorm_material_queries():
-    # form_data = request.get_json()
     prompts = gpt3.brainstorm_material_queries()
     return jsonify({"prompts":prompts,"role":"assistant"})
 
@@ -163,110 +162,6 @@ def feedback_on_assembly():
     recommended_attachments = gpt3.feedback_on_assembly(object,child_part,child_material,parent_part,parent_material)
     
     return recommended_attachments
-
-@app.route("/add_color_to_rendering", methods=['POST'])
-def add_color_to_rendering():
-    form_data = request.get_json()
-    texture_parts = form_data["selected_textureparts"]
-    textureparts_path = form_data["selected_textureparts_path"]
-    render_path = form_data["selected_rendering"]
-    obj = form_data["selected_obj"]
-    part = form_data["selected_part"]
-
-    texture_parts[obj][part]["mat_color"] = form_data["color"] if "color" in list(form_data.keys()) else None
-
-    with open(textureparts_path,"w") as f:
-        json.dump(texture_parts,f,indent=4)
-
-    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
-    os.system(command_str)
-    return {"updated_rendering": render_path, "updated_textureparts": texture_parts,"updated_textureparts_path": textureparts_path,}
-
-@app.route("/add_finish_to_rendering", methods=['POST'])
-def add_finish_to_rendering():
-    form_data = request.get_json()
-    texture_parts = form_data["selected_textureparts"]
-    textureparts_path = form_data["selected_textureparts_path"]
-    render_path = form_data["selected_rendering"]
-    obj = form_data["selected_obj"]
-    part = form_data["selected_part"]
-    texture_parts[obj][part]["mat_finish"] = form_data["finish"]
-    texture_parts[obj][part]["mat_finish_settings"] = form_data["psbdf_settings"]
-
-    with open(textureparts_path,"w") as f:
-        json.dump(texture_parts,f,indent=4)
-
-    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
-    os.system(command_str)
-    return {"updated_rendering": render_path, "updated_textureparts": texture_parts,"updated_textureparts_path": textureparts_path,}
-
-@app.route("/add_transform_to_rendering", methods=['POST'])
-def add_transform_to_rendering():
-    form_data = request.get_json()
-    texture_parts = form_data["selected_textureparts"]
-    textureparts_path = form_data["selected_textureparts_path"]
-    render_path = form_data["selected_rendering"]
-    obj = form_data["selected_obj"]
-    part = form_data["selected_part"]
-
-    location = tuple(form_data["location"])
-    rotation = tuple(form_data["rotation"])
-    rotation = tuple(degrees_to_radians(deg) for deg in rotation)
-    scale = tuple(form_data["scale"])
-
-    texture_parts[obj][part]["mat_transforms"]= {
-        "location": location,
-        "rotation": rotation,
-        "scale": scale
-    }
-
-    with open(textureparts_path,"w") as f:
-        json.dump(texture_parts,f,indent=4)
-
-    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
-    os.system(command_str)
-    return {"updated_rendering": render_path, "updated_textureparts": texture_parts,"updated_textureparts_path": textureparts_path,}
-
-@app.route("/suggest_colors_by_style", methods=['POST'])
-def suggest_colors_by_style():
-
-    form_data = request.get_json()
-    style = form_data["style"]
-    suggested_color_palettes=[]
-    color_palettes_dict = gpt3.suggest_color_by_style(style=style)
-
-    for key in color_palettes_dict.keys():
-        suggested_color_palettes.append({
-            "name":key,
-            "palette":color_palettes_dict[key]
-        })
-
-    return suggested_color_palettes
-
-@app.route("/suggest_materials_by_style", methods=['POST'])
-def suggest_materials_by_style():
-
-    form_data = request.get_json()
-    style = form_data["style"]
-    material_type = form_data["material_type"]
-
-    materials = gpt3.suggest_materials_by_style(style=style,material_type=material_type)
-
-    suggested_materials = []
-    for m in materials:
-        reason=m["reason"] ; m = m["name"];
-        prompt = m if material_type.lower()=='all types' else f"{m} {material_type}"
-        image, filename = generate_textures(prompt,n=1,imsize=448); image=image[0]; filename=filename[0]
-        savepath = os.path.join(SERVER_IMDIR,"suggested",filename)
-        image.save(savepath)
-        # loadpath = os.path.join(CLIENT_IMDIR,"suggested",filename)
-        suggested_materials.append({
-            "name":m,
-            "reason":reason,
-            "filepath":savepath
-        })
-    
-    return suggested_materials
 
 @app.route("/generate_and_transfer_textures", methods=['POST'])
 def generate_and_transfer_textures():
@@ -323,11 +218,6 @@ def get_image():
     else:
         print("Image data is not base64 encoded. Detecting it as an image path instead.")
 
-    # try: 
-    #     img_bytes = base64.b64decode(img_data)  
-    #     return send_file(io.BytesIO(img_bytes),mimetype='image/png')
-    # except Exception as e:
-    #     print("Image data is not base64 encoded. Detecting it as an image path instead.")
     
     img_path = img_data 
     _, file_extension = os.path.splitext(img_path)
@@ -351,7 +241,6 @@ def generate_similar_textures():
     }]
     for i in range(0,len(similar_textures)):
         texture_filename = f"{texture_str}_similar_{i+1}.png"
-        # texture_filenames.append(f"{texture_str}_similar_{i}.png")
         savepath = os.path.join(SERVER_IMDIR,texture_filename)
         similar_textures[i].save(savepath)
         texture_loadpaths.append({
@@ -407,8 +296,8 @@ def apply_textures():
         for obj in list(obj_part_dict.keys()):
             for part in obj_part_dict[obj]:
                 new_texture_parts[obj][part]["mat_name"]=texture_string
-                # new_texture_parts[obj][part]["mat_finish"]="glossy"
                 new_texture_parts[obj][part]["mat_image_texture"]=texture_savepath
+
         
         tmp_texture_parts_savepath = os.path.join(SERVER_IMDIR,"renderings",f"texture_parts_{i}.json")
         
@@ -465,7 +354,6 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
                 model_path = texture_parts[obj][part]["model"] #Note: the model is a .gltf file which includes the texture map from ["mat_image_texture"]
                 model_filename = os.path.basename(model_path)
                 parent_obj = obj 
-                
                 texture_parts[obj][part]["model"] = os.path.join(curr_render_loaddir,parent_obj,model_filename)
                 destpath = os.path.join(curr_render_savedir,parent_obj,model_filename)
                 if not os.path.exists(destpath):
@@ -491,8 +379,6 @@ def update_3d_model():
     filename, fileext = os.path.splitext(server_model_path)
     server_model_path = filename + ".gltf"
 
-
-
     with open(server_model_path,'w') as f:
         f.write(model)
     
@@ -514,7 +400,12 @@ def render():
             if("model" in list(textureparts[obj][part].keys())):
                 model_path = textureparts[obj][part]["model"] #Note: the model is a .gltf file which includes the texture map from ["mat_image_texture"]
                 model_filename = os.path.basename(model_path)
-                textureparts[obj][part]["model"] = os.path.join(curr_render_savedir,model_filename) 
+                parent_obj = obj 
+                destpath = os.path.join(curr_render_savedir,parent_obj,model_filename)
+                if not os.path.exists(destpath):
+                    os.makedirs(os.path.dirname(destpath), exist_ok=True)
+                # textureparts[obj][part]["model"] = os.path.join(curr_render_savedir,model_filename) 
+                textureparts[obj][part]["model"] = os.path.join(curr_render_savedir,parent_obj,model_filename) 
     # current_texture_parts = copy.deepcopy(textureparts)
 
     with open(texturepartspath,"w") as f:
@@ -567,6 +458,8 @@ def add_to_saved_renderings(renderpath, texture_parts_path):
                 model_filename = os.path.basename(model_path)
                 parent_obj = obj 
                 destpath = os.path.join(save_render_dir,parent_obj,model_filename)
+                if not os.path.exists(destpath):
+                    os.makedirs(os.path.dirname(destpath), exist_ok=True)
                 texture_parts[obj][part]["model"] = destpath
                 full_model_path = os.path.join(STATIC_IMDIR,model_path)
                 shutil.copy(full_model_path, destpath)   
@@ -700,3 +593,113 @@ if __name__ == "__main__":
     print(f"Latest rendering ID: {LATEST_RENDER_ID}")
 
     app.run(debug=True,port=2099)
+
+
+
+
+################################# DUMPSTER #########################################
+
+
+
+@app.route("/add_color_to_rendering", methods=['POST'])
+def add_color_to_rendering():
+    form_data = request.get_json()
+    texture_parts = form_data["selected_textureparts"]
+    textureparts_path = form_data["selected_textureparts_path"]
+    render_path = form_data["selected_rendering"]
+    obj = form_data["selected_obj"]
+    part = form_data["selected_part"]
+
+    texture_parts[obj][part]["mat_color"] = form_data["color"] if "color" in list(form_data.keys()) else None
+
+    with open(textureparts_path,"w") as f:
+        json.dump(texture_parts,f,indent=4)
+
+    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
+    os.system(command_str)
+    return {"updated_rendering": render_path, "updated_textureparts": texture_parts,"updated_textureparts_path": textureparts_path,}
+
+@app.route("/add_finish_to_rendering", methods=['POST'])
+def add_finish_to_rendering():
+    form_data = request.get_json()
+    texture_parts = form_data["selected_textureparts"]
+    textureparts_path = form_data["selected_textureparts_path"]
+    render_path = form_data["selected_rendering"]
+    obj = form_data["selected_obj"]
+    part = form_data["selected_part"]
+    texture_parts[obj][part]["mat_finish"] = form_data["finish"]
+    texture_parts[obj][part]["mat_finish_settings"] = form_data["psbdf_settings"]
+
+    with open(textureparts_path,"w") as f:
+        json.dump(texture_parts,f,indent=4)
+
+    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
+    os.system(command_str)
+    return {"updated_rendering": render_path, "updated_textureparts": texture_parts,"updated_textureparts_path": textureparts_path,}
+
+@app.route("/add_transform_to_rendering", methods=['POST'])
+def add_transform_to_rendering():
+    form_data = request.get_json()
+    texture_parts = form_data["selected_textureparts"]
+    textureparts_path = form_data["selected_textureparts_path"]
+    render_path = form_data["selected_rendering"]
+    obj = form_data["selected_obj"]
+    part = form_data["selected_part"]
+
+    location = tuple(form_data["location"])
+    rotation = tuple(form_data["rotation"])
+    rotation = tuple(degrees_to_radians(deg) for deg in rotation)
+    scale = tuple(form_data["scale"])
+
+    texture_parts[obj][part]["mat_transforms"]= {
+        "location": location,
+        "rotation": rotation,
+        "scale": scale
+    }
+
+    with open(textureparts_path,"w") as f:
+        json.dump(texture_parts,f,indent=4)
+
+    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
+    os.system(command_str)
+    return {"updated_rendering": render_path, "updated_textureparts": texture_parts,"updated_textureparts_path": textureparts_path,}
+
+@app.route("/suggest_colors_by_style", methods=['POST'])
+def suggest_colors_by_style():
+    form_data = request.get_json()
+    style = form_data["style"]
+    suggested_color_palettes=[]
+    color_palettes_dict = gpt3.suggest_color_by_style(style=style)
+
+    for key in color_palettes_dict.keys():
+        suggested_color_palettes.append({
+            "name":key,
+            "palette":color_palettes_dict[key]
+        })
+
+    return suggested_color_palettes
+
+@app.route("/suggest_materials_by_style", methods=['POST'])
+def suggest_materials_by_style():
+
+    form_data = request.get_json()
+    style = form_data["style"]
+    material_type = form_data["material_type"]
+
+    materials = gpt3.suggest_materials_by_style(style=style,material_type=material_type)
+
+    suggested_materials = []
+    for m in materials:
+        reason=m["reason"] ; m = m["name"];
+        prompt = m if material_type.lower()=='all types' else f"{m} {material_type}"
+        image, filename = generate_textures(prompt,n=1,imsize=448); image=image[0]; filename=filename[0]
+        savepath = os.path.join(SERVER_IMDIR,"suggested",filename)
+        image.save(savepath)
+        # loadpath = os.path.join(CLIENT_IMDIR,"suggested",filename)
+        suggested_materials.append({
+            "name":m,
+            "reason":reason,
+            "filepath":savepath
+        })
+    
+    return suggested_materials
