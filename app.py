@@ -13,6 +13,7 @@ STATIC_IMDIR = os.path.join(CWD,"client","public")
 SERVER_IMDIR = os.path.join(STATIC_IMDIR,"gen_images") 
 CLIENT_IMDIR = os.path.join("gen_images")
 LATEST_RENDER_ID=0
+use_chatgpt = True
 
 
 app = Flask(__name__, static_folder="./client/public")
@@ -25,6 +26,10 @@ def get_static_dir():
 def init_query():
     response = gpt3.init_query()
     return jsonify({"response":response,"role":"assistant"})
+
+@app.route("/use_chatgpt", methods=['GET'])
+def use_chatgpt():
+    return jsonify({"use_chatgpt":use_chatgpt})
 
 
 @app.route("/query", methods=['POST'])
@@ -648,6 +653,7 @@ SERVER_IMDIR = os.path.join(STATIC_IMDIR,"gen_images")
 CLIENT_IMDIR = os.path.join("gen_images")
 LATEST_RENDER_ID=0
 '''
+
 if __name__ == "__main__":
 
     # Here, you should make the necessary dirs under client/public.
