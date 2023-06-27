@@ -459,8 +459,13 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
             if("model" in list(texture_parts[obj][part].keys())):
                 model_path = texture_parts[obj][part]["model"] #Note: the model is a .gltf file which includes the texture map from ["mat_image_texture"]
                 model_filename = os.path.basename(model_path)
-                texture_parts[obj][part]["model"] = os.path.join(curr_render_loaddir,model_filename)
-                shutil.copy(model_path, os.path.join(curr_render_savedir,model_filename))   
+                parent_obj = obj 
+                
+                texture_parts[obj][part]["model"] = os.path.join(curr_render_loaddir,parent_obj,model_filename)
+                destpath = os.path.join(curr_render_savedir,parent_obj,model_filename)
+                if not os.path.exists(destpath):
+                    os.makedirs(os.path.dirname(destpath), exist_ok=True)
+                shutil.copy(model_path, destpath)   
 
     current_texture_parts = copy.deepcopy(texture_parts)
     with open(curr_textureparts_path,"w") as f:
@@ -553,11 +558,13 @@ def add_to_saved_renderings(renderpath, texture_parts_path):
 
             # This portion is to copy the model to the current rendering directory
             if("model" in list(texture_parts[obj][part].keys())):
-                model_path = texture_parts[obj][part]["model"] #Note: the model is a .glb file which includes the texture map from ["mat_image_texture"]
+                model_path = texture_parts[obj][part]["model"] #Note: the model is a .gltf file which includes the texture map from ["mat_image_texture"]
                 model_filename = os.path.basename(model_path)
-                texture_parts[obj][part]["model"] = os.path.join(save_render_dir,model_filename)
+                parent_obj = obj 
+                destpath = os.path.join(save_render_dir,parent_obj,model_filename)
+                texture_parts[obj][part]["model"] = destpath
                 full_model_path = os.path.join(STATIC_IMDIR,model_path)
-                shutil.copy(full_model_path, os.path.join(save_render_dir,model_filename))   
+                shutil.copy(full_model_path, destpath)   
     
     with open(save_textureparts_path,"w") as f:
         json.dump(texture_parts,f,indent=4)
