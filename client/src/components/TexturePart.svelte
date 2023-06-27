@@ -179,7 +179,7 @@
     function updateColor() {
       let color = palettes[selected_palette_idx]['palette'][selected_swatch_idx];
       // console.log(selected_palette_idx);
-      // console.log(color);
+      console.log(color);
       const hexNumber = parseInt(color.substring(1), 16);
       // console.log(hexNumber);
 
