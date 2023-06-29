@@ -14,7 +14,7 @@ SERVER_IMDIR = os.path.join(STATIC_IMDIR,"gen_images")
 CLIENT_IMDIR = os.path.join("gen_images")
 LATEST_RENDER_ID=0
 use_chatgpt = True
-
+RENDER_MODE = 'CYCLES'
 
 app = Flask(__name__, static_folder="./client/public")
 
@@ -197,7 +197,7 @@ def generate_and_transfer_textures():
         rendering_savepath = os.path.join(SERVER_IMDIR,"renderings",f"rendering_{i}.png")
         rendering_loadpath = os.path.join(CLIENT_IMDIR,"renderings",f"rendering_{i}.png")
 
-        command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath}'
+        command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath} --render_mode {RENDER_MODE}'
         os.system(command_str)
 
         rendering_texture_pairs.append(
@@ -306,7 +306,7 @@ def apply_textures():
 
         rendering_savepath = os.path.join(SERVER_IMDIR,"renderings",f"rendering_{i}.png")
         
-        command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath}'
+        command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath} --render_mode {RENDER_MODE}'
         os.system(command_str)
 
         rendering_texture_pairs.append(
@@ -412,7 +412,7 @@ def render():
         json.dump(textureparts,f,indent=4)
 
     # Code to render initial rendering. Uncomment the below code if you want to re-render the initial rendering.
-    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {renderpath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {texturepartspath}'
+    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {renderpath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {texturepartspath} --render_mode {RENDER_MODE}'
     os.system(command_str)
 
     # # Code to load current rendering into frontend (client folder).
@@ -560,10 +560,11 @@ if __name__ == "__main__":
 
     products = [
         "nightstand_family",
-        "bedroom"
+        "bedroom",
+        "pool-side"
     ]
 
-    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[1]) #Dir where the 3D scene (information, models, textures, renderings) is stored
+    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[2]) #Dir where the 3D scene (information, models, textures, renderings) is stored
     RENDER_DIR = os.path.join(DATA_DIR,"renderings")
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 
@@ -572,7 +573,7 @@ if __name__ == "__main__":
     init_render_path = os.path.join(RENDER_DIR,"current","rendering.png")
 
     # Code to render initial rendering. Uncomment the below code if you want to re-render the initial rendering.
-    # command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {init_render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path} --render_mode CYCLES'
+    # command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {init_render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {init_texture_parts_path} --render_mode {RENDER_MODE}'
     # os.system(command_str)
 
     # Code to load current rendering into frontend (client folder).
@@ -615,7 +616,7 @@ def add_color_to_rendering():
     with open(textureparts_path,"w") as f:
         json.dump(texture_parts,f,indent=4)
 
-    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path}'
+    command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {render_path} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {textureparts_path} --render_mode CYCLES'
     os.system(command_str)
     return {"updated_rendering": render_path, "updated_textureparts": texture_parts,"updated_textureparts_path": textureparts_path,}
 
