@@ -193,10 +193,11 @@ def transform_material(mapping_node:bpy.types.Node, transforms:dict):
 
 
 class Renderer():
-    def __init__(self,cam_info, light_info=None, resolution=(1024,1024), render_mode='BLENDER_EEVEE'):
+    def __init__(self,cam_info, light_info=None, resolution=(1024,1024), render_mode='BLENDER_EEVEE', film_exposure=1.0):
+        self.film_exposure = film_exposure
         self.resolution = resolution
         self.rendering_mode = render_mode.upper()
-        self.set_gpu(self.rendering_mode)
+        self.set_gpu(self.rendering_mode, film_exposure=self.film_exposure)
         self.setup_render()
         # self.setup_background()
         self.setup_background_skytexture()
@@ -207,16 +208,16 @@ class Renderer():
             # self.setup_light(light_info['loc'],light_info['rot'],light_info['scale'])
             element = light_info['loc']
             if isinstance(element, float): 
-                self.setup_light(light_info['loc'],light_info['rot'],light_info['scale'],light_info['type'])
+                self.setup_light(light_info['loc'],light_info['rot'],light_info['scale'],light_info['type'], energy=light_info['energy'],emission_strength=light_info['emission_strength'])
             elif isinstance(element, list):
                 for loc,rot,scale in zip(light_info['loc'],light_info['rot'],light_info['scale']):
-                    self.setup_light(loc,rot,scale,light_info['type'])
+                    self.setup_light(loc,rot,scale,light_info['type'], energy=light_info['energy'],emission_strength=light_info['emission_strength'])
             else:
                 raise ValueError('ERROR: Invalid light info type. Must be a dictionary that contains loc, rot, scale, and type. loc, rot, and scale can be a list of values or a list of lists')
         
         self.objects = []
     
-    def set_gpu(self, rendering_engine):
+    def set_gpu(self, rendering_engine, **kwargs):
         assert rendering_engine in ['CYCLES', 'BLENDER_EEVEE']
         bpy.context.scene.render.engine = rendering_engine
         bpy.context.scene.view_settings.view_transform = 'Standard'
@@ -226,6 +227,8 @@ class Renderer():
             bpy.context.preferences.addons['cycles'].preferences.devices[0].use= True
             bpy.context.scene.cycles.device = 'GPU'
             bpy.context.scene.cycles.samples=1024
+            if 'film_exposure' in kwargs:
+                bpy.context.scene.view_settings.exposure = kwargs['film_exposure']
         elif rendering_engine=='BLENDER_EEVEE':
             bpy.context.scene.eevee.taa_render_samples=1024
             #Enable bloom
@@ -329,10 +332,12 @@ class Renderer():
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete(use_global=False)
 
-    def setup_light(self, loc=(14.188, -13.29, 16.627), rot=(11.7,-54.7,126), scale=(1.0,1.0,1.0), type='SUN'):
+    def setup_light(self, loc=(14.188, -13.29, 16.627), rot=(11.7,-54.7,126), scale=(1.0,1.0,1.0), type='SUN', **kwargs):
         # Create new lamp datablock
         lamp_data = bpy.data.lights.new(name="New Lamp", type=type.upper())
-        lamp_data.energy = 10
+        lamp_data.energy = 10 if 'energy' not in kwargs else kwargs['energy']
+        lamp_data.distance=0 
+
         # Create new object with our lamp datablock
         lamp_object = bpy.data.objects.new(name="New Lamp", object_data=lamp_data)
         # Link lamp object to the scene so it'll appear in this scene
@@ -342,18 +347,21 @@ class Renderer():
         lamp_object.rotation_euler = (math.radians(rot[0]), math.radians(rot[1]), math.radians(rot[2]))
         lamp_object.scale = scale
 
-        if type.upper()=="POINT":
-            print("IT'S A POINT")
-            lamp_data.energy = 25
-            lamp_data.distance=0 
-            lamp_data.use_nodes = True
-            tree = lamp_data.node_tree
-            emission_node = tree.nodes["Emission"]
+        lampdata = lamp_object.data 
+
+        if 'emission_strength' in kwargs:
+            lampdata.use_nodes = True
+            tree = lampdata.node_tree
+
+            emission_node = tree.nodes.get('Emission')
             blackbody_node = tree.nodes.new(type='ShaderNodeBlackbody')
             blackbody_node.inputs[0].default_value = 5500
             tree.links.new(blackbody_node.outputs[0], emission_node.inputs[0])  
-            emission_node.inputs[1].default_value = 1
+            
+            emission_node.inputs[1].default_value = kwargs['emission_strength']
 
+
+        
         # And finally select it make active
         lamp_object.select_set(state=True)
         # self.scene.objects.active = lamp_object
@@ -553,8 +561,10 @@ def main2():
         light_info = None 
         if 'light' in info: light_info = info['light']
         resolution = info['resolution']
+        film_exposure = 1.0
+        if 'film_exposure' in info: film_exposure = info['film_exposure']
     
-    renderer = Renderer(cam_info=cam_info,light_info=light_info,resolution=resolution,render_mode=args.render_mode)
+    renderer = Renderer(cam_info=cam_info,light_info=light_info,resolution=resolution,render_mode=args.render_mode,film_exposure=film_exposure)
 
     with open(args.texture_object_parts_json) as json_file:
         texture_object_parts = json.load(json_file)
