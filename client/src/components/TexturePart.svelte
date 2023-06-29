@@ -309,7 +309,7 @@
 </script>
 
 <div class="card container">
-  <div><b>{part_name}</b></div>  
+  <div class="control"> <b>{part_parent_name}</b> | <b>{part_name}</b> </div>
   <DynamicImage bind:this={image} imagepath={material_url} alt={material_name} size={"200px"}/>
   <div id="texture-details">
         <div class="texture-name">Material: {material_name}</div>

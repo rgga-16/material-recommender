@@ -314,6 +314,8 @@
 		displayWidth.set(threediv.offsetWidth);
 		displayHeight.set(threediv.offsetHeight);
 
+		console.log(get(curr_texture_parts));
+
 	});
 
 	let actions_panel_collapsed=false;

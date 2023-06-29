@@ -201,7 +201,7 @@ class Renderer():
         self.setup_render()
         # self.setup_background()
         self.setup_background_skytexture()
-        self.setup_camera(cam_info['loc'],cam_info['rot'],cam_info['scale'])
+        self.setup_camera(cam_info['loc'],cam_info['rot'],cam_info['scale'], sensor_width = cam_info['sensor_width'], sensor_height=cam_info['sensor_height'])
 
 
         if light_info: 
@@ -368,12 +368,14 @@ class Renderer():
         bpy.context.view_layer.objects.active = lamp_object
         self.lamp=lamp_object
 
-    def setup_camera(self,location, rotation,scale):
+    def setup_camera(self,location, rotation,scale, **kwargs):
         bpy.ops.object.camera_add()
         self.camera = bpy.data.objects['Camera']
         self.camera.rotation_mode = 'XYZ'
         self.camera.location=location
-        self.camera.data.lens=30
+        self.camera.data.lens=30 
+        self.camera.data.sensor_width = 36 if 'sensor_width' not in kwargs else kwargs['sensor_width']
+        self.camera.data.sensor_height = 24 if 'sensor_height' not in kwargs else kwargs['sensor_height']
         self.camera.rotation_euler = (math.radians(rotation[0]), 
                                     math.radians(rotation[1]), 
                                     math.radians(rotation[2]))
