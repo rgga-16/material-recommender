@@ -92,7 +92,7 @@ export const saved_color_palettes = writable([
     }
 ]);
 
-export const actions_panel_tab = writable("chatbot"); //Keeps track of which tab is currently selected in the actions panel
+export const actions_panel_tab = writable("generate"); //Keeps track of which tab is currently selected in the actions panel
 export const information_panel_tab = writable("details"); //Keeps track of which tab is currently selected in the information panel
 export const display_panel_tab = writable("3d_display")
 
