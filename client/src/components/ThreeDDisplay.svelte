@@ -260,6 +260,12 @@
         raycaster.setFromCamera(pointer, camera);
         let objects = model3d_infos.map(item => item.model);
         const intersects = raycaster.intersectObjects(objects, true); //intersects is a list of objects pointed by the mouse
+
+        /* 
+        BUG: caught TypeError: Cannot read properties of undefined (reading 'layers')
+
+        */
+
         if (intersects.length > 0) { //if intersects has elements 
             if (!(intersects.some(element => element===undefined))) { //if intersects does not have undefined elements
                 return intersects[0].object;

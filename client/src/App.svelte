@@ -382,6 +382,7 @@
 				<div class="tab-content rendering-display" class:active={activeDisplayTab==='rendering_display'}>
 					{#if is_loading}
 						<div class="images-placeholder">
+							Updating rendering...
 							<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
 						</div>
 					{:else}
@@ -395,7 +396,7 @@
 							</div>
 							<div class="display-buttons"> 
 								<button on:click|preventDefault={update_3dmodels_and_render}> Render </button>
-								<button on:click|preventDefault={saveRendering}>Save Scene</button>
+								<button on:click|preventDefault={render_and_save_scene}>Save Scene</button>
 							</div>
 
 						{/await}
@@ -417,6 +418,7 @@
 							
 							{#if is_loading}
 								<div class="images-placeholder" id="threed-loading">
+									
 									<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
 								</div>
 							{/if}
@@ -449,6 +451,7 @@
 							{#if saved_renderings.length===0}
 								{#if is_loading}
 									<div class="images-placeholder">
+										Updating saved scenes...
 										<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
 									</div>
 								{:else}
@@ -458,9 +461,11 @@
 								{/if}
 							{:else}
 								{#each saved_renderings as saved_renderings,i}
+								
 									<label class = "saved-rendering" class:selected={selected_saved_rendering_idx===i}>
 										<input type=radio bind:group={selected_saved_rendering_idx} name="option-{i}" value={i} />
 										<img src={saved_renderings["rendering_path"]} alt="saved rendering {i}" />
+										<span> Scene {i+1}</span>
 									</label>
 								{/each}
 							{/if}
@@ -688,6 +693,11 @@
 
 	.saved-rendering {
 		border: 1px solid grey;
+		display:flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		align-content:center;
 	}
 
 	.saved-rendering:hover {
