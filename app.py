@@ -44,19 +44,41 @@ def format_references(references):
         references_str+=f"{ref['number']}. [{ref['title']}]({ref['url']})\n"
     return references_str
 
-@app.route("/move_image", methods=['POST'])
-def move_image():
+@app.route("/transfer_texture", methods=['POST'])
+def transfer_texture():
     form_data = request.get_json()
     src_url = form_data["src_url"]
     src_filename = os.path.basename(src_url)
+    src_filename_noext = os.path.splitext(src_filename)[0]
     curr_textureparts_path = form_data["curr_textureparts_path"]
+    curr_textureparts = form_data["curr_textureparts"]
     curr_dir = os.path.dirname(curr_textureparts_path)
-
     dest_url = os.path.join(curr_dir, src_filename)
     Image.open(src_url).save(dest_url)
+    
+    # Insert code to create normal map
+    # https://github.com/HugoTini/DeepBump/blob/master/cli.md 
 
+    # command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath} --render_mode {RENDER_MODE}'
+    # os.system(command_str)
 
-    return jsonify({"dest_url":dest_url})
+    # Color to Normal Map. Create normal map from color map
+    # Check if mat_image_normal exists in curr_textureparts
+    normal_url = os.path.join(curr_dir, f"{src_filename_noext}_normal.png")
+    color_to_normal_command = f'python {CWD}/utils/DeepBump-7/cli.py {src_url} {normal_url} color_to_normals --color_to_normals-overlap MEDIUM'
+    os.system(color_to_normal_command)
+
+    # Normal to Height Map. Create height map from normal map
+    # Check if mat_image_height exists in curr_textureparts
+    height_url = os.path.join(curr_dir, f"{src_filename_noext}_height.png")
+    normal_to_height_command = f'python {CWD}/utils/DeepBump-7/cli.py {normal_url} {height_url} normals_to_height --normal_to_height-seamless TRUE'
+    os.system(normal_to_height_command)
+    
+    return jsonify({
+        "img_url":dest_url,
+        "normal_url":normal_url,
+        "height_url":height_url
+    })
 
 @app.route("/feedback_materials", methods=['POST'])
 def feedback_materials():
@@ -120,6 +142,7 @@ def suggest_materials():
     for sm in suggested_materials_dict:
         texture_prompt = f"{sm}, texture map, seamless, 4k"
         image, filename = generate_textures(texture_prompt,n=1, imsize=448); image=image[0]; filename=filename[0]
+        filename = filename.replace(" ","_")
         savepath = os.path.join(SERVER_IMDIR,"suggested",filename)
         image.save(savepath)
         suggested_materials.append({
@@ -160,7 +183,6 @@ def feedback_on_assembly():
     parent_part = form_data["parent_part"]; parent_material = form_data["parent_material"]
 
     recommended_attachments = gpt3.feedback_on_assembly(object,child_part,child_material,parent_part,parent_material)
-    
     return recommended_attachments
 
 @app.route("/generate_and_transfer_textures", methods=['POST'])
@@ -217,11 +239,8 @@ def get_image():
         return send_file(io.BytesIO(img_bytes),mimetype='image/png')
     else:
         print("Image data is not base64 encoded. Detecting it as an image path instead.")
-
-    
     img_path = img_data 
     _, file_extension = os.path.splitext(img_path)
-
     return send_file(img_path,mimetype=f'image/{file_extension[1:]}')
 
 @app.route("/generate_similar_textures",methods=['POST'])
@@ -254,18 +273,16 @@ def generate_similar_textures():
 @app.route("/generate_textures", methods=['POST'])
 def generate_textures_():
     form_data = request.get_json()
-
     texture_string = form_data["texture_string"]
     n = form_data["n"]
     imsize = form_data["imsize"]
     # emptydir(SERVER_IMDIR,delete_dirs=False)
-
     #################### Generating the textures ################
-    
     textures, filenames = generate_textures(texture_string, n, imsize)
 
     texture_loadpaths = []
     for i in range(len(textures)):
+        filenames[i] = filenames[i].replace(" ","_")
         savepath = os.path.join(SERVER_IMDIR,filenames[i])
         textures[i].save(savepath)
 
