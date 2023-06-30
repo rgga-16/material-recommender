@@ -522,7 +522,9 @@ class Renderer():
 
     def render(self, out_path):
         bpy.context.scene.render.filepath = out_path
+        # print(f"ESTIMATED TIME LEFT: {bpy.context.scene.render.estimated_render_time}")
         bpy.ops.render.render(write_still=True)
+        
         bpy.ops.wm.save_as_mainfile(filepath=os.path.join(working_dir_path,'temp.blend'))
         sys.exit()
 
