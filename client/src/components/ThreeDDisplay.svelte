@@ -167,7 +167,7 @@
         const dest_url = await data["img_url"];
         const normal_url = await data["normal_url"];
         const height_url = await data["height_url"];
-        return dest_url;
+        return dest_url, normal_url, height_url;
     }
 
     function onPointerClick(event) {
