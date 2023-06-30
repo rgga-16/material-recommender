@@ -153,17 +153,20 @@
     }
 
     async function moveTextureMap(src_url) {
-        const response = await fetch("/move_image", {
+        const response = await fetch("/transfer_texture", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 "src_url": src_url,
                 "curr_textureparts_path": get(curr_textureparts_path),
+                "curr_textureparts": get(curr_texture_parts),
             }),
         });
 
         const data = await response.json();
-        const dest_url = await data["dest_url"];
+        const dest_url = await data["img_url"];
+        const normal_url = await data["normal_url"];
+        const height_url = await data["height_url"];
         return dest_url;
     }
 
@@ -259,12 +262,18 @@
     function getPointedObject() {
         raycaster.setFromCamera(pointer, camera);
         let objects = model3d_infos.map(item => item.model);
-        const intersects = raycaster.intersectObjects(objects, true); //intersects is a list of objects pointed by the mouse
-
+        
         /* 
         BUG: caught TypeError: Cannot read properties of undefined (reading 'layers')
 
         */
+        let intersects; 
+        try {
+            intersects = raycaster.intersectObjects(objects, true); //intersects is a list of objects pointed by the mouse
+        } catch (error) {
+            console.log(error);
+            intersects = [];
+        }
 
         if (intersects.length > 0) { //if intersects has elements 
             if (!(intersects.some(element => element===undefined))) { //if intersects does not have undefined elements
