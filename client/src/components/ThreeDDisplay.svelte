@@ -377,9 +377,11 @@
                                 // console.log("BEFORE");
                                 // console.log(prev_texture_parts);
 
-                                selected = changeTexture(selected,dragged_texture_url);
+                                
 
-                                let dest_url = await moveTextureMap(dragged_textureimg_url);
+                                let dest_url, normal_url, height_url = await moveTextureMap(dragged_textureimg_url);
+
+                                selected = changeTexture(selected,dragged_texture_url);
 
                                 cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"] = dragged_texture_name;
                                 // cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"] = dragged_textureimg_url;
@@ -470,7 +472,7 @@
         // console.log(model3d_infos);
     }
 
-    function changeTexture(object, url) {
+    function changeTexture(object, url, normal_url, height_url) {
         console.log(object);
 
         object.traverse((node) => {
@@ -483,15 +485,22 @@
                 if (Array.isArray(material)) {
                     material.forEach((mat) => {
                         const texturemap = new THREE.TextureLoader().load(url);
-                        texturemap.wrapS = THREE.RepeatWrapping;
-                        texturemap.wrapT = THREE.RepeatWrapping;
+                        const normalmap = new THREE.TextureLoader().load(normal_url);
+                        const heightmap = new THREE.TextureLoader().load(height_url);
+
+                        texturemap.wrapS = THREE.RepeatWrapping; normalmap.wrapS = THREE.RepeatWrapping; heightmap.wrapS = THREE.RepeatWrapping;
+                        texturemap.wrapT = THREE.RepeatWrapping; normalmap.wrapT = THREE.RepeatWrapping; heightmap.wrapT = THREE.RepeatWrapping;
                         var bbox = new THREE.Box3().setFromObject(object);
                         const size = new THREE.Vector3();
                         bbox.getSize(size);
                         const length = size.x;
                         const width = size.z; 
-                        texturemap.repeat.set(length, width);
+                        texturemap.repeat.set(length, width); normalmap.repeat.set(length, width); heightmap.repeat.set(length, width);
+
                         mat.map = texturemap;
+                        mat.normalMap = normalmap;
+                        mat.displacementMap = heightmap;
+                        mat.displacementScale = 0.1;
                         mat.needsUpdate = true;
                         // mat.color=null;
                         mat.emissive.setRGB(0,0,0);
@@ -500,15 +509,22 @@
                 } else {
                     // BUG ( TypeError: Cannot read properties of null (reading 'toArray')) IS SOMEWHERE FUCKING HERE
                     const texturemap = new THREE.TextureLoader().load(url);
-                    texturemap.wrapS = THREE.RepeatWrapping;
-                    texturemap.wrapT = THREE.RepeatWrapping;
+                    const normalmap = new THREE.TextureLoader().load(normal_url);
+                    const heightmap = new THREE.TextureLoader().load(height_url);
+
+                    texturemap.wrapS = THREE.RepeatWrapping; normalmap.wrapS = THREE.RepeatWrapping; heightmap.wrapS = THREE.RepeatWrapping;
+                    texturemap.wrapT = THREE.RepeatWrapping; normalmap.wrapT = THREE.RepeatWrapping; heightmap.wrapT = THREE.RepeatWrappi
                     var bbox = new THREE.Box3().setFromObject(object);
                     const size = new THREE.Vector3();
                     bbox.getSize(size);
                     const length = size.x;
                     const width = size.z; 
-                    texturemap.repeat.set(length, width);
+                    texturemap.repeat.set(length, width); normalmap.repeat.set(length, width); heightmap.repeat.set(length, width);
+
                     material.map = texturemap;
+                    mat.normalMap = normalmap;
+                    mat.displacementMap = heightmap;
+                    mat.displacementScale = 0.1;
                     material.needsUpdate = true;
                     // material.color=null; //The bug is here in this lil crap
                     material.emissive.setRGB(0,0,0);
