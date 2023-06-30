@@ -115,6 +115,7 @@
 
 	async function saveRendering() {
 		is_loading=true;
+		is_loading_saved_renderings=true;
 		let curr_rendering_dict = {
 			"rendering_path": current_rendering_path,
 			"texture_parts": current_texture_parts,
@@ -132,13 +133,14 @@
 		
         saved_renderings = await data["saved_renderings"]
 		is_loading=false;
+		is_loading_saved_renderings=false;
 	}
 
 	async function loadRendering(idx) {
 		let selected = saved_renderings[idx];
 		console.log(selected);
-		debugger;
 		is_loading=true;
+		is_loading_rendering=true;
 
 		const response = await fetch("/apply_to_current_rendering", {
             method: "POST",
@@ -159,6 +161,7 @@
 		threed_display.update_3d_scene();
 
 		is_loading=false;
+		is_loading_rendering=false;
 		
 	}
 
@@ -214,36 +217,7 @@
 		return "ok";
 	}
 
-	async function save_3d_models2() {
-		// Needs 3D objects 
-		let objects_3d_clone = get(objects_3d);
-		console.log(objects_3d_clone);
 
-		let current_texture_parts_ =get(curr_texture_parts);
-
-		for (let i = 0; i < objects_3d_clone.length; i++) {
-			let obj = objects_3d_clone[i];
-			let obj_model = obj["model"];
-			let obj_name = obj["name"];
-			let obj_parent = obj["parent"];
-			let url = obj["glb_url"]
-
-			
-			const response = await fetch("/save_model", {
-				method: "POST",
-				headers: {"Content-Type": "application/json"},
-				body: JSON.stringify({
-					"model": JSON.stringify(obj_model.toJSON(), null, 2),
-					"texture_parts": current_texture_parts_,
-					"name": obj_name,
-					"parent": obj_parent,
-					"url": url
-				}),
-			});
-
-		}
-		return "ok";
-	}
 	async function save_3d_models() {
 		// Needs 3D objects 
 		let objects_3d_clone = get(objects_3d);
@@ -293,9 +267,11 @@
 
 	async function update_3dmodels_and_render() {
 		is_loading=true;
+		is_loading_rendering=true;
 		threed_display.removeHighlights();
 		const save_3d_resp = await save_3d_models();
 		const render_resp = await render();
+		is_loading_rendering=false;
 		is_loading=false;
 		updateCurrentRendering();
 		switchDisplayTab('rendering_display');
@@ -382,7 +358,7 @@
 				</div>
 				<!-- Display rendering -->
 				<div class="tab-content rendering-display" class:active={activeDisplayTab==='rendering_display'}>
-					{#if is_loading}
+					{#if is_loading_rendering}
 						<div class="images-placeholder">
 							Updating rendering...
 							<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
@@ -418,9 +394,9 @@
 								<button on:click|preventDefault={render_and_save_scene}>Save Scene</button>
 							</div>
 							
-							{#if is_loading}
+							{#if is_loading_rendering}
 								<div class="images-placeholder" id="threed-loading">
-									
+									Rendering.. 
 									<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
 								</div>
 							{/if}
@@ -451,7 +427,7 @@
 						<div class="saved-renderings-list"> 
 							<button disabled={!(selected_saved_rendering_idx!=undefined)}> Load scene </button>
 							{#if saved_renderings.length===0}
-								{#if is_loading}
+								{#if is_loading_saved_renderings}
 									<div class="images-placeholder">
 										Updating saved scenes...
 										<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
