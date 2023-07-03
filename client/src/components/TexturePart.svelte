@@ -63,6 +63,8 @@
     let opacity=[0.5];
     let roughness=[0.5]
     let metalness=[0.5];
+    let normalScale=[0];
+    let displacementScale=[0];
     let isTransparent=false;
 
     let translationX = 0; 
@@ -106,6 +108,21 @@
       map.rotation = rotation;
       map.repeat.x = scaleX;
       map.repeat.y = scaleY;
+    }
+
+    function updateNormalScale() {
+      selected_objs_and_parts.update(value => {
+        value[index].model.children[0].material.normalScale.x = normalScale[0];
+        value[index].model.children[0].material.normalScale.y = normalScale[0];
+        return value;
+      });
+    }
+
+    function updateDisplacementScale() {
+      selected_objs_and_parts.update(value => {
+        value[index].model.children[0].material.displacementScale = displacementScale[0];
+        return value;
+      });
     }
 
 
@@ -275,6 +292,8 @@
       opacity = [material.opacity];
       roughness = [material.roughness]; 
       metalness = [material.metalness];
+      displacementScale = [material.displacementScale];
+      normalScale = [material.normalScale.x];
       isTransparent = material.transparent;
 
       translationX = material.map.offset.x;
@@ -333,9 +352,6 @@
             </label>
           </div>
         {/if}
-        
-        
-        <!-- <div>Material finish: {material_finish}</div> -->
   </div>
 
   <div class="w3-bar w3-grey tabs">
@@ -368,6 +384,20 @@
       <span>Metalness: </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
         <RangeSlider on:change={updateFinish} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips/> 
+      </div>
+    </div>
+
+    <div class="control">
+      <span>Normal Map Strength: </span>
+      <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
+        <RangeSlider on:change={updateNormalScale} bind:values={normalScale} min={0} max={10} step={0.1} float={true} pips/> 
+      </div>
+    </div>
+
+    <div class="control">
+      <span>Height Map Strength: </span>
+      <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
+        <RangeSlider on:change={updateDisplacementScale} bind:values={displacementScale} min={0} max={10} step={0.1} float={true} pips/> 
       </div>
     </div>
   </div>

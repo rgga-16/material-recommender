@@ -59,7 +59,6 @@ class DALLE2():
                 response = openai.Image.create(
                     prompt=texture_str,
                     n=1,
-                    # size=f"{gen_imsize}x{gen_imsize}",
                     size=f"{256}x{256}",
                     response_format="b64_json"
                 )
