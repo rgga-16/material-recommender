@@ -48,36 +48,43 @@ def format_references(references):
 def transfer_texture():
     form_data = request.get_json()
     src_url = form_data["src_url"]
-    src_filename = os.path.basename(src_url)
-    src_filename_noext = os.path.splitext(src_filename)[0]
     curr_textureparts_path = form_data["curr_textureparts_path"]
     curr_textureparts = form_data["curr_textureparts"]
+
+    src_filename = os.path.basename(src_url)
+    src_dir = os.path.dirname(src_url)
+    src_filename_noext = os.path.splitext(src_filename)[0]
+    
     curr_dir = os.path.dirname(curr_textureparts_path)
     dest_url = os.path.join(curr_dir, src_filename)
     Image.open(src_url).save(dest_url)
-    
-    # Insert code to create normal map
-    # https://github.com/HugoTini/DeepBump/blob/master/cli.md 
-
-    # command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath} --render_mode {RENDER_MODE}'
-    # os.system(command_str)
 
     # Color to Normal Map. Create normal map from color map
     # Check if mat_image_normal exists in curr_textureparts
-    normal_url = os.path.join(curr_dir, f"{src_filename_noext}_normal.png")
-    color_to_normal_command = f'python {CWD}/utils/DeepBump-7/cli.py {src_url} {normal_url} color_to_normals --color_to_normals-overlap MEDIUM'
-    os.system(color_to_normal_command)
+    normal_src_url = os.path.join(src_dir, f"{src_filename_noext}_normal.png")
+    normal_dest_url = os.path.join(curr_dir, f"{src_filename_noext}_normal.png")
+    Image.open(normal_src_url).save(normal_dest_url)
+    # color_to_normal_command = f'python {CWD}/utils/DeepBump-7/cli.py {src_url} {normal_url} color_to_normals --color_to_normals-overlap MEDIUM'
+    # normalmap_start_time = time.time()
+    # os.system(color_to_normal_command)
+    # normalmap_end_time = time.time()
+    # print(f"Time to create normal map: {normalmap_end_time-normalmap_start_time}")
 
     # Normal to Height Map. Create height map from normal map
     # Check if mat_image_height exists in curr_textureparts
-    height_url = os.path.join(curr_dir, f"{src_filename_noext}_height.png")
-    normal_to_height_command = f'python {CWD}/utils/DeepBump-7/cli.py {normal_url} {height_url} normals_to_height --normal_to_height-seamless TRUE'
-    os.system(normal_to_height_command)
-    
+    height_src_url = os.path.join(src_dir, f"{src_filename_noext}_height.png")
+    height_dest_url = os.path.join(curr_dir, f"{src_filename_noext}_height.png")
+    Image.open(height_src_url).save(height_dest_url)
+    # normal_to_height_command = f'python {CWD}/utils/DeepBump-7/cli.py {normal_url} {height_url} normals_to_height --normals_to_height-seamless TRUE'
+    # heightmap_start_time = time.time()
+    # os.system(normal_to_height_command)
+    # heightmap_end_time = time.time()
+    # print(f"Time to create height map: {heightmap_end_time-heightmap_start_time}")
+    # TEST GENERATING TEXTURES AND DRAGIGING
     return jsonify({
         "img_url":dest_url,
-        "normal_url":normal_url,
-        "height_url":height_url
+        "normal_url":normal_dest_url,
+        "height_url":height_dest_url
     })
 
 @app.route("/feedback_materials", methods=['POST'])
@@ -141,9 +148,11 @@ def suggest_materials():
     suggested_materials = []
     for sm in suggested_materials_dict:
         texture_prompt = f"{sm}, texture map, seamless, 4k"
-        image, filename = generate_textures(texture_prompt,n=1, imsize=448); image=image[0]; filename=filename[0]
-        filename = filename.replace(" ","_")
+        images, filenames = generate_textures(texture_prompt,n=1, imsize=448); image=images[0]; filename=filenames[0]
+        filename = filename.replace(" ","_"); filenames[0] = filename
         savepath = os.path.join(SERVER_IMDIR,"suggested",filename)
+
+
         image.save(savepath)
         suggested_materials.append({
             "name":sm,
@@ -280,11 +289,15 @@ def generate_textures_():
     #################### Generating the textures ################
     textures, filenames = generate_textures(texture_string, n, imsize)
 
+    texture_savepaths = []
+
+
     texture_loadpaths = []
     for i in range(len(textures)):
         filenames[i] = filenames[i].replace(" ","_")
         savepath = os.path.join(SERVER_IMDIR,filenames[i])
         textures[i].save(savepath)
+        normal_path, height_path = generate_normal_and_heightmap(savepath)
 
         texture_loadpaths.append({
             'rendering': None,
@@ -331,6 +344,31 @@ def apply_textures():
         )
 
     return {"results": rendering_texture_pairs}
+
+def generate_normal_and_heightmap(texture_filepath):
+    
+    dir = os.path.dirname(texture_filepath)
+    filename = os.path.basename(texture_filepath)
+    filename_noext = os.path.splitext(filename)[0]
+
+    #  Color to Normal Map. Create normal map from color map
+    normal_path = os.path.join(dir, f"{filename_noext}_normal.png")
+    color_to_normal_command = f'python {CWD}/utils/DeepBump-7/cli.py {texture_filepath} {normal_path} color_to_normals --color_to_normals-overlap MEDIUM'
+    normalmap_start_time = time.time()
+    os.system(color_to_normal_command)
+    normalmap_end_time = time.time()
+    print(f"Time to create normal map: {normalmap_end_time-normalmap_start_time}")
+
+    # Normal to Height Map. Create height map from normal map
+    height_path = os.path.join(dir, f"{filename_noext}_height.png")
+    normal_to_height_command = f'python {CWD}/utils/DeepBump-7/cli.py {normal_path} {height_path} normals_to_height --normals_to_height-seamless TRUE'
+    heightmap_start_time = time.time()
+    os.system(normal_to_height_command)
+    heightmap_end_time = time.time()
+
+    print(f"Time to create height map: {heightmap_end_time-heightmap_start_time}")
+
+    return normal_path, height_path
 
 
 def generate_textures(texture_string, n, imsize):
