@@ -92,7 +92,7 @@ class TextureDiffusion():
     def to_gpu(self):
         self.pipe.to(self.device)
     
-    def text2texture(self, texture_str,n=4, gen_imsize=512):
+    def text2texture(self, texture_str,n=4, gen_imsize=256):
         prompt = f'{texture_str}'
         # print(f"PROMPT: {prompt}")
         images = []

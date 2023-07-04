@@ -1,5 +1,6 @@
 <script>
     import DynamicImage from "../DynamicImage.svelte";
+    import SvelteMarkdown from 'svelte-markdown';
     export let material_path;
     export let material_name;
     export let material_info; 
@@ -20,7 +21,8 @@
             <DynamicImage imagepath={material_path} alt={material_name} is_draggable={true} />
         </div>
         <div class="text-container">
-            <p>{material_info}</p>
+          <SvelteMarkdown source={material_info} />
+            <!-- <p>{material_info}</p> -->
         </div>
     </div>
     <!-- <button on:click={copyText}>Copy to clipboard</button> -->

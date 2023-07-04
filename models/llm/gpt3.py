@@ -156,7 +156,79 @@ def query(prompt,role="user"):
         response_msg = f"Error: {e}"
     return response_msg
 
+def suggest_materials_2(prompt,role="user", use_internet=True, design_brief=None):
+    start_time= time.time()
+    refined_prompt = f"{prompt}"
+    if use_internet:
+        refined_prompt,_ = internet_search(refined_prompt,role)
+
+    if design_brief:
+        refined_prompt+= f''' 
+        Additionally, I want you to consider the following design brief for context: 
+        ==========================
+        {design_brief}.
+        ==========================
+        Some parts of the design brief may be relevant to the question or instruction, while others may not be relevant.
+        '''
+
+        if use_internet:
+            refined_prompt+= '''
+            You may refer to the aforementioned sources retrieved from the internet in the previous message.
+            Make sure to cite results using [[NUMBER](URL)] notation after the reference.
+            Make sure that you answer the question or fulfill the instruction by both using the sources from the internet and also in the context of the design brief.
+            '''
+        else: 
+            refined_prompt+=  '''
+            Make sure that you answer the question or fulfill the instruction in the context of the design brief.
+            '''
+        # context_aware_response = query(context_aware_prompt,role)
+        # intro_text = context_aware_response.split('\n')[0].strip()
+    
+    if use_internet: 
+        refined_prompt+= f'''
+            Lastly, answer the suggested materials and their detailed reasons as a Python dictionary. 
+            The keys are the names of the suggested materials, and the values are the detailed reasons. The detailed reasons should be written using Markdown.
+            Make sure the reasons are the same as the ones in the previous response, and maintain their reference citations.
+            Do not respond anything else apart from the dictionary.
+            Do not respond anything else apart from the dictionary.
+            Do not respond anything else apart from the dictionary.
+        '''
+    else: 
+        refined_prompt+= '''
+        Lastly, answer the suggested materials and their detailed reasons as a Python dictionary. 
+        The keys are the names of the suggested materials, and the values are the detailed reasons. The detailed reasons should be written using Markdown.
+        Make sure the reasons are the same as the ones in the previous response.
+        Do not respond anything else apart from the dictionary.
+        Do not respond anything else apart from the dictionary.
+        Do not respond anything else apart from the dictionary.'''
+    
+    python_dict_response_str = query(refined_prompt,role).strip()
+    end_time = time.time()
+    print(f"Time elapsed: {end_time-start_time} seconds.")
+
+    # Remove text before and after the Python list
+    start_index = python_dict_response_str.find('{')
+    if start_index>0:
+        print("Removing text before the Python list.")
+        python_dict_response_str = python_dict_response_str[start_index:].strip()
+    end_index = python_dict_response_str.rfind('}')
+    if end_index<len(python_dict_response_str)-1:
+        print("Removing text after the Python list.")
+        python_dict_response_str = python_dict_response_str[:end_index+1].strip()
+
+    python_dict_response_str = python_dict_response_str.strip()
+
+    try:
+        suggestions = ast.literal_eval(python_dict_response_str)
+        intro_text=''
+    except SyntaxError as e:
+        intro_text = f"Sorry, please try again. We got the following error: {e}."
+        suggestions = {}
+    return intro_text, suggestions
+
+
 def suggest_materials(prompt,role="user", use_internet=True, design_brief=None):
+    start_time= time.time()
     refined_prompt = f"{prompt}"
     if use_internet:
         refined_prompt,_ = internet_search(refined_prompt,role)
@@ -188,15 +260,19 @@ def suggest_materials(prompt,role="user", use_internet=True, design_brief=None):
     if use_internet: 
         python_dict_prompt = f'''
             Now, return the suggested materials and their detailed reasons from the previous response as a Python dictionary. 
+            The keys are the names of the suggested materials, and the values are the detailed reasons. The detailed reasons should be written using Markdown.
             Make sure the reasons are the same as the ones in the previous response, and maintain their reference citations.
             Do not say anything else apart from the dictionary.
         '''
     else: 
         python_dict_prompt= '''
         Now, return the suggested materials and their detailed reasons as a Python dictionary. 
+        The keys are the names of the suggested materials, and the values are the detailed reasons. The detailed reasons should be written using Markdown.
         Make sure the reasons are the same as the ones in the previous response.
         Do not say anything else apart from the dictionary.'''
     python_dict_response = query(python_dict_prompt,role).strip()
+    end_time = time.time()
+    print(f"Time elapsed: {end_time-start_time} seconds.")
 
     # Remove text before and after the Python list
     start_index = python_dict_response.find('{')
