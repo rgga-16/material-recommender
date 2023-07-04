@@ -142,13 +142,15 @@ def feedback_materials():
 
 @app.route("/suggest_materials", methods=['POST'])
 def suggest_materials():
+    start_time = time.time()
     form_data = request.get_json()
     context = form_data["context"]
-    intro_text, suggested_materials_dict = gpt3.suggest_materials(form_data["prompt"],role=form_data["role"],use_internet=form_data["use_internet"],design_brief=context)
+    # intro_text, suggested_materials_dict = gpt3.suggest_materials(form_data["prompt"],role=form_data["role"],use_internet=form_data["use_internet"],design_brief=context)
+    intro_text, suggested_materials_dict = gpt3.suggest_materials_2(form_data["prompt"],role=form_data["role"],use_internet=form_data["use_internet"],design_brief=context)
     suggested_materials = []
     for sm in suggested_materials_dict:
         texture_prompt = f"{sm}, texture map, seamless, 4k"
-        images, filenames = generate_textures(texture_prompt,n=1, imsize=448); image=images[0]; filename=filenames[0]
+        images, filenames = generate_textures(texture_prompt,n=1, imsize=256); image=images[0]; filename=filenames[0]
         filename = filename.replace(" ","_"); filenames[0] = filename
         savepath = os.path.join(SERVER_IMDIR,"suggested",filename)
 
@@ -159,6 +161,8 @@ def suggest_materials():
             "reason":suggested_materials_dict[sm],
             "filepath":savepath
         })
+    end_time = time.time()
+    print(f"Time to create suggested materials: {end_time-start_time}")
     return jsonify({"intro_text":intro_text,"role":"assistant","suggested_materials":suggested_materials})
 
 
