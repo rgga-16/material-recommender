@@ -291,15 +291,15 @@
 
 
 <div class="message-input">
-    <div class="floating-div" class:expanded={expanded_suggested_questions===true}>
+    <!-- <div class="floating-div" class:expanded={expanded_suggested_questions===true}>
         <div class=header> 
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
+          
             <strong on:click={() => expand()} style="cursor:pointer;"> Suggested Questions </strong> 
             {#if expanded_suggested_questions===true}
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
+              
                 <img on:click={() => expand()}  src="./logos/down-arrow-svgrepo-com.svg" style="width:25px; height: 25px;cursor:pointer;" alt="Collapse">
             {:else}
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
+              
                 <img on:click={() => expand()} src="./logos/up-arrow-svgrepo-com.svg" style="width:25px; height: 25px;cursor:pointer;" alt="Expand">
             {/if}
         </div>
@@ -309,7 +309,7 @@
             <div class="body">
                 <ul>
                     {#each suggested_material_queries as query}
-                        <!-- svelte-ignore a11y-click-events-have-key-events -->   
+                        svelte-ignore a11y-click-events-have-key-events 
                         <li on:click={handleInput} style="cursor:pointer;"> {query} </li>
                     {/each}
                 </ul>
@@ -326,7 +326,7 @@
                 <button on:click|preventDefault={()=>brainstorm_material_queries()}> Brainstorm questions! </button>
             </div>
         {/if}
-    </div>
+    </div> -->
     <textarea style="width:100%;" bind:value="{inputMessage}" on:keydown="{e => e.key === 'Enter' && suggest_materials()}" placeholder="Type your queries for materials or color palettes here.." id="textarea"></textarea>
     <label>
         <input type="checkbox" bind:checked={use_internet} >
