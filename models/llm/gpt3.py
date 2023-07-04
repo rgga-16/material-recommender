@@ -43,10 +43,10 @@ I want you to return the keywords only as a Python list. Do not say anything els
 
 message_history = []
 temperature=0.0
-model_name = "gpt-3.5-turbo"
-max_tokens = 4097
-# model_name = "gpt-3.5-turbo-16k"
-# max_tokens=16383
+# model_name = "gpt-3.5-turbo"
+# max_tokens = 4097
+model_name = "gpt-3.5-turbo-16k"
+max_tokens=16383
 encoding = tiktoken.get_encoding("cl100k_base")
 # encoding = tiktoken.encoding_for_model(model_name)
 
