@@ -386,7 +386,7 @@
         <RangeSlider on:change={updateFinish} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
-
+<!-- WIP
     <div class="control">
       <span>Normal Map Strength: </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
@@ -399,7 +399,7 @@
       <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
         <RangeSlider on:change={updateDisplacementScale} bind:values={displacementScale} min={0} max={10} step={0.1} float={true} pips/> 
       </div>
-    </div>
+    </div> -->
   </div>
 
   <div class="card container tab-content " class:active={activeTab==='adjust-texture-map'}>

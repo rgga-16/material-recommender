@@ -389,7 +389,7 @@
                                 //dragged texture url is the local path of the image texture convereted to blob
 
                                 // let dest_url, normal_url, height_url = await moveTextureMap(dragged_textureimg_url);
-                                let dest_url = await moveTextureMap(dragged_textureimg_url);
+                                
                                 // console.log("DEST URL" + dest_url);
                                 // console.log("NORMAL URL" + normalmap_texture_url);
                                 // console.log("HEIGHT URL" + heightmap_texture_url);
@@ -425,10 +425,12 @@
                                     console.error(error);
                                 }
 
-                                console.log("NORMAL BLOB" + normal_mat_blob);
-                                console.log("HEIGHT BLOB" + height_mat_blob);
+                                // console.log("NORMAL BLOB" + normal_mat_blob);
+                                // console.log("HEIGHT BLOB" + height_mat_blob);
+                                console.log("Image texture data: " + dragged_texture_url);
                                 
                                 selected = changeTexture(selected,dragged_texture_url, normal_mat_blob,height_mat_blob);
+                                let dest_url = await moveTextureMap(dragged_textureimg_url);
 
                                 cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"] = dragged_texture_name;
                                 // cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"] = dragged_textureimg_url;
@@ -536,24 +538,31 @@
                 if (Array.isArray(material)) {
                     material.forEach((mat) => {
                         const texturemap = new THREE.TextureLoader().load(url);
-                        const normalmap = new THREE.TextureLoader().load(normal_url);
-                        const heightmap = new THREE.TextureLoader().load(height_url);
-
-                        texturemap.wrapS = THREE.RepeatWrapping; normalmap.wrapS = THREE.RepeatWrapping; heightmap.wrapS = THREE.RepeatWrapping;
-                        texturemap.wrapT = THREE.RepeatWrapping; normalmap.wrapT = THREE.RepeatWrapping; heightmap.wrapT = THREE.RepeatWrapping;
+                        
+                        texturemap.wrapS = THREE.RepeatWrapping; 
+                        texturemap.wrapT = THREE.RepeatWrapping; 
                         var bbox = new THREE.Box3().setFromObject(object);
                         const size = new THREE.Vector3();
                         bbox.getSize(size);
                         const length = size.x;
                         const width = size.z; 
-                        texturemap.repeat.set(length, width); normalmap.repeat.set(length, width); heightmap.repeat.set(length, width);
+                        texturemap.repeat.set(length, width); 
 
-                        mat.map = texturemap;
-                        mat.normalMap = normalmap;
-                        mat.normalScale = new THREE.Vector2(0.0, 0.0);
+                        // WIP
+                        // const normalmap = new THREE.TextureLoader().load(normal_url);
+                        // const heightmap = new THREE.TextureLoader().load(height_url);
+                        // normalmap.wrapS = THREE.RepeatWrapping; heightmap.wrapS = THREE.RepeatWrapping;
+                        // normalmap.wrapT = THREE.RepeatWrapping; heightmap.wrapT = THREE.RepeatWrapping;
+                        // normalmap.repeat.set(length, width); heightmap.repeat.set(length, width);
+                        // mat.map = texturemap;
+                        // mat.normalMap = normalmap;
+                        // mat.normalScale = new THREE.Vector2(0.0, 0.0);
                         
-                        mat.displacementMap = heightmap;
-                        mat.displacementScale = 0.0;
+                        // mat.displacementMap = heightmap;
+                        // mat.displacementScale = 0.0;
+                        // WIP
+
+
                         mat.needsUpdate = true;
                         // mat.color=null;
                         mat.emissive.setRGB(0,0,0);
