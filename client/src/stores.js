@@ -10,40 +10,43 @@ export const models_setup = writable({});
 export const chatbot_input_message = writable(""); //Keeps track of the input message in the chatbot
 
 export const design_brief = writable(`
-Design Brief: Modern Minimalist Master Bedroom for a Filipino Couple
-Demographics
-The clients are a Filipino couple in their early 30s who live in the bustling city of Manila in the Philippines. They are both working professionals who want a cozy bedroom to relax and unwind after a busy day.
+Design Brief: Bedroom Design for a Modern Urban Dweller
 
-Project Background
-The project background is to create a modern minimalist design with warm, inviting tones that are reflective of the clients' lifestyle. The design should have a mix of contemporary and traditional elements.
+Demographics and Target Market: The client is a young professional in their late 20s, working in a creative industry. They have a busy lifestyle and value comfort, functionality, and aesthetics. The target market includes individuals who appreciate contemporary design and seek a peaceful retreat within their urban living space.
 
-Preferred Design Style
-The preferred design style for the bedroom is modern minimalist with a touch of Scandinavian aesthetic. It should have a neutral color palette with accents of natural, warm wood textures and matte finishes.
+Background of the Project: The project aims to create a stylish and functional bedroom that reflects the client's personality and provides a serene sanctuary amidst the bustling city life. The design should incorporate elements that cater to the client's needs and preferences while complementing their modern lifestyle.
 
-Desired Ambience and Feel
-The desired ambience and feel for the bedroom should be calm, soothing, and relaxing. The lighting should be soft and warm with a cozy, intimate atmosphere.
+Preferred Design Style: The preferred design style for the bedroom is a blend of modern and minimalist aesthetics. Clean lines, sleek furniture, and a neutral color palette will be used to create a calming and sophisticated atmosphere.
 
-Client's Preferences
-The clients prefer a minimalistic design with clean lines and geometric shapes. They also have a preference for natural materials such as wood in their bedroom. They would also prefer a high-quality mattress, a comfortable duvet, and pillows with a thread count of 400 or higher.
+Desired Feel and Ambience: The client desires a tranquil and cozy atmosphere in the bedroom. The space should evoke a sense of relaxation, allowing them to unwind after a long day. The ambience should be warm, inviting, and conducive to restful sleep.
 
-Budget
-The budget of the project is around PHP 100,000. This is a moderate budget that should cover the cost of furnishings and decorations.
+Preferred Colors, Materials, and Finishes: The client prefers a neutral color scheme with a focus on earthy tones such as beige, taupe, and soft greys. They appreciate natural materials like wood and stone, as well as textures such as linen and velvet. The finishes should be matte and understated, contributing to the overall minimalist aesthetic.
 
-Furniture and Accessories
-The bedroom will contain the following furniture and accessories:
+Budget: The client has a moderate budget for the project, allowing for quality materials and furnishings without excessive extravagance.
 
-A queen-size, low-lying platform bed with wood headboard and built-in sidetables on each side.
-Two white, matte-finished drawers and a cabinet with wood accents.
-A 32-inch TV.
-A neutral, textured carpet.
-Soft, light-colored curtains that allow natural light into the room.
-Several floating shelves to display photo frames and books.
-Pottery planters with easy-to-maintain indoor plants, a few books, and a set of Bang & Olufsen headphones.
-Planned Uses
-The planned uses of the bedroom are for sleeping, relaxation, and lounging. The built-in sidetables on each side of the bed provide ample storage for books, tablets, and devices. The floating shelves will be used to display interiors book collections.
+Furniture and Accessories: The bedroom will include the following furniture and accessories:
 
-Location
-The bedroom is located within the city of Manila, by the bay area in a high-rise condominium. The environment is urban, busy, and modern. But the design approach aims to offset the busy environment by creating a relaxing space that almost feels like a retreat or sanctuary - where the couple could spend their downtime, escaping from the hectic energy of the city.
+Bed: A queen-sized bed with pillows, a comfortable mattress, a cozy blanket, a throw blanket, a sleek bedframe, and a padded headboard. The bed will feature built-in sidetables on each side.
+
+Two closed drawers: These drawers will provide storage for clothing and personal items, maintaining a clutter-free environment.
+
+An open drawer: This drawer will serve as a display area for decorative items or books.
+
+TV: A wall-mounted TV will be positioned for comfortable viewing from the bed.
+
+Carpet: A plush, neutral-colored carpet will cover the bedroom floor, adding warmth and comfort.
+
+Curtains: Floor-to-ceiling curtains in a light fabric will be installed to control natural light and provide privacy.
+
+Shelves: Minimalist floating shelves will be mounted on the walls to showcase books, potted plants, and decorative accessories.
+
+Accessories: Potted plants, books, figurines, and headphones will be strategically placed to add personal touches and enhance the overall ambiance.
+
+Planned Uses of the Bedroom: The bedroom will serve as a multifunctional space, primarily for relaxation, sleep, and personal rejuvenation. It will also provide a cozy reading nook, a small entertainment area for watching TV, and a display space for the client's favorite books and decorative items.
+
+Location: The bedroom is located in a modern urban apartment in a bustling city. The environment is vibrant and dynamic, and the design should create a peaceful oasis within this energetic setting. The city is fictional, allowing for creative freedom in designing the bedroom to suit various urban locations.
+
+Please note that the design brief is flexible and can be further refined based on the client's specific requirements and preferences.
 `); //Keeps track of the design brief
 
 // selected_objs_and_parts = [
