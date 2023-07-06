@@ -181,8 +181,6 @@ def suggest_materials_2(prompt,role="user", use_internet=True, design_brief=None
             refined_prompt+=  '''
             Make sure that you answer the question or fulfill the instruction in the context of the design brief.
             '''
-        # context_aware_response = query(context_aware_prompt,role)
-        # intro_text = context_aware_response.split('\n')[0].strip()
     
     if use_internet: 
         refined_prompt+= f'''
@@ -442,10 +440,150 @@ def brainstorm_material_queries():
 
 
 materials_feedbacks = []
+
+def provide_material_feedback2(material_name, object_name, part_name, use_internet=False, attached_parts=None, design_brief=None):
+    
+    feedback_model = "gpt-3.5-turbo-16k"
+    aspects = ["durability", "maintenance", "sustainability", "assembly", "cost", "availability"]
+    if(object_name==part_name):
+        part_name=""
+    material_feedback_prompt_head = f"I have a {object_name} {part_name} made out of {material_name}. "
+    
+    materials_parts=""
+    if attached_parts is not None and len(attached_parts)>0:
+        materials_parts = f'''Here is information on other parts it is attached to : \n'''
+        for attached_part in attached_parts:
+            parent = attached_part[0]
+            part=attached_part[1]
+            if parent==part:
+                materials_parts += f'''It is attached to a {attached_part[0]} made out of {attached_part[2]}. '''
+            else:
+                materials_parts += f'''It is attached to a {attached_part[0]} {attached_part[1]} made out of {attached_part[2]}. '''
+    
+
+    material_feedback_task = f'''\nBased on the provided information above, your task is to provide feedback on the material used based on the following aspects: {", ".join(aspects[:-1])} {", and " + aspects[-1]}. 
+    For each aspect, if you gave critical feedback on that aspect, please provide up to 5 suggestions 
+    (e.g. alternative materials, adding material finishes, assembly attachments) to improve the aspect. 
+    Make sure that you also consider the object that the material is used on.
+    '''
+    
+    materials_internet_sources = ""
+    if use_internet:
+        results = []
+        materials_internet_sources += f'''\n 
+        Additionally, here are sources from the internet that you can refer to and cite when providing feedback: \n
+        '''
+        src_idx=1
+        references = []
+        for i in range(len(aspects)):
+            aspect = aspects[i]
+            internet_search_query = f'{aspect} of a {object_name} {part_name} made out of {material_name}'
+            _, results = internet_search(internet_search_query,role="user",n_results=5)
+            materials_internet_sources += f"**{aspect}**:"
+            for r in results:
+                materials_internet_sources += f'''\n
+                NUMBER:{src_idx}
+                URL:{r['link']}
+                TITLE:{r['title']}
+                CONTENT:{r['snippet']}
+                '''
+                references.append({
+                    "number":src_idx,
+                    "url":r['link'],
+                    "title":r['title'],
+                })
+                src_idx+=1
+        materials_internet_sources += f'''
+        Make sure to cite results using [[NUMBER](URL)] notation after the reference. 
+        If the provided information from the internet results refers to multiple subjects with the same name, write separate answers for each subject.
+        '''
+    
+    design_brief_context = ""
+    if design_brief:
+        design_brief_context+= f''' 
+        Additionally, I want you to consider the following design brief for context: 
+        ==========================
+        {design_brief}.
+        ==========================
+        Some parts of the design brief may be relevant to , while others may not be relevant.
+        '''
+
+        if use_internet:
+            design_brief_context+= '''
+            You may refer to the aforementioned sources retrieved from the internet.
+            Make sure to cite results using [[NUMBER](URL)] notation after the reference.
+            Make sure that you fulfill the task by both using the sources from the internet and also in the context of the design brief.
+            '''
+        else: 
+            design_brief_context+=  '''
+            Make sure that you fulfill the task in the context of the design brief.
+            '''
+    
+    material_feedback_format = f'''Lastly, please provide your feedback in the form of a Python dictionary. 
+    The keys should be the aspects: {", ".join(aspects[:-1])} {", and " + aspects[-1]}. The values of each aspect are "feedback" and "suggestions".
+    "feedback" is the key to the feedback you provided for that aspect. Make sure that the feedback is in Markdown format and it is exactly the same as the feedback you provided for that aspect in the previous response.
+    "suggestions" is a list of lists where each list contains the name of the suggested item and item type.
+    The item type must either be one of the following: material, finish, attachment, or other.
+    Here is a template:
+    '''
+    dict_template = {}
+    for i in range(len(aspects)):
+        aspect = aspects[i]
+        dict_template[aspect] = {
+            "feedback": f"{aspect} feedback",
+            "suggestions": [["item1","item_type"], ["item2","item_type"]]
+        }
+    
+    dict_template_str = json.dumps(dict_template, indent=4)
+    material_feedback_format+=dict_template_str
+    material_feedback_format+=f'''Do not respond anything else apart from the dictionary. Do not respond anything else apart from the dictionary. Do not respond anything else apart from the dictionary.
+    '''
+
+    material_feedback_prompt = material_feedback_prompt_head + materials_parts + material_feedback_task + materials_internet_sources + design_brief_context + material_feedback_format
+
+    global init_history
+    init_history_clone = copy.deepcopy(init_history)
+    init_history_clone.append({"role":"user", "content":material_feedback_prompt})
+
+    
+    response = openai.ChatCompletion.create(
+        model=feedback_model,
+        messages=init_history_clone,
+        temperature=0.1
+    )
+   
+    suggestions_dict_str = response["choices"][0]["message"]["content"]
+
+    # Remove text before and after the Python dict
+    start_index = suggestions_dict_str.find('{')
+    if start_index>0:
+        print("Removing text before the Python dictionary.")
+        suggestions_dict_str = suggestions_dict_str[start_index:].strip()
+    end_index = suggestions_dict_str.rfind('}')
+    if end_index<len(suggestions_dict_str)-1:
+        print("Removing text after the Python dictionary.")
+        suggestions_dict_str = suggestions_dict_str[:end_index+1].strip()
+
+    suggestions_dict_str = suggestions_dict_str.strip()
+
+    try:
+        suggestions_dict= ast.literal_eval(suggestions_dict_str)
+    except SyntaxError as e:
+        intro_text = f"Sorry, please try again. We got the following error: {e}."
+        suggestions_dict = {}
+
+    unformatted_response = ""
+    intro_text = ""
+    
+
+    return intro_text, unformatted_response, suggestions_dict, references
+
+
 '''
 attached_parts: list of tuples (object_name, part_name, material_name)
 '''
 def provide_material_feedback(material_name, object_name, part_name, use_internet=False, attached_parts=None, design_brief=None):
+    
     feedback_model = "gpt-3.5-turbo-16k"
     aspects = ["durability", "maintenance", "sustainability", "assembly", "cost", "availability"]
     if(object_name==part_name):
@@ -454,9 +592,14 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
 
     materials_context=""
     if attached_parts is not None and len(attached_parts)>0:
-        materials_context = f'''Here is additional information for context: \n'''
+        materials_context = f'''Here is additional information on other parts it is attached to for context: \n'''
         for attached_part in attached_parts:
-            materials_context += f'''It is attached to a {attached_part[0]} {attached_part[1]} made out of {attached_part[2]}. '''
+            parent = attached_part[0]
+            part=attached_part[1]
+            if parent==part:
+                materials_context += f'''It is attached to a {attached_part[0]} made out of {attached_part[2]}. '''
+            else:
+                materials_context += f'''It is attached to a {attached_part[0]} {attached_part[1]} made out of {attached_part[2]}. '''
 
     material_feedback_prompt_tail = f'''\nPlease provide feedback on the material used based on the following aspects: {", ".join(aspects[:-1])} {", and " + aspects[-1]}. 
     For each aspect, if you gave critical feedback on that aspect, please provide up to 5 suggestions 
@@ -494,21 +637,18 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
         If the provided information from the internet results refers to multiple subjects with the same name, write separate answers for each subject.
         '''
 
-    material_feedback_prompt = material_feedback_prompt_head + materials_context + material_feedback_prompt_tail + "\nRespond using Markdown."
+    material_feedback_prompt = material_feedback_prompt_head + materials_context + material_feedback_prompt_tail +  "\nRespond using Markdown."
     # print(material_feedback_prompt)
     global init_history
     init_history_clone = copy.deepcopy(init_history)
     init_history_clone.append({"role":"user", "content":material_feedback_prompt})
 
-    material_feedback_start_time=time.time()
+    
     response = openai.ChatCompletion.create(
         model=feedback_model,
         messages=init_history_clone,
         temperature=0.1
     )
-    material_feedback_end_time=time.time()
-    material_feedback_time = material_feedback_end_time-material_feedback_start_time
-    print(f"Material feedback time: {material_feedback_time}")
 
     material_feedback = response["choices"][0]["message"]["content"]
     init_history_clone.append({"role":"assistant", "content":material_feedback})

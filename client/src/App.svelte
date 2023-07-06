@@ -32,7 +32,9 @@
 
 
 	let is_loading=false;
-	let is_loading_rendering=false;
+	let is_loading_scene=false;
+	let is_saving_scene = false; 
+	let is_rendering_scene = false;
 	let is_loading_saved_renderings = false;
 
 	let information_panel; 
@@ -99,22 +101,9 @@
 		// information_panel.updatePartInformation();
 		is_loading=false;
 	}
-	
-
-	let ui_collapsed = false;
-
-	function collapseDiv(is_collapsed) {
-		// console.log("before: " + is_collapsed);
-		if (is_collapsed===true) {
-			is_collapsed=false;
-		} else {
-			is_collapsed=true;
-		}
-		// console.log("after: " + is_collapsed);
-	}
 
 	async function saveRendering() {
-		is_loading=true;
+		is_saving_scene = true;
 		is_loading_saved_renderings=true;
 		let curr_rendering_dict = {
 			"rendering_path": current_rendering_path,
@@ -132,16 +121,15 @@
 		selected_saved_rendering_idx=undefined;
 		
         saved_renderings = await data["saved_renderings"]
-		is_loading=false;
 		is_loading_saved_renderings=false;
+		is_saving_scene = false;
 	}
 
 	async function loadRendering(idx) {
+		is_loading_scene=true;
 		let selected = saved_renderings[idx];
 		console.log(selected);
-		is_loading=true;
-		is_loading_rendering=true;
-
+		
 		const response = await fetch("/apply_to_current_rendering", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -159,10 +147,7 @@
 
 		// information_panel.updatePartInformation();
 		threed_display.update_3d_scene();
-
-		is_loading=false;
-		is_loading_rendering=false;
-		
+		is_loading_scene=false;
 	}
 
 	curr_rendering_path.subscribe(value => {
@@ -213,7 +198,6 @@
 				"texturepartspath": texturepartspath,
 			}),
 		});
-
 		return "ok";
 	}
 
@@ -266,19 +250,17 @@
 
 
 	async function update_3dmodels_and_render() {
-		is_loading=true;
-		is_loading_rendering=true;
+		is_rendering_scene=true;
 		threed_display.removeHighlights();
 		const save_3d_resp = await save_3d_models();
 		const render_resp = await render();
-		is_loading_rendering=false;
-		is_loading=false;
+		is_rendering_scene=false;
 		updateCurrentRendering();
 		switchDisplayTab('rendering_display');
 	}
 
-	async function render_and_save_scene() {
-		await update_3dmodels_and_render();
+	async function save_scene() {
+		// await update_3dmodels_and_render();
 		saveRendering();
 	}
 
@@ -286,10 +268,8 @@
 		const response = await fetch("/get_static_dir");
 		const data = await response.text();	
 		const threediv = document.getElementById("display");
-
 		displayWidth.set(threediv.offsetWidth);
 		displayHeight.set(threediv.offsetHeight);
-
 		console.log(get(curr_texture_parts));
 
 	});
@@ -358,9 +338,17 @@
 				</div>
 				<!-- Display rendering -->
 				<div class="tab-content rendering-display" class:active={activeDisplayTab==='rendering_display'}>
-					{#if is_loading_rendering}
+					{#if is_loading_scene || is_rendering_scene || is_saving_scene}
 						<div class="images-placeholder">
-							Updating rendering...
+							{#if is_loading_scene}
+								Loading scene...
+							{:else if is_saving_scene}
+								Saving scene...
+							{:else if is_rendering_scene}
+								Rendering scene...
+							{:else}
+								Updating scene...
+							{/if}
 							<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
 						</div>
 					{:else}
@@ -369,12 +357,10 @@
 						{:then data} 
 							<div class="image">
 								<DynamicImage bind:this={current_rendering} imagepath={current_rendering_path} alt="Current rendering" size={"80%"}/>
-								
-								<!-- <button on:click|preventDefault={saveRendering}> Save rendering </button> -->
 							</div>
 							<div class="display-buttons"> 
 								<button on:click|preventDefault={update_3dmodels_and_render}> Render </button>
-								<button on:click|preventDefault={render_and_save_scene}>Save Scene</button>
+								<button on:click|preventDefault={save_scene}>Save Scene</button>
 							</div>
 
 						{/await}
@@ -388,23 +374,26 @@
 							<pre> Loading 3D viewer. Please wait. </pre>
 						{:then data}
 							<ThreeDDisplay bind:this={threed_display} current_texture_parts={get(curr_texture_parts)} bind:information_panel={information_panel} {displayHeight} {displayWidth} />
-							
 							<div class="display-buttons">
 								<button on:click|preventDefault={update_3dmodels_and_render}> Render </button>
-								<button on:click|preventDefault={render_and_save_scene}>Save Scene</button>
+								<button on:click|preventDefault={save_scene}>Save Scene</button>
 							</div>
-							
-							{#if is_loading_rendering}
+							{#if is_loading_scene || is_rendering_scene || is_saving_scene}
 								<div class="images-placeholder" id="threed-loading">
-									Rendering.. 
+									{#if is_loading_scene}
+										Loading scene...
+									{:else if is_saving_scene}
+										Saving scene...
+									{:else if is_rendering_scene}
+										Rendering scene...
+									{:else}
+										Updating scene...
+									{/if}
 									<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
 								</div>
 							{/if}
 						{/await}
-					
 				</div>
-
-				
 			</div>
 			
 

@@ -84,7 +84,8 @@ class TextureDiffusion():
         self.pipe = StableDiffusionPipeline.from_pretrained(model_id,use_auth_token=True, torch_dtype=torch.float16).to(self.device)
         
         self.pipe.scheduler = DPMSolverMultistepScheduler.from_config(self.pipe.scheduler.config)
-        self.pipe.enable_attention_slicing()
+        self.pipe.enable_sequential_cpu_offload()
+        self.pipe.enable_attention_slicing(1)
 
     def to_cpu(self):
         self.pipe.to('cpu')

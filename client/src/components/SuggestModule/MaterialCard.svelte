@@ -21,8 +21,8 @@
             <DynamicImage imagepath={material_path} alt={material_name} is_draggable={true} />
         </div>
         <div class="text-container">
-          <SvelteMarkdown source={material_info} />
-            <!-- <p>{material_info}</p> -->
+          <!-- <SvelteMarkdown source={material_info} /> -->
+            <p>{material_info}</p>
         </div>
     </div>
     <!-- <button on:click={copyText}>Copy to clipboard</button> -->

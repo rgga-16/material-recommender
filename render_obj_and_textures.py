@@ -587,53 +587,56 @@ def main2():
 
     return 
 
-def main(): 
-    args = get_args()
-    unwrap_method_='UNWRAP'
-    with open(args.rendering_setup_json) as json_file:
-        info = json.load(json_file)
-        models_dir = info['dir']
-        models_info = info['objects']
-        cam_info = info['camera']
-        light_info=None
-        if 'light' in info: light_info = info['light'] 
-        resolution = info['resolution']
-
-    renderer = Renderer(cam_info=cam_info,light_info=light_info,resolution=resolution,render_mode=args.render_mode)
-
-    with open(args.texture_object_parts_json) as json_file:
-        texture_object_parts = json.load(json_file)
-
-    for model_key in models_info:
-        model_info = models_info[model_key]
-        print(model_info)
-        parts_info = model_info['parts']
-        for part in parts_info['names']:
-            part_material_path = os.path.join(CWD,texture_object_parts[model_key][part]["mat_image_texture"])
-            part_material_name = texture_object_parts[model_key][part]["mat_name"]
-            part_material_finish = texture_object_parts[model_key][part]["mat_finish"]
-            part_material_transforms = None
-            part_material_color = None
-            part_material_finish_settings = None
-
-            if "mat_finish_settings" in texture_object_parts[model_key][part].keys():
-                part_material_finish_settings = texture_object_parts[model_key][part]["mat_finish_settings"]
-
-            if "mat_transforms" in texture_object_parts[model_key][part].keys(): 
-                part_material_transforms = texture_object_parts[model_key][part]["mat_transforms"]
-
-            if "mat_color" in texture_object_parts[model_key][part].keys():
-                part_material_color = texture_object_parts[model_key][part]["mat_color"]
-            
-            # part_path = os.path.join(models_dir,model_key, f'{part}.obj')
-            # obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
-            part_path = os.path.join(CWD,'client/public/',texture_object_parts[model_key][part]["model"])
-            # part_path = os.path.join(models_dir,model_key, f'{part}.gltf')
-            obj = renderer.load_object_gltf(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
-            # renderer.recalculate_normals(obj)
-            # renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish, part_material_transforms, part_material_color,part_material_finish_settings)
-    renderer.render(out_path=args.out_path)
-    
 if __name__=="__main__":
     # main()
     main2()
+
+
+
+# def main(): 
+#     args = get_args()
+#     unwrap_method_='UNWRAP'
+#     with open(args.rendering_setup_json) as json_file:
+#         info = json.load(json_file)
+#         models_dir = info['dir']
+#         models_info = info['objects']
+#         cam_info = info['camera']
+#         light_info=None
+#         if 'light' in info: light_info = info['light'] 
+#         resolution = info['resolution']
+
+#     renderer = Renderer(cam_info=cam_info,light_info=light_info,resolution=resolution,render_mode=args.render_mode)
+
+#     with open(args.texture_object_parts_json) as json_file:
+#         texture_object_parts = json.load(json_file)
+
+#     for model_key in models_info:
+#         model_info = models_info[model_key]
+#         print(model_info)
+#         parts_info = model_info['parts']
+#         for part in parts_info['names']:
+#             part_material_path = os.path.join(CWD,texture_object_parts[model_key][part]["mat_image_texture"])
+#             part_material_name = texture_object_parts[model_key][part]["mat_name"]
+#             part_material_finish = texture_object_parts[model_key][part]["mat_finish"]
+#             part_material_transforms = None
+#             part_material_color = None
+#             part_material_finish_settings = None
+
+#             if "mat_finish_settings" in texture_object_parts[model_key][part].keys():
+#                 part_material_finish_settings = texture_object_parts[model_key][part]["mat_finish_settings"]
+
+#             if "mat_transforms" in texture_object_parts[model_key][part].keys(): 
+#                 part_material_transforms = texture_object_parts[model_key][part]["mat_transforms"]
+
+#             if "mat_color" in texture_object_parts[model_key][part].keys():
+#                 part_material_color = texture_object_parts[model_key][part]["mat_color"]
+            
+#             # part_path = os.path.join(models_dir,model_key, f'{part}.obj')
+#             # obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
+#             part_path = os.path.join(CWD,'client/public/',texture_object_parts[model_key][part]["model"])
+#             # part_path = os.path.join(models_dir,model_key, f'{part}.gltf')
+#             obj = renderer.load_object_gltf(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])
+#             # renderer.recalculate_normals(obj)
+#             # renderer.apply_texture(obj,unwrap_method_,part_material_path,part_material_name,part_material_finish, part_material_transforms, part_material_color,part_material_finish_settings)
+#     renderer.render(out_path=args.out_path)
+    
