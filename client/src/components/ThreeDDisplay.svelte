@@ -154,6 +154,18 @@
                 SELECTED_INFOS = [];
                 selected_objs_and_parts.set(SELECTED_INFOS);
         }
+
+        for (let i = 0; i < model3d_infos.length; i++) {
+            model3d_infos[i].model.children[0].material.emissive.setHex(0x000000);
+        }
+    }
+
+    function removeHighlightsFromUnselecteds() {
+        for (let i = 0; i < model3d_infos.length; i++) {
+            if(!SELECTED_INFOS.includes(model3d_infos[i])) {
+                model3d_infos[i].model.children[0].material.emissive.setHex(0x000000);
+            }
+        }
     }
 
     async function moveTextureMap(src_url) {
@@ -233,6 +245,7 @@
                             SELECTEDS = [];
                             SELECTED_INFOS = [];
                             selected_objs_and_parts.set(SELECTED_INFOS);
+                            removeHighlightsFromUnselecteds();
                         }
                         // console.log("Nothing's been selected.")
                     }
@@ -242,11 +255,13 @@
                     SELECTEDS.splice(index, 1);
                     SELECTED_INFOS.splice(index, 1);
                     // console.log("Has been selected. Deselected.")
+                    
 
                     SELECTEDS=SELECTEDS;    
                     SELECTED_INFOS=SELECTED_INFOS;
                     selected_objs_and_parts.set(SELECTED_INFOS);
                     information_panel.displayTexturePart();
+                    removeHighlightsFromUnselecteds();
                 }
                 SELECTEDS=SELECTEDS;    
                 SELECTED_INFOS=SELECTED_INFOS;
@@ -261,11 +276,13 @@
                 SELECTEDS = [];
                 SELECTED_INFOS = [];
                 selected_objs_and_parts.set(SELECTED_INFOS);
+                removeHighlightsFromUnselecteds();
             }
             // console.log("Nothing's been selected.")
         }
         // console.log(get(selected_objs_and_parts));
         // information_panel.displayTexturePart();
+        removeHighlightsFromUnselecteds();
     }
 
     function getPointedObject() {
