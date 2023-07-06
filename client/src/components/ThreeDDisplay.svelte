@@ -5,11 +5,14 @@
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
     import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
+
     import {get} from 'svelte/store';
 
     import {curr_rendering_path} from '../stores.js';
 	import {curr_texture_parts} from '../stores.js';
 	import {curr_textureparts_path} from '../stores.js';
+    import {action_history} from '../stores.js';
+    import {addToHistory} from '../main.js';
 
     import {isDraggingImage} from '../stores.js';
     import {generated_texture_name} from '../stores.js';
@@ -376,6 +379,46 @@
         const rect = renderer.domElement.getBoundingClientRect();
         return (event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom);
     }
+    // WIP
+    export async function transferTexture(image_path,normal_path,height_path) {
+        let cloned_texture_parts = get(curr_texture_parts);
+
+        //Code to convert normal_url and height_url to blob
+        let normal_mat_blob=null;
+        try {   
+            const response = await fetch("/get_image", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    "image_data": normal_path,
+                }),
+            });
+            const blob = await response.blob();
+            normal_mat_blob = URL.createObjectURL(blob);
+        } catch (error) {
+            console.error(error);
+        }
+        
+        let height_mat_blob=null;
+        try {   
+            const response = await fetch("/get_image", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    "image_data": height_path,
+                }),
+            });
+            const blob = await response.blob();
+            height_mat_blob = URL.createObjectURL(blob);
+        } catch (error) {
+            console.error(error);
+        }
+
+        // ACTION HISTORY NEEDS TO TRACK selected variable
+
+        selected = changeTexture(selected,dragged_texture_url, normal_mat_blob,height_mat_blob);
+
+    }
 
     async function onPointerMove(event) {
         if (isMouseOver3DScene) {
@@ -387,7 +430,7 @@
                 if(dragging) {
                     if (dragged_texture_url && dragged_textureimg_url && dragged_texture_name) { 
                         if (dragged_texture_name==null || get(transferred_texture_name)==null) {
-                            alert("FUCK");
+                            alert("error");
                             return;
                         }
                         if(SELECTEDS.length > 0) {
@@ -442,12 +485,38 @@
                                 // This function moves the file location of the texture map to the current directory
                                 await moveTextureMap(dragged_textureimg_url);
 
+                                const old_mat_name = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"];
+
+                                
+                                const old_mat_image_texture = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"];
+                                
+                                let old_mat_normal_texture = "none";
+                                if ("mat_normal_texture" in cloned_texture_parts[selected_parent_object][selected_object_name]) {
+                                    old_mat_normal_texture = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_normal_texture"];
+                                }
+                                
+                                let old_mat_height_texture = "none";
+                                if ("mat_height_texture" in cloned_texture_parts[selected_parent_object][selected_object_name]) {
+                                    old_mat_height_texture = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_height_texture"];
+                                }
+
                                 cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"] = dragged_texture_name;
                                 cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"] = dest_url;
                                 cloned_texture_parts[selected_parent_object][selected_object_name]["mat_normal_texture"] = normalmap_texture_url;
                                 cloned_texture_parts[selected_parent_object][selected_object_name]["mat_height_texture"] = heightmap_texture_url;
-
+                                
+                                // addToHistory(action_name,object,part, properties, old_values, new_values)
+                                addToHistory("Change Texture", 
+                                selected_parent_object, selected_object_name, 
+                                ["mat_name","mat_image_texture","mat_normal_texture",
+                                "mat_height_texture"], 
+                                [old_mat_name,old_mat_image_texture,old_mat_normal_texture,
+                                old_mat_height_texture], 
+                                [dragged_texture_name,dest_url,
+                                normalmap_texture_url,heightmap_texture_url]);
+                                
                                 curr_texture_parts.set(cloned_texture_parts);
+
                                 
                                 console.log("AFTER");    
                                 console.log(get(curr_texture_parts));

@@ -112,3 +112,26 @@ export const generated_texture_name = writable(""); //Keeps track of the name of
 
 export let in_japanese = writable(false); //Keeps track of whether the language is in Japanese or not
 export let use_chatgpt = writable(false); //Keeps track of whether the app uses chatgpt or not
+
+
+/* 
+action_history = [
+    {
+        "name": "action_name",
+        "object": "object_name",
+        "part": "part_name",
+        "properties": {
+            "property1": {
+                "old": "old_value",
+                "new": "new_value"
+            },
+            "property2": {
+                "old": "old_value",
+                "new": "new_value"
+            },
+        }
+    }
+]
+
+*/
+export let action_history = writable([]); //Keeps track of the action history

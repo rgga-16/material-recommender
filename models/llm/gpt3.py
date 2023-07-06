@@ -42,7 +42,7 @@ I want you to return the keywords only as a Python list. Do not say anything els
 
 
 message_history = []
-temperature=0.0
+temperature=1.0
 # model_name = "gpt-3.5-turbo"
 # max_tokens = 4097
 model_name = "gpt-3.5-turbo-16k"
@@ -139,7 +139,7 @@ def internet_search(query,role="user",n_results=10):
         '''
     return prompt, results 
 
-def query(prompt,role="user"):
+def query(prompt,role="user", temp=temperature):
     global message_history
     message_history.append({"role":role, "content":prompt})
     check_and_trim_message_history()
@@ -148,13 +148,68 @@ def query(prompt,role="user"):
         response = openai.ChatCompletion.create(
             model=model_name,
             messages=message_history,
-            temperature=temperature
+            temperature=temp
         )
         response_msg = response["choices"][0]["message"]["content"]
         message_history.append({"role":response["choices"][0]["message"]["role"], "content":response_msg})
     except Exception as e:
         response_msg = f"Error: {e}"
     return response_msg
+
+def suggest_finish_settings(finish_name, material_name, object_name, part_name, role="user"):
+    if(object_name==part_name):
+        object_str = f"The 3D object you are applying the finish onto is a {object_name}."
+    else:
+        object_str = f"The 3D object is a {object_name} and the part of the object you are applying the finish onto is the {part_name}."
+
+    prompt=f'''
+    Imagine you are putting settings for a finish you want to add onto the material for a 3D object in a 3D modelling software.
+    {object_str} 
+    The material you want to add the finish to is the {material_name}.
+    Here are the following settings you can edit, their range of values for the finish, and a description of each setting:
+    - Roughness: 0.0 to 1.0. This controls the shine of the material. Values less than 0.5 would give a smoother and glossier finish while a greater than 0.5 would give a rougher and more matte finish.
+    - Metallic: 0.0 to 1.0. This controls the metallicness of the material. Values less than 0.5 would make the material look less metallic while a greater than 0.5 would make the material look more metallic.
+    - Opacity: 0.0 to 1.0. This controls the opacity of the material. Values less than 0.5 would make the material more transparent while a greater than 0.5 would make the material more opaque.
+    Now, return the suggested setting values for the finish, {finish_name}, as a Python dictionary.
+    The keys should be the setting names, and the values should be the suggested setting values.
+    '''
+    # Do not say anything else apart from the Python dictionary.
+    global init_history
+    init_history_clone = copy.deepcopy(init_history)
+    init_history_clone.append({"role":"user", "content":prompt})
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=init_history_clone,
+        temperature=0.2
+    )
+    suggested_settings_str = response["choices"][0]["message"]["content"]
+
+    # Remove text before and after the Python dict
+    start_index = suggested_settings_str.find('{')
+    if start_index>0:
+        print("Removing text before the Python dictionary.")
+        suggested_settings_str = suggested_settings_str[start_index:].strip()
+    end_index = suggested_settings_str.rfind('}')
+    if end_index<len(suggested_settings_str)-1:
+        print("Removing text after the Python dictionary.")
+        suggested_settings_str = suggested_settings_str[:end_index+1].strip()
+    suggested_settings_str = suggested_settings_str.strip()
+
+    try:
+        suggested_settings = ast.literal_eval(suggested_settings_str)
+    except SyntaxError as e:
+        suggested_settings = {
+            "roughness": 0.5,
+            "metallic": 0.5,
+            "opacity": 0.5
+        }
+        print(f"Sorry, please try again. We got the following error: {e}.")
+
+    for key in list(suggested_settings.keys()):
+        new_key = key.strip().lower()
+        suggested_settings[new_key] = suggested_settings.pop(key)
+
+    return suggested_settings
 
 def suggest_materials_2(prompt,role="user", use_internet=True, design_brief=None):
     start_time= time.time()
@@ -225,17 +280,14 @@ def suggest_materials_2(prompt,role="user", use_internet=True, design_brief=None
     return intro_text, suggestions
 
 
-def suggest_materials(prompt,role="user", use_internet=True, design_brief=None):
-    start_time= time.time()
-    refined_prompt = f"{prompt}"
+def suggest_color_palettes(prompt, role="user", use_internet=True, design_brief=None):
+    refined_prompt = f"{prompt}. Suggest color palettes."
     if use_internet:
         refined_prompt,_ = internet_search(refined_prompt,role)
-    initial_response = query(refined_prompt,role)
-    intro_text = initial_response.split('\n')[0].strip()
-
+    
     if design_brief:
-        context_aware_prompt = f''' 
-        Now, I want you to answer again but consider the following design brief for context: 
+        refined_prompt+= f''' 
+        Additionally, I want you to consider the following design brief for context: 
         ==========================
         {design_brief}.
         ==========================
@@ -243,132 +295,54 @@ def suggest_materials(prompt,role="user", use_internet=True, design_brief=None):
         '''
 
         if use_internet:
-            context_aware_prompt += '''
-            You may refer to the sources retrieved from the internet in the previous message.
+            refined_prompt+= '''
+            You may refer to the aforementioned sources retrieved from the internet in the previous message.
             Make sure to cite results using [[NUMBER](URL)] notation after the reference.
             Make sure that you answer the question or fulfill the instruction by both using the sources from the internet and also in the context of the design brief.
             '''
         else: 
-            context_aware_prompt += '''
+            refined_prompt+=  '''
             Make sure that you answer the question or fulfill the instruction in the context of the design brief.
             '''
-        context_aware_response = query(context_aware_prompt,role)
-        intro_text = context_aware_response.split('\n')[0].strip()
-
-    if use_internet: 
-        python_dict_prompt = f'''
-            Now, return the suggested materials and their detailed reasons from the previous response as a Python dictionary. 
-            The keys are the names of the suggested materials, and the values are the detailed reasons. The detailed reasons should be written using Markdown.
-            Make sure the reasons are the same as the ones in the previous response, and maintain their reference citations.
-            Do not say anything else apart from the dictionary.
-        '''
-    else: 
-        python_dict_prompt= '''
-        Now, return the suggested materials and their detailed reasons as a Python dictionary. 
-        The keys are the names of the suggested materials, and the values are the detailed reasons. The detailed reasons should be written using Markdown.
-        Make sure the reasons are the same as the ones in the previous response.
-        Do not say anything else apart from the dictionary.'''
-    python_dict_response = query(python_dict_prompt,role).strip()
-    end_time = time.time()
-    print(f"Time elapsed: {end_time-start_time} seconds.")
-
-    # Remove text before and after the Python list
-    start_index = python_dict_response.find('{')
-    if start_index>0:
-        print("Removing text before the Python list.")
-        python_dict_response = python_dict_response[start_index:].strip()
-    end_index = python_dict_response.rfind('}')
-    if end_index<len(python_dict_response)-1:
-        print("Removing text after the Python list.")
-        python_dict_response = python_dict_response[:end_index+1].strip()
-
-    python_dict_response = python_dict_response.strip()
-
-    try:
-        suggestions = ast.literal_eval(python_dict_response)
-    except SyntaxError as e:
-        intro_text = f"Sorry, please try again. We got the following error: {e}."
-        suggestions = {}
-    return intro_text, suggestions
-
-def suggest_finish_settings(finish_name, material_name, object_name, part_name, role="user"):
-
-    if(object_name==part_name):
-        object_str = f"The 3D object you are applying the finish onto is a {object_name}."
-    else:
-        object_str = f"The 3D object is a {object_name} and the part of the object you are applying the finish onto is the {part_name}."
-
-    prompt=f'''
-    Imagine you are putting settings for a finish you want to add onto the material for a 3D object in a 3D modelling software.
-    {object_str} 
-    The material you want to add the finish to is the {material_name}.
-    Here are the following settings you can edit, their range of values for the finish, and a description of each setting:
-    - Roughness: 0.0 to 1.0. This controls the shine of the material. Values less than 0.5 would give a smoother and glossier finish while a greater than 0.5 would give a rougher and more matte finish.
-    - Metallic: 0.0 to 1.0. This controls the metallicness of the material. Values less than 0.5 would make the material look less metallic while a greater than 0.5 would make the material look more metallic.
-    - Opacity: 0.0 to 1.0. This controls the opacity of the material. Values less than 0.5 would make the material more transparent while a greater than 0.5 would make the material more opaque.
-    Now, return the suggested setting values for the finish, {finish_name}, as a Python dictionary.
-    The keys should be the setting names, and the values should be the suggested setting values.
-    '''
-    # Do not say anything else apart from the Python dictionary.
-    global init_history
-    init_history_clone = copy.deepcopy(init_history)
-    init_history_clone.append({"role":"user", "content":prompt})
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=init_history_clone,
-        temperature=0.2
-    )
-    suggested_settings_str = response["choices"][0]["message"]["content"]
-
-    # Remove text before and after the Python dict
-    start_index = suggested_settings_str.find('{')
-    if start_index>0:
-        print("Removing text before the Python dictionary.")
-        suggested_settings_str = suggested_settings_str[start_index:].strip()
-    end_index = suggested_settings_str.rfind('}')
-    if end_index<len(suggested_settings_str)-1:
-        print("Removing text after the Python dictionary.")
-        suggested_settings_str = suggested_settings_str[:end_index+1].strip()
-    suggested_settings_str = suggested_settings_str.strip()
-
-    try:
-        suggested_settings = ast.literal_eval(suggested_settings_str)
-    except SyntaxError as e:
-        suggested_settings = {
-            "roughness": 0.5,
-            "metallic": 0.5,
-            "opacity": 0.5
-        }
-        print(f"Sorry, please try again. We got the following error: {e}.")
-
-    for key in list(suggested_settings.keys()):
-        new_key = key.strip().lower()
-        suggested_settings[new_key] = suggested_settings.pop(key)
-
-    return suggested_settings
-
-def suggest_color_palettes(prompt, role="user", use_internet=True):
-    refined_prompt = f"{prompt}. Suggest color palettes."
+    
     if use_internet:
-        refined_prompt,_ = internet_search(refined_prompt,role)
-    initial_response = query(refined_prompt,role)
-    intro_text = initial_response.split('\n')[0].strip()
-
-    if use_internet:
-        python_list_prompt='''
+        refined_prompt+='''
         Now, return the suggested color palettes that contain hex color codes, their names, and their detailed descriptions from the previous response as a Python list of dictionaries. 
         Each dictionary should contain the following keys: name, description, codes. 
+        The value of the names key should be a string.
+        The value of the descriptions key should be a string.
+        The value of the codes key should be a Python list of hex color codes.
         Make sure the descriptions are the same as the ones in the previous response, and maintain their reference citations.
         Do not say anything else apart from the Python list.
         '''
     else:
-        python_list_prompt='''
+        refined_prompt+='''
         Now, return the suggested color palettes that contain hex color codes, their names, and their detailed descriptions from the previous response as a Python list of dictionaries. 
         Each dictionary should contain the following keys: name, description, codes. 
+        The value of the names key should be a string.
+        The value of the descriptions key should be a string.
+        The value of the codes key should be a Python list of hex color codes.
         Make sure the descriptions are the same as the ones in the previous response.
         Do not say anything else apart from the Python list.
         '''
-    python_list_response = query(python_list_prompt,role).strip()
+    
+    refined_prompt = refined_prompt.strip()
+    
+    
+    example = [
+        {
+            "name": "Bright and Bold",
+            "description": "This color palette is inspired by the colors of the sky during sunset. The colors are warm and vibrant.",
+            "codes": ["#FFC300", "#FF5733", "#C70039", "#900C3F", "#581845"]
+        }
+    ]
+    refined_prompt+=f"Here is an example of the said Python list: {example}"
+
+    # initial_response = query(refined_prompt,role)
+    # intro_text = initial_response.split('\n')[0].strip()
+
+    python_list_response = query(refined_prompt,role).strip()
+    intro_text = ""
 
     # Remove text before and after the Python list
     start_index = python_list_response.find('[')
@@ -381,7 +355,14 @@ def suggest_color_palettes(prompt, role="user", use_internet=True):
         python_list_response = python_list_response[:end_index+1].strip()
     python_list_response = python_list_response.strip()
 
-    suggestions = ast.literal_eval(python_list_response)
+    
+    try:
+        suggestions = ast.literal_eval(python_list_response)
+        intro_text=''
+    except SyntaxError as e:
+        intro_text = f"Sorry, please try again. We got the following error: {e}."
+        suggestions = []
+    
     return intro_text, suggestions
 
 def brainstorm_prompt_keywords(material):
@@ -810,3 +791,68 @@ def provide_material_feedback(material_name, object_name, part_name, use_interne
 
 #     return color_palettes
 
+# def suggest_materials(prompt,role="user", use_internet=True, design_brief=None):
+#     start_time= time.time()
+#     refined_prompt = f"{prompt}"
+#     if use_internet:
+#         refined_prompt,_ = internet_search(refined_prompt,role)
+#     initial_response = query(refined_prompt,role)
+#     intro_text = initial_response.split('\n')[0].strip()
+
+#     if design_brief:
+#         context_aware_prompt = f''' 
+#         Now, I want you to answer again but consider the following design brief for context: 
+#         ==========================
+#         {design_brief}.
+#         ==========================
+#         Some parts of the design brief may be relevant to the question or instruction, while others may not be relevant.
+#         '''
+
+#         if use_internet:
+#             context_aware_prompt += '''
+#             You may refer to the sources retrieved from the internet in the previous message.
+#             Make sure to cite results using [[NUMBER](URL)] notation after the reference.
+#             Make sure that you answer the question or fulfill the instruction by both using the sources from the internet and also in the context of the design brief.
+#             '''
+#         else: 
+#             context_aware_prompt += '''
+#             Make sure that you answer the question or fulfill the instruction in the context of the design brief.
+#             '''
+#         context_aware_response = query(context_aware_prompt,role)
+#         intro_text = context_aware_response.split('\n')[0].strip()
+
+#     if use_internet: 
+#         python_dict_prompt = f'''
+#             Now, return the suggested materials and their detailed reasons from the previous response as a Python dictionary. 
+#             The keys are the names of the suggested materials, and the values are the detailed reasons. The detailed reasons should be written using Markdown.
+#             Make sure the reasons are the same as the ones in the previous response, and maintain their reference citations.
+#             Do not say anything else apart from the dictionary.
+#         '''
+#     else: 
+#         python_dict_prompt= '''
+#         Now, return the suggested materials and their detailed reasons as a Python dictionary. 
+#         The keys are the names of the suggested materials, and the values are the detailed reasons. The detailed reasons should be written using Markdown.
+#         Make sure the reasons are the same as the ones in the previous response.
+#         Do not say anything else apart from the dictionary.'''
+#     python_dict_response = query(python_dict_prompt,role).strip()
+#     end_time = time.time()
+#     print(f"Time elapsed: {end_time-start_time} seconds.")
+
+#     # Remove text before and after the Python list
+#     start_index = python_dict_response.find('{')
+#     if start_index>0:
+#         print("Removing text before the Python list.")
+#         python_dict_response = python_dict_response[start_index:].strip()
+#     end_index = python_dict_response.rfind('}')
+#     if end_index<len(python_dict_response)-1:
+#         print("Removing text after the Python list.")
+#         python_dict_response = python_dict_response[:end_index+1].strip()
+
+#     python_dict_response = python_dict_response.strip()
+
+#     try:
+#         suggestions = ast.literal_eval(python_dict_response)
+#     except SyntaxError as e:
+#         intro_text = f"Sorry, please try again. We got the following error: {e}."
+#         suggestions = {}
+#     return intro_text, suggestions
