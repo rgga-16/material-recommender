@@ -42,7 +42,7 @@
 
 	const saved_renderings_height = 35;
 	const actions_panel_width = 23;
-	const information_panel_width = 27;
+	const information_panel_width = 32;
 
 
 	let curr_saved_renderings_height=saved_renderings_height;
@@ -316,11 +316,9 @@
 				style={actions_panel_collapsed ? "top: 50%; right: -175%; transform:rotate(270deg);" : "top: 50%; right: -7%; transform:rotate(270deg);"}
 			>
 				{#if actions_panel_collapsed}
-					<!-- Add the down arrow! -->
 					Expand
 					<img src="./logos/dropdown-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 				{:else}
-					<!-- Add the up arrow -->
 					Collapse 
 					<img src="./logos/dropup-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 				{/if}
@@ -332,9 +330,21 @@
 		<div class="renderings" style="width: {curr_display_panel_width}%;">
 			<div class="display-panel" id="display" style="height: {curr_display_panel_height}%;">
 				<button id="design-brief-btn" on:click = {() => showDesignBrief()}> View Design Brief </button>
+				
+				<div id="action-history-btns">
+					<button id="" on:click = {() => {alert("undo")}}> 
+						<img src="./logos/undo-small-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
+					</button>
+					<button id="" on:click = {() => {alert("redo")}}> 
+						<img src="./logos/redo-small-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
+					</button>
+				</div>
+				
+				
 				<div class="w3-bar w3-grey tabs">
 					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='rendering_display'} on:click={()=>switchDisplayTab('rendering_display')} id="rendering-display-btn">Rendering View</button>
 					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='3d_display'} on:click={()=>switchDisplayTab('3d_display')} id="suggest-colors-btn">3D View</button>
+					
 				</div>
 				<!-- Display rendering -->
 				<div class="tab-content rendering-display" class:active={activeDisplayTab==='rendering_display'}>
@@ -596,6 +606,17 @@
 		top: 0;
 		right: 0;
 	}
+
+
+	#action-history-btns {
+		position: absolute;
+		z-index: 9998;
+		top: 0;
+		right: 50;
+		display:flex;
+		flex-direction: row;
+	}
+
 
 	.rendering-display {
 		justify-content: center;
