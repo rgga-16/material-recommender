@@ -33,7 +33,7 @@
     let selected_textures = [];
     let selected_texture;
 
-
+    let is_collapsed_keywords = true;
 
     let selected_index;
 
@@ -236,6 +236,10 @@
         }
         manual_prompt_keywords.push(k);
         manual_prompt_keywords=manual_prompt_keywords;
+
+        selected_prompt_keywords.push(k);
+        selected_prompt_keywords=selected_prompt_keywords;
+
         keyword="";
         
     }
@@ -266,57 +270,78 @@
 
     <div class="page" class:hidden={current_page!=0} id="generate_materials">
             <div class="row">
-                <input name="material_name" type="text" bind:value={input_material} placeholder="Type in a material texture..." required/>
+                <input name="material_name" type="text" bind:value={input_material} 
+                on:keydown={(event) => {
+                    if (event.key === 'Enter') {
+                        generate_textures(input_material);
+                    }
+                }} 
+                placeholder="Type in a material..." required/>
                 <div class="column">
                     <span> No. of texture maps: </span>
                     <NumberSpinner bind:value={n_textures} min={1} max={20} step=1/>
                 </div>
             </div>
 
-            <div class="row" id="prompt_keywords" style="border: solid 1px black; ">
-                <div class="column">
-                    Add keywords to material
-                    <div class="row"> 
-                        <input type="text" style="width:65%;" bind:value={keyword} placeholder="Type in a keyword..."> 
-                        <button on:click|preventDefault={()=>add_keyword(keyword)}>Add</button>
-                    </div>
-                    <div class="row">
-                        <button on:click|preventDefault={brainstorm_prompt_keywords} style="margin-right: 10px;"> 
-                            Brainstorm keywords for "{input_material}" 
-                        </button>
-                    </div>
-                    
-                </div>
-                <div class="row" style="flex-wrap:wrap; overflow:auto;">
-                    {#if manual_prompt_keywords.length > 0}
-                        {#each manual_prompt_keywords as manual_keyword,i}
-                            <label class="tag" class:selected={selected_prompt_keywords.includes(manual_keyword)} >
-                                <input type="checkbox" value={manual_keyword} bind:group={selected_prompt_keywords} />
-                                +"{manual_keyword}"
-                                <button on:click={()=>del_manual_keyword(i)}>X</button>
-                            </label>
-                        {/each}
+            <div class="column" id="prompt_keywords" style="border: solid 1px black;">
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <div class="row" id="keywords-header" on:click={() => {is_collapsed_keywords=!is_collapsed_keywords}} style="cursor:pointer;width:100%;"> 
+                    Add keywords to material 
+                    {#if is_collapsed_keywords===true}
+                        <img src="./logos/down-arrow-svgrepo-com.svg" style="width:25px; height: 25px;" alt="Expand">
+                    {:else}
+                        <img src="./logos/up-arrow-svgrepo-com.svg" style="width:25px; height: 25px;" alt="Collapse">
                     {/if}
-
-                    {#if brainstormed_prompt_keywords.length > 0}
-                        {#each brainstormed_prompt_keywords  as keyword,j}
-                            <label class="tag" class:selected={selected_prompt_keywords.includes(keyword)}>
-                                <input type="checkbox" value={keyword} bind:group={selected_prompt_keywords} />
-                                +"{keyword}"
-                                <button on:click={()=>del_brainstormed_keyword(j)}>X</button>
-                            </label>
-                        {/each}
-                    {:else if is_loading_keywords}
-                        <div class="images-placeholder" style="height:20%;">
-                            Brainstorming keywords...
-                            <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+                </div>
+                    <div class="row" class:collapsed={is_collapsed_keywords===true}>
+                        <div class="column">
+                            <div class="row"> 
+                                <input type="text" style="width:65%;" bind:value={keyword} 
+                                on:keydown={(event)=> {
+                                    if (event.key === 'Enter') {
+                                        add_keyword(keyword);
+                                    }
+                                }} 
+                                placeholder="Type in a keyword..."> 
+                                <button on:click|preventDefault={()=>add_keyword(keyword)}>Add</button>
+                            </div>
+                            <div class="row">
+                                <button on:click|preventDefault={brainstorm_prompt_keywords} style="margin-right: 10px;"> 
+                                    Brainstorm keywords for "{input_material}" 
+                                </button>
+                            </div>
                         </div>
-                    {/if}
+                        <div class="row" style="flex-wrap:wrap; overflow:auto;">
+                            {#if manual_prompt_keywords.length > 0}
+                                {#each manual_prompt_keywords as manual_keyword,i}
+                                    <label class="tag" class:selected={selected_prompt_keywords.includes(manual_keyword)} >
+                                        <input type="checkbox" value={manual_keyword} bind:group={selected_prompt_keywords} />
+                                        +"{manual_keyword}"
+                                        <button on:click={()=>del_manual_keyword(i)}>X</button>
+                                    </label>
+                                {/each}
+                            {/if}
+    
+                            {#if brainstormed_prompt_keywords.length > 0}
+                                {#each brainstormed_prompt_keywords  as keyword,j}
+                                    <label class="tag" class:selected={selected_prompt_keywords.includes(keyword)}>
+                                        <input type="checkbox" value={keyword} bind:group={selected_prompt_keywords} />
+                                        +"{keyword}"
+                                        <button on:click={()=>del_brainstormed_keyword(j)}>X</button>
+                                    </label>
+                                {/each}
+                            {:else if is_loading_keywords}
+                                <div class="images-placeholder" style="height:20%;">
+                                    Brainstorming keywords...
+                                    <Circle size="30" color="#FF3E00" unit="px" duration="1s" />
+                                </div>
+                            {/if}
+                            {#if brainstormed_prompt_keywords.length <= 0 && manual_prompt_keywords.length <= 0}
+                                <p> No keywords added. </p>
+                            {/if}
+                        </div>
 
-                    {#if brainstormed_prompt_keywords.length <= 0 && manual_prompt_keywords.length <= 0}
-                        <p> No keywords added. </p>
-                    {/if}
-                </div>
+                    </div>
             </div>
 
             <div class="row">
@@ -331,6 +356,7 @@
                 <!-- <p> {selected_textures.length}/{n_textures} textures selected. {#if selected_textures.length<=0} Please select at least 1 texture map to proceed.{/if}</p> -->
         {:else if is_loading==true}
             <div class="images-placeholder">
+                Generating textures, please wait.
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
             </div>
         {:else}
@@ -344,76 +370,6 @@
             {/if}
         </div> -->
     </div>
-
-    <div class="page" class:hidden={current_page!=1} id="apply_textures">
-        <form on:submit|preventDefault={()=>apply_textures()}>
-            <h4> Apply textures to rendering</h4>
-            {#await objs_and_parts}
-                <pre>Loading object names and their part names</pre>
-            {:then data} 
-                <div class="w3-bar w3-grey tabs">
-                    {#each Object.entries(data) as [obj_name, attribs],i}
-                        <button class="w3-bar-item w3-button tab-btn" class:active={active_obj_id===i} on:click|preventDefault={()=>switchObjectTab(i)}> {obj_name} </button>
-                    {/each}
-                </div>
-
-                {#each Object.entries(data) as [obj_name,attribs], i}
-                    <div class="tab-content" class:active={active_obj_id===i}>
-                        <div class="checkbox-group">
-                            {#each attribs.parts.names as part_name}
-                                <div class="checkbox-item">
-                                    <label for="checkbox-{part_name}"> 
-                                        <input type="checkbox" bind:group={selected_object_parts} id="checkbox-{obj_name}-{part_name}" 
-                                        name="checkbox-group-{obj_name}" value="{obj_name}-{part_name}" >
-                                        {part_name} 
-                                    </label>
-                                </div>
-                            {/each}
-                        </div>
-                    </div>
-                {/each}
-            {/await}
-            <button> Apply textures </button>
-        </form>
-        {#if rendering_texture_pairs.length > 0}
-                <GeneratedRenderings pairs= {rendering_texture_pairs} bind:selected_index={selected_index} />
-                {#if selected_index!=undefined}
-                    <p> Rendering #{selected_index} selected. </p>
-                {:else }
-                    <p> Please select a rendering to proceed.</p>
-                {/if}
-        {:else if is_loading==true}
-            <div class="images-placeholder">
-                Generating texture maps...
-                <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
-            </div>
-        {:else}
-            <div class="images-placeholder">
-                <pre>No renderings generated yet.</pre>
-            </div>
-        {/if}
-        
-        <div class="carousel-nav-btns">
-            <button on:click|preventDefault={()=>prev_page()}> Back </button>
-            <button disabled={!(selected_index!=undefined && rendering_texture_pairs.length > 0)} on:click|preventDefault={()=>next_page()}> Next </button>
-        </div>
-    </div>
-
-    <div class="page" class:hidden={current_page!=2} id="refine_textures">
-        {#if selected_index!=undefined && rendering_texture_pairs.length > 0}
-            <RefineTexture bind:selected_index={selected_index} 
-            bind:rendering_texture_pairs={rendering_texture_pairs} 
-            objs_and_parts={objs_and_parts} 
-            bind:selected_objs_and_parts_dict={selected_obj_parts_dict}/>
-        {/if}
-        
-        <div class="carousel-nav-btns">
-            <button on:click|preventDefault={()=>prev_page()}> Back </button>
-            <button on:click|preventDefault={()=>apply_to_curr_rendering(selected_index)}> Apply to current rendering </button>
-        </div>
-    </div>
-
-    
 
 </div>
 
@@ -461,7 +417,6 @@
         align-items: center;
         justify-content: center;
         gap: 5px;
-        /* flex-wrap: wrap; */
         padding: 5px;
     }
 
@@ -550,9 +505,80 @@
         border: 2px solid grey;
     }
 
+    .collapsed {
+        display:none;
+    }
+
 
 
 </style>
 
 <!-- OLD CODE BELOW-->
+<!--     
+<div class="page" class:hidden={current_page!=1} id="apply_textures">
+    <form on:submit|preventDefault={()=>apply_textures()}>
+        <h4> Apply textures to rendering</h4>
+        {#await objs_and_parts}
+            <pre>Loading object names and their part names</pre>
+        {:then data} 
+            <div class="w3-bar w3-grey tabs">
+                {#each Object.entries(data) as [obj_name, attribs],i}
+                    <button class="w3-bar-item w3-button tab-btn" class:active={active_obj_id===i} on:click|preventDefault={()=>switchObjectTab(i)}> {obj_name} </button>
+                {/each}
+            </div>
+
+            {#each Object.entries(data) as [obj_name,attribs], i}
+                <div class="tab-content" class:active={active_obj_id===i}>
+                    <div class="checkbox-group">
+                        {#each attribs.parts.names as part_name}
+                            <div class="checkbox-item">
+                                <label for="checkbox-{part_name}"> 
+                                    <input type="checkbox" bind:group={selected_object_parts} id="checkbox-{obj_name}-{part_name}" 
+                                    name="checkbox-group-{obj_name}" value="{obj_name}-{part_name}" >
+                                    {part_name} 
+                                </label>
+                            </div>
+                        {/each}
+                    </div>
+                </div>
+            {/each}
+        {/await}
+        <button> Apply textures </button>
+    </form>
+    {#if rendering_texture_pairs.length > 0}
+            <GeneratedRenderings pairs= {rendering_texture_pairs} bind:selected_index={selected_index} />
+            {#if selected_index!=undefined}
+                <p> Rendering #{selected_index} selected. </p>
+            {:else }
+                <p> Please select a rendering to proceed.</p>
+            {/if}
+    {:else if is_loading==true}
+        <div class="images-placeholder">
+            Generating texture maps...
+            <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+        </div>
+    {:else}
+        <div class="images-placeholder">
+            <pre>No renderings generated yet.</pre>
+        </div>
+    {/if}
     
+    <div class="carousel-nav-btns">
+        <button on:click|preventDefault={()=>prev_page()}> Back </button>
+        <button disabled={!(selected_index!=undefined && rendering_texture_pairs.length > 0)} on:click|preventDefault={()=>next_page()}> Next </button>
+    </div>
+</div>
+
+<div class="page" class:hidden={current_page!=2} id="refine_textures">
+    {#if selected_index!=undefined && rendering_texture_pairs.length > 0}
+        <RefineTexture bind:selected_index={selected_index} 
+        bind:rendering_texture_pairs={rendering_texture_pairs} 
+        objs_and_parts={objs_and_parts} 
+        bind:selected_objs_and_parts_dict={selected_obj_parts_dict}/>
+    {/if}
+    
+    <div class="carousel-nav-btns">
+        <button on:click|preventDefault={()=>prev_page()}> Back </button>
+        <button on:click|preventDefault={()=>apply_to_curr_rendering(selected_index)}> Apply to current rendering </button>
+    </div>
+</div> -->

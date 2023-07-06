@@ -17,16 +17,6 @@
     
     let current_texture_parts = get(curr_texture_parts);
 
-    // let selected_part=null; 
-    // selected_part_name.subscribe(value => {
-	// 	selected_part = value;
-	// });
-
-    // let selected_object=null;
-    // selected_obj_name.subscribe(value => {
-    //     selected_object = value;
-    // });
-
     let sel_objs_and_parts = null; 
     selected_objs_and_parts.subscribe(value => {
         sel_objs_and_parts = value;
@@ -57,13 +47,10 @@
         let textureparts=[];
         const textureparts_div = document.getElementById("texture-part-details");
         textureparts_div.innerHTML='';
-        // console.log(sel_objs_and_parts);
-        // console.log(current_texture_parts);
 
         for(let i=0; i < sel_objs_and_parts.length; i++) {
             let selected_part_parent = sel_objs_and_parts[i].parent; 
             let selected_part = sel_objs_and_parts[i].name;
-            // let selected_part_material = sel_objs_and_parts[i].model.children[0].material;
             
             let mat_name = current_texture_parts[selected_part_parent][selected_part]["mat_name"];
             let material_url = current_texture_parts[selected_part_parent][selected_part]["mat_image_texture"];
@@ -136,7 +123,6 @@
                 }
             }
         }
-
     }
 
     function displayPartPairs() {
@@ -173,20 +159,20 @@
         selected_parts = Object.keys(current_texture_parts[selected_obj]);
         updateAndDisplayPartPairs();
         displayTextureParts();
-
         for (let i = 0; i < textureparts.length; i++) {
             textureparts[i].updateImage();
         }
         // updateAndDisplayPartPairs();
-        
         for (let j = 0; j < partpairs.length; j++) {
             partpairs[j].updateImages();
         }
         is_loading=false;
     }
+
     curr_texture_parts.subscribe(value => {
 		current_texture_parts = value;
 	});
+
     onMount(async () => {
         // updateAndDisplayPartPairs();
         // displayTextureParts();
@@ -197,8 +183,6 @@
 
 <div class="information-panel">
     <div class="w3-bar w3-grey tabs">
-        <!-- <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='information'} on:click={()=>switchTab('information')} id="information-btn">Information</button>
-        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='feedback'} on:click={()=>switchTab('feedback')}  id="feedback-btn">Feedback</button> -->
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='details'} on:click={()=>switchTab('details')}  id="details-btn">Details</button>
     </div>
 
@@ -214,43 +198,7 @@
         {/if}
     </div>
 
-    <!-- <div class='tab-content'  class:active={activeTab==='information'} id="information">
-        <h3> Rendering Information </h3>
-        <select bind:value={selected_obj} on:change={() => displayTextureParts()}>
-            {#each objects as obj}
-                <option value={obj}>
-                    {obj}
-                </option>
-            {/each}
-        </select>
-        {#if is_loading}
-            <div class="images-placeholder">
-                <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
-                <div id="texture-parts"> </div>
-            </div>
-        {:else}
-            <div id="texture-parts"> </div>
-        {/if}
-    </div>  -->
 
-    <!-- <div class='tab-content' class:active={activeTab==='feedback'} id="feedback">   
-        <h3> Feedback </h3>
-        <select bind:value={selected_obj} on:change={() => updateAndDisplayPartPairs()}>
-            {#each objects as obj}
-                <option value={obj}>
-                    {obj}
-                </option>
-            {/each}
-        </select>
-        {#if is_loading}
-            <div class="images-placeholder">
-                <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
-            </div>
-            <div id="part-pairs"> </div>
-        {:else}
-            <div id="part-pairs"> </div>
-        {/if}
-    </div> -->
 
     
 </div>
@@ -328,3 +276,42 @@
             {/each}
         {/if}
     {/each} -->
+
+
+    <!-- <div class='tab-content'  class:active={activeTab==='information'} id="information">
+        <h3> Rendering Information </h3>
+        <select bind:value={selected_obj} on:change={() => displayTextureParts()}>
+            {#each objects as obj}
+                <option value={obj}>
+                    {obj}
+                </option>
+            {/each}
+        </select>
+        {#if is_loading}
+            <div class="images-placeholder">
+                <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+                <div id="texture-parts"> </div>
+            </div>
+        {:else}
+            <div id="texture-parts"> </div>
+        {/if}
+    </div>  -->
+
+    <!-- <div class='tab-content' class:active={activeTab==='feedback'} id="feedback">   
+        <h3> Feedback </h3>
+        <select bind:value={selected_obj} on:change={() => updateAndDisplayPartPairs()}>
+            {#each objects as obj}
+                <option value={obj}>
+                    {obj}
+                </option>
+            {/each}
+        </select>
+        {#if is_loading}
+            <div class="images-placeholder">
+                <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+            </div>
+            <div id="part-pairs"> </div>
+        {:else}
+            <div id="part-pairs"> </div>
+        {/if}
+    </div> -->

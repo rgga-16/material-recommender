@@ -16,6 +16,10 @@ LATEST_RENDER_ID=0
 use_chatgpt = True
 RENDER_MODE = 'CYCLES'
 
+texture_generator = DALLE2()
+# fast_texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
+quality_texture_generator = DALLE2()
+
 app = Flask(__name__, static_folder="./client/public")
 
 @app.route("/get_static_dir")
@@ -64,22 +68,13 @@ def transfer_texture():
     normal_src_url = os.path.join(src_dir, f"{src_filename_noext}_normal.png")
     normal_dest_url = os.path.join(curr_dir, f"{src_filename_noext}_normal.png")
     Image.open(normal_src_url).save(normal_dest_url)
-    # color_to_normal_command = f'python {CWD}/utils/DeepBump-7/cli.py {src_url} {normal_url} color_to_normals --color_to_normals-overlap MEDIUM'
-    # normalmap_start_time = time.time()
-    # os.system(color_to_normal_command)
-    # normalmap_end_time = time.time()
-    # print(f"Time to create normal map: {normalmap_end_time-normalmap_start_time}")
 
     # Normal to Height Map. Create height map from normal map
     # Check if mat_image_height exists in curr_textureparts
     height_src_url = os.path.join(src_dir, f"{src_filename_noext}_height.png")
     height_dest_url = os.path.join(curr_dir, f"{src_filename_noext}_height.png")
     Image.open(height_src_url).save(height_dest_url)
-    # normal_to_height_command = f'python {CWD}/utils/DeepBump-7/cli.py {normal_url} {height_url} normals_to_height --normals_to_height-seamless TRUE'
-    # heightmap_start_time = time.time()
-    # os.system(normal_to_height_command)
-    # heightmap_end_time = time.time()
-    # print(f"Time to create height map: {heightmap_end_time-heightmap_start_time}")
+
     # TEST GENERATING TEXTURES AND DRAGIGING
     return jsonify({
         "img_url":dest_url,
@@ -89,6 +84,7 @@ def transfer_texture():
 
 @app.route("/feedback_materials", methods=['POST'])
 def feedback_materials():
+    material_feedback_start_time=time.time()
     form_data = request.get_json()
     material_name = form_data["material_name"]
     object_name = form_data["object_name"]
@@ -96,7 +92,8 @@ def feedback_materials():
     attached_parts = form_data["attached_parts"]
     design_brief = form_data["design_brief"]
 
-    intro_text, response, suggestions_dict, references = gpt3.provide_material_feedback(material_name, object_name, part_name, use_internet=True, attached_parts=attached_parts,design_brief=design_brief)
+    # intro_text, response, suggestions_dict, references = gpt3.provide_material_feedback(material_name, object_name, part_name, use_internet=True, attached_parts=attached_parts,design_brief=design_brief)
+    intro_text, response, suggestions_dict, references = gpt3.provide_material_feedback2(material_name, object_name, part_name, use_internet=True, attached_parts=attached_parts,design_brief=design_brief)
     references_str = format_references(references)
 
     for aspect in suggestions_dict:
@@ -105,15 +102,22 @@ def feedback_materials():
             if type=="material":
                 material_creation_start_time = time.time()
                 texture_prompt = f"{name}, texture map, seamless, 4k"
-                image, _ = generate_textures(texture_prompt,n=1, imsize=448); image=image[0]
-                b64_url = im_2_b64(image)
-                suggestion.append(b64_url.decode('utf-8'))
+                image, filenames = generate_textures(texture_prompt,n=1, imsize=256,generator=texture_generator); 
+                image=image[0]; filename=filenames[0]
+                filename = filename.replace(" ","_"); filenames[0] = filename
+                savepath = os.path.join(SERVER_IMDIR,"feedbacked",filename)
+                image.save(savepath)
+                normal_path, height_path = generate_normal_and_heightmap(savepath)
+                # b64_url = im_2_b64(image)
+                # suggestion.append(b64_url.decode('utf-8'))
+                suggestion.append(savepath)
                 material_creation_end_time = time.time()
                 print(f"Time to create suggested material: {material_creation_end_time-material_creation_start_time}")
             elif type=="attachment":
                 attachment_creation_start_time = time.time()
                 texture_prompt = f"{name}, photorealistic, 4k"
-                image, _ = generate_textures(texture_prompt,n=1, imsize=448); image=image[0]
+                image, _ = generate_textures(texture_prompt,n=1, imsize=256,generator=texture_generator) 
+                image=image[0]
                 b64_url = im_2_b64(image)
                 suggestion.append(b64_url.decode('utf-8'))
                 attachment_creation_end_time = time.time()
@@ -126,12 +130,14 @@ def feedback_materials():
                 print(f"Time to create suggested finish: {finish_creation_end_time-finish_creation_start_time}")
             else: 
                 texture_prompt = f"{name}, photorealistic, 4k"
-                image, _ = generate_textures(texture_prompt,n=1, imsize=448); image=image[0]
+                image, _ = generate_textures(texture_prompt,n=1, imsize=256, generator=texture_generator); image=image[0]
                 b64_url = im_2_b64(image)
                 suggestion.append(b64_url.decode('utf-8'))
     # suggestions_creation_end_time = time.time()
 
-                
+    material_feedback_end_time=time.time()
+    material_feedback_time = material_feedback_end_time-material_feedback_start_time
+    print(f"Material feedback time: {material_feedback_time}")
     return jsonify({
         "intro_text":intro_text,
         "unformatted_response":response,
@@ -150,12 +156,14 @@ def suggest_materials():
     suggested_materials = []
     for sm in suggested_materials_dict:
         texture_prompt = f"{sm}, texture map, seamless, 4k"
-        images, filenames = generate_textures(texture_prompt,n=1, imsize=256); image=images[0]; filename=filenames[0]
+        images, filenames = generate_textures(texture_prompt,n=1, imsize=256); 
+        image=images[0]; filename=filenames[0]
         filename = filename.replace(" ","_"); filenames[0] = filename
         savepath = os.path.join(SERVER_IMDIR,"suggested",filename)
-
-
         image.save(savepath)
+
+        normal_path, height_path = generate_normal_and_heightmap(savepath)
+
         suggested_materials.append({
             "name":sm,
             "reason":suggested_materials_dict[sm],
@@ -198,48 +206,7 @@ def feedback_on_assembly():
     recommended_attachments = gpt3.feedback_on_assembly(object,child_part,child_material,parent_part,parent_material)
     return recommended_attachments
 
-@app.route("/generate_and_transfer_textures", methods=['POST'])
-def generate_and_transfer_textures():
-    form_data = request.get_json()
 
-    texture_string = form_data["texture_string"]
-    n = form_data["n"]
-    imsize = form_data["imsize"]
-    obj_part_dict = form_data["obj_parts_dict"]
-
-    #################### Generating the textures ################
-    textures, filenames = generate_textures(texture_string, n, imsize)
-
-    #################### Transferring the textures ##############
-    rendering_texture_pairs = []
-
-    for i in range(len(textures)):
-
-        textures[i].save(os.path.join(SERVER_IMDIR,filenames[i]))
-        texture_loadpath = os.path.join(CLIENT_IMDIR,filenames[i])
-
-        new_texture_parts = copy.deepcopy(current_texture_parts)
-        for obj in list(obj_part_dict.keys()):
-            for part in obj_part_dict[obj]:
-                new_texture_parts[obj][part]["mat_name"]=texture_string
-                new_texture_parts[obj][part]["mat_image_texture"]=os.path.join(SERVER_IMDIR,filenames[i])
-
-        tmp_texture_parts_savepath = os.path.join(SERVER_IMDIR,"renderings",f"texture_parts_{i}.json")
-        
-        with open(tmp_texture_parts_savepath,"w") as tmpfile:
-            json.dump(new_texture_parts,tmpfile,indent=4)
-
-        rendering_savepath = os.path.join(SERVER_IMDIR,"renderings",f"rendering_{i}.png")
-        rendering_loadpath = os.path.join(CLIENT_IMDIR,"renderings",f"rendering_{i}.png")
-
-        command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath} --render_mode {RENDER_MODE}'
-        os.system(command_str)
-
-        rendering_texture_pairs.append(
-            {'rendering':rendering_loadpath, 'texture':texture_loadpath, 'info':new_texture_parts, 'info_path':tmp_texture_parts_savepath}
-        )
-
-    return {"results": rendering_texture_pairs}
 
 @app.route("/get_image", methods=['POST'])
 def get_image(): 
@@ -274,6 +241,9 @@ def generate_similar_textures():
     for i in range(0,len(similar_textures)):
         texture_filename = f"{texture_str}_similar_{i+1}.png"
         savepath = os.path.join(SERVER_IMDIR,texture_filename)
+
+        normal_path, height_path = generate_normal_and_heightmap(savepath)
+
         similar_textures[i].save(savepath)
         texture_loadpaths.append({
             'rendering': None,
@@ -375,8 +345,8 @@ def generate_normal_and_heightmap(texture_filepath):
     return normal_path, height_path
 
 
-def generate_textures(texture_string, n, imsize):
-    generated_textures = texture_generator.text2texture(texture_string, n=n, gen_imsize=imsize)
+def generate_textures(texture_string, n, imsize, generator=texture_generator):
+    generated_textures = generator.text2texture(texture_string, n=n, gen_imsize=imsize)
     texture_filenames = []
 
     for i in range(len(generated_textures)):
@@ -604,16 +574,19 @@ STATIC_IMDIR = os.path.join(CWD,"client","public")
 SERVER_IMDIR = os.path.join(STATIC_IMDIR,"gen_images") 
 CLIENT_IMDIR = os.path.join("gen_images")
 LATEST_RENDER_ID=0
+use_chatgpt = True
+RENDER_MODE = 'CYCLES'
 '''
-
 if __name__ == "__main__":
 
     # Here, you should make the necessary dirs under client/public.
     
+    
     ######################################
     # texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
-    texture_generator = DALLE2()
+    
     emptydir(SERVER_IMDIR,delete_dirs=False)
+    emptydir(os.path.join(SERVER_IMDIR,"suggested"),delete_dirs=True)
     emptydir(os.path.join(SERVER_IMDIR,"renderings","current"),delete_dirs=True)
     emptydir(os.path.join(SERVER_IMDIR,"renderings","saved"),delete_dirs=True)
 
@@ -763,3 +736,46 @@ if __name__ == "__main__":
 #         })
     
 #     return suggested_materials
+
+# @app.route("/generate_and_transfer_textures", methods=['POST'])
+# def generate_and_transfer_textures():
+#     form_data = request.get_json()
+
+#     texture_string = form_data["texture_string"]
+#     n = form_data["n"]
+#     imsize = form_data["imsize"]
+#     obj_part_dict = form_data["obj_parts_dict"]
+
+#     #################### Generating the textures ################
+#     textures, filenames = generate_textures(texture_string, n, imsize)
+
+#     #################### Transferring the textures ##############
+#     rendering_texture_pairs = []
+
+#     for i in range(len(textures)):
+
+#         textures[i].save(os.path.join(SERVER_IMDIR,filenames[i]))
+#         texture_loadpath = os.path.join(CLIENT_IMDIR,filenames[i])
+
+#         new_texture_parts = copy.deepcopy(current_texture_parts)
+#         for obj in list(obj_part_dict.keys()):
+#             for part in obj_part_dict[obj]:
+#                 new_texture_parts[obj][part]["mat_name"]=texture_string
+#                 new_texture_parts[obj][part]["mat_image_texture"]=os.path.join(SERVER_IMDIR,filenames[i])
+
+#         tmp_texture_parts_savepath = os.path.join(SERVER_IMDIR,"renderings",f"texture_parts_{i}.json")
+        
+#         with open(tmp_texture_parts_savepath,"w") as tmpfile:
+#             json.dump(new_texture_parts,tmpfile,indent=4)
+
+#         rendering_savepath = os.path.join(SERVER_IMDIR,"renderings",f"rendering_{i}.png")
+#         rendering_loadpath = os.path.join(CLIENT_IMDIR,"renderings",f"rendering_{i}.png")
+
+#         command_str = f'blender --background --python render_obj_and_textures.py -- --out_path {rendering_savepath} --rendering_setup_json {rendering_setup_path} --texture_object_parts_json {tmp_texture_parts_savepath} --render_mode {RENDER_MODE}'
+#         os.system(command_str)
+
+#         rendering_texture_pairs.append(
+#             {'rendering':rendering_loadpath, 'texture':texture_loadpath, 'info':new_texture_parts, 'info_path':tmp_texture_parts_savepath}
+#         )
+
+#     return {"results": rendering_texture_pairs}

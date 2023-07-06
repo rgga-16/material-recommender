@@ -111,4 +111,4 @@ export const generated_texture_name = writable(""); //Keeps track of the name of
 
 
 export let in_japanese = writable(false); //Keeps track of whether the language is in Japanese or not
-export let use_chatgpt = writable(true); //Keeps track of whether the app uses chatgpt or not
+export let use_chatgpt = writable(false); //Keeps track of whether the app uses chatgpt or not

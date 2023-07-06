@@ -219,16 +219,16 @@
         dispatch('proceedToGenerate',material_name)
     }
 
-    onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
-        await init_query();
-        // If the chatbot_input_message, a global store, is updated, update the inputMessage variable and the text in the textbox message area.
-        chatbot_input_message.subscribe(value => {
-            inputMessage = value;
-            const textarea = document.getElementById("textarea");
-            textarea.innerHTML='';
-            textarea.value=inputMessage;
-        });
-    });
+    // onMount(async () => { //UNCOMMENT ME WHEN YOU'RE TESTING THE CHATBOT
+    //     await init_query();
+    //     // If the chatbot_input_message, a global store, is updated, update the inputMessage variable and the text in the textbox message area.
+    //     chatbot_input_message.subscribe(value => {
+    //         inputMessage = value;
+    //         const textarea = document.getElementById("textarea");
+    //         textarea.innerHTML='';
+    //         textarea.value=inputMessage;
+    //     });
+    // });
 
 </script>
 
@@ -275,7 +275,8 @@
         <div class="assistant" style="position:relative; min-height: 20%;">
             <strong>assistant:</strong> 
             <div class="images-placeholder" style="position:absolute; top:0; left:0; z-index:2; width:100%; height:100%;">
-                Loading response... 
+                Loading response, please wait.
+                This may take around 30 to 60 seconds.
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
             </div>
         </div>
@@ -291,42 +292,6 @@
 
 
 <div class="message-input">
-    <!-- <div class="floating-div" class:expanded={expanded_suggested_questions===true}>
-        <div class=header> 
-          
-            <strong on:click={() => expand()} style="cursor:pointer;"> Suggested Questions </strong> 
-            {#if expanded_suggested_questions===true}
-              
-                <img on:click={() => expand()}  src="./logos/down-arrow-svgrepo-com.svg" style="width:25px; height: 25px;cursor:pointer;" alt="Collapse">
-            {:else}
-              
-                <img on:click={() => expand()} src="./logos/up-arrow-svgrepo-com.svg" style="width:25px; height: 25px;cursor:pointer;" alt="Expand">
-            {/if}
-        </div>
-        {#if expanded_suggested_questions===false}
-                {suggested_material_queries[0].slice(0, 20)}... + {suggested_material_queries.length-1} more
-        {:else}
-            <div class="body">
-                <ul>
-                    {#each suggested_material_queries as query}
-                        svelte-ignore a11y-click-events-have-key-events 
-                        <li on:click={handleInput} style="cursor:pointer;"> {query} </li>
-                    {/each}
-                </ul>
-                {#if is_loading_material_queries}
-                    <div style="position:relative; min-height: 70%;">
-                        <div class="images-placeholder" style="position:absolute; top:0; left:0; z-index:2; width:100%; height:100%;">
-                            Brainstorming material queries...
-                            <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
-                        </div>
-                    </div>
-                {/if}
-            </div>
-            <div class="footer">
-                <button on:click|preventDefault={()=>brainstorm_material_queries()}> Brainstorm questions! </button>
-            </div>
-        {/if}
-    </div> -->
     <textarea style="width:100%;" bind:value="{inputMessage}" on:keydown="{e => e.key === 'Enter' && suggest_materials()}" placeholder="Type your queries for materials or color palettes here.." id="textarea"></textarea>
     <label>
         <input type="checkbox" bind:checked={use_internet} >
@@ -338,7 +303,6 @@
     </label>
     <button on:click|preventDefault={()=>suggest_materials()}>Suggest Materials</button>    
     <button on:click|preventDefault={()=>suggest_color_palettes()}>Suggest Colors</button>   
-    
 </div>
 
 <style>
@@ -363,41 +327,7 @@
         gap: 5px;
     }
 
-    .floating-div .header {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        /* height: 10%; */
-    }
 
-    .floating-div .body {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        height: 100%;
-        overflow-y: scroll;
-    }
-
-    .body li:hover {
-        color: blue;
-    }
-
-    .floating-div .footer {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .floating-div.expanded {
-        /* overflow-y: scroll; */
-        top: -360px;
-        height: 300%;
-    }
 
     .message-input {
         position: relative;
@@ -457,4 +387,80 @@
         text-align: center;
     }
 
+    .floating-div .header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        /* height: 10%; */
+    }
+
+    .floating-div .body {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        overflow-y: scroll;
+    }
+
+    .body li:hover {
+        color: blue;
+    }
+
+    .floating-div .footer {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .floating-div.expanded {
+        /* overflow-y: scroll; */
+        top: -360px;
+        height: 300%;
+    }
+
 </style>
+
+
+
+<!-- DUMP -->
+    <!-- <div class="floating-div" class:expanded={expanded_suggested_questions===true}>
+        <div class=header> 
+          
+            <strong on:click={() => expand()} style="cursor:pointer;"> Suggested Questions </strong> 
+            {#if expanded_suggested_questions===true}
+              
+                <img on:click={() => expand()}  src="./logos/down-arrow-svgrepo-com.svg" style="width:25px; height: 25px;cursor:pointer;" alt="Collapse">
+            {:else}
+              
+                <img on:click={() => expand()} src="./logos/up-arrow-svgrepo-com.svg" style="width:25px; height: 25px;cursor:pointer;" alt="Expand">
+            {/if}
+        </div>
+        {#if expanded_suggested_questions===false}
+                {suggested_material_queries[0].slice(0, 20)}... + {suggested_material_queries.length-1} more
+        {:else}
+            <div class="body">
+                <ul>
+                    {#each suggested_material_queries as query}
+                        svelte-ignore a11y-click-events-have-key-events 
+                        <li on:click={handleInput} style="cursor:pointer;"> {query} </li>
+                    {/each}
+                </ul>
+                {#if is_loading_material_queries}
+                    <div style="position:relative; min-height: 70%;">
+                        <div class="images-placeholder" style="position:absolute; top:0; left:0; z-index:2; width:100%; height:100%;">
+                            Brainstorming material queries...
+                            <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+                        </div>
+                    </div>
+                {/if}
+            </div>
+            <div class="footer">
+                <button on:click|preventDefault={()=>brainstorm_material_queries()}> Brainstorm questions! </button>
+            </div>
+        {/if}
+    </div> -->
