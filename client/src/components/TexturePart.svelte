@@ -100,9 +100,6 @@
     }
     // console.log(parents);
 
-
-    
-
     function updateNormalScale() {
       selected_objs_and_parts.update(value => {
         value[index].model.children[0].material.normalScale.x = normalScale[0];
@@ -113,7 +110,7 @@
 
     function updateDisplacementScale() {
       selected_objs_and_parts.update(value => {
-        value[index].model.children[0].material.displacementScale = displacementScale[0];
+        value[index].model.children[0].material.bumpScale = displacementScale[0];
         return value;
       });
     }
@@ -390,7 +387,7 @@
       opacity = [material.opacity];
       roughness = [material.roughness]; 
       metalness = [material.metalness];
-      displacementScale = [material.displacementScale];
+      displacementScale = [material.bumpScale];
       normalScale = [material.normalScale.x];
       isTransparent = material.transparent;
 
@@ -499,20 +496,20 @@
         <RangeSlider on:change={updateFinish} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
-<!-- WIP
+
     <div class="control">
       <span>Normal Map Strength: </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
-        <RangeSlider on:change={updateNormalScale} bind:values={normalScale} min={0} max={10} step={0.1} float={true} pips/> 
+        <RangeSlider on:change={updateNormalScale} bind:values={normalScale} min={0} max={10} step={0.1} float={true}/> 
       </div>
     </div>
 
     <div class="control">
       <span>Height Map Strength: </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
-        <RangeSlider on:change={updateDisplacementScale} bind:values={displacementScale} min={0} max={10} step={0.1} float={true} pips/> 
+        <RangeSlider on:change={updateDisplacementScale} bind:values={displacementScale} min={0} max={100} step={0.1} float={true}/> 
       </div>
-    </div> -->
+    </div>
   </div>
 
   <div class="card container tab-content " class:active={activeTab==='adjust-texture-map'}>

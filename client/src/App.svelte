@@ -11,6 +11,7 @@
 	import {display_panel_tab} from './stores.js';
 	import {displayWidth} from './stores.js';
 	import {displayHeight} from './stores.js';
+	import {threed_display_global} from './stores.js'
 	import {objects_3d} from './stores.js';
 	import {design_brief} from './stores.js';
 	import {in_japanese} from './stores.js';
@@ -18,9 +19,10 @@
 	import {get} from 'svelte/store';
 	import {onMount} from "svelte";	
 
-	import * as THREE from 'three';
+	import {undoAction} from './main.js';
+	import {redoAction} from './main.js';
+
 	import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
-	import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 
 	let current_rendering_path;
@@ -270,6 +272,7 @@
 		const threediv = document.getElementById("display");
 		displayWidth.set(threediv.offsetWidth);
 		displayHeight.set(threediv.offsetHeight);
+		threed_display_global.set(threed_display);
 		console.log(get(curr_texture_parts));
 
 	});
@@ -332,10 +335,10 @@
 				<button id="design-brief-btn" on:click = {() => showDesignBrief()}> View Design Brief </button>
 				
 				<div id="action-history-btns">
-					<button id="" on:click = {() => {alert("undo")}}> 
+					<button id="" on:click = {() => {undoAction()}}> 
 						<img src="./logos/undo-small-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 					</button>
-					<button id="" on:click = {() => {alert("redo")}}> 
+					<button id="" on:click = {() => {redoAction()}}> 
 						<img src="./logos/redo-small-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 					</button>
 				</div>

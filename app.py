@@ -35,6 +35,89 @@ def init_query():
 def use_chatgpt():
     return jsonify({"use_chatgpt":use_chatgpt})
 
+@app.route("/retrieve_textures_from_action_history", methods=['POST'])
+def retrieve_textures_from_history():
+    form_data = request.get_json()
+    current_history_index = form_data["current_history_index"]
+    no_material = os.path.join(SERVER_IMDIR,'renderings','current',"no_material.png")
+    old = form_data["old_or_new"]
+    old_img_path = form_data["old_img_path"]
+    old_normal_path = form_data["old_normal_path"] if form_data["old_normal_path"] else no_material
+    old_height_path = form_data["old_height_path"] if form_data["old_height_path"] else no_material
+
+    old_img_filename = os.path.basename(old_img_path)
+    old_normal_filename = os.path.basename(old_normal_path) 
+    old_height_filename = os.path.basename(old_height_path) 
+
+    curr_dir = os.path.join(SERVER_IMDIR,"renderings","current")
+
+    updated_old_img_path = os.path.join(curr_dir,old_img_filename)
+    updated_old_normal_path = os.path.join(curr_dir,old_normal_filename)
+    updated_old_height_path = os.path.join(curr_dir,old_height_filename)
+
+    Image.open(old_img_path).save(updated_old_img_path)
+    Image.open(old_normal_path).save(updated_old_normal_path) 
+    Image.open(old_height_path).save(updated_old_height_path)
+
+
+    return jsonify({
+        "updated_old_img_path":updated_old_img_path,
+        "updated_old_normal_path":updated_old_normal_path,
+        "updated_old_height_path":updated_old_height_path        
+    })
+
+@app.route("/add_old_and_new_textures_to_action_history", methods=['POST'])
+def add_old_and_new_texures_to_history():
+    form_data = request.get_json()
+    no_material = os.path.join(SERVER_IMDIR,'renderings','current',"no_material.png")
+    current_history_index = form_data["current_history_index"]
+    old_img_path = form_data["old_img_path"]
+    old_normal_path = form_data["old_normal_path"] if form_data["old_normal_path"] else no_material
+    old_height_path = form_data["old_height_path"] if form_data["old_height_path"] else no_material
+
+    old_img_filename = os.path.basename(old_img_path)
+    old_normal_filename = os.path.basename(old_normal_path) 
+    old_height_filename = os.path.basename(old_height_path) 
+
+    new_img_path = form_data["new_img_path"]
+    new_normal_path = form_data["new_normal_path"] if form_data["new_normal_path"] else no_material
+    new_height_path = form_data["new_height_path"] if form_data["new_height_path"] else no_material
+
+    new_img_filename = os.path.basename(new_img_path)
+    new_normal_filename = os.path.basename(new_normal_path) 
+    new_height_filename = os.path.basename(new_height_path) 
+
+    action_history_dir = os.path.join(SERVER_IMDIR,"action_history")
+    history_index_dir = os.path.join(action_history_dir, str(current_history_index))
+
+    makedir(history_index_dir)
+    makedir(os.path.join(history_index_dir,"old"))
+    makedir(os.path.join(history_index_dir,"new"))
+
+    updated_old_img_path = os.path.join(history_index_dir,"old",old_img_filename)
+    updated_old_normal_path = os.path.join(history_index_dir,"old",old_normal_filename) 
+    updated_old_height_path = os.path.join(history_index_dir,"old",old_height_filename) 
+
+    Image.open(old_img_path).save(updated_old_img_path)
+    Image.open(old_normal_path).save(updated_old_normal_path) 
+    Image.open(old_height_path).save(updated_old_height_path)
+
+    updated_new_img_path = os.path.join(history_index_dir,"new",new_img_filename)
+    updated_new_normal_path = os.path.join(history_index_dir,"new",new_normal_filename) 
+    updated_new_height_path = os.path.join(history_index_dir,"new",new_height_filename) 
+
+    Image.open(new_img_path).save(updated_new_img_path)
+    Image.open(new_normal_path).save(updated_new_normal_path) 
+    Image.open(new_height_path).save(updated_new_height_path)
+
+    return jsonify({
+        "updated_old_img_path":updated_old_img_path,
+        "updated_old_normal_path":updated_old_normal_path,
+        "updated_old_height_path":updated_old_height_path,
+        "updated_new_img_path":updated_new_img_path,
+        "updated_new_normal_path":updated_new_normal_path,
+        "updated_new_height_path":updated_new_height_path
+    })
 
 @app.route("/query", methods=['POST'])
 def query():
@@ -151,7 +234,6 @@ def suggest_materials():
     start_time = time.time()
     form_data = request.get_json()
     context = form_data["context"]
-    # intro_text, suggested_materials_dict = gpt3.suggest_materials(form_data["prompt"],role=form_data["role"],use_internet=form_data["use_internet"],design_brief=context)
     intro_text, suggested_materials_dict = gpt3.suggest_materials_2(form_data["prompt"],role=form_data["role"],use_internet=form_data["use_internet"],design_brief=context)
     suggested_materials = []
     for sm in suggested_materials_dict:
@@ -240,6 +322,7 @@ def generate_similar_textures():
     }]
     for i in range(0,len(similar_textures)):
         texture_filename = f"{texture_str}_similar_{i+1}.png"
+        texture_filename = texture_filename.replace(" ","_")
         savepath = os.path.join(SERVER_IMDIR,texture_filename)
 
         normal_path, height_path = generate_normal_and_heightmap(savepath)
@@ -579,16 +662,26 @@ RENDER_MODE = 'CYCLES'
 '''
 if __name__ == "__main__":
 
+    emptydir(SERVER_IMDIR,delete_dirs=True)
+    # emptydir(os.path.join(SERVER_IMDIR,"suggested"),delete_dirs=True)
+    # emptydir(os.path.join(SERVER_IMDIR,"feedbacked"),delete_dirs=True)
+    # emptydir(os.path.join(SERVER_IMDIR,"generated"),delete_dirs=True)
+    # emptydir(os.path.join(SERVER_IMDIR,"renderings","current"),delete_dirs=True)
+    # emptydir(os.path.join(SERVER_IMDIR,"renderings","saved"),delete_dirs=True)
+
     # Here, you should make the necessary dirs under client/public.
-    
+    makedir(SERVER_IMDIR)
+    makedir(os.path.join(SERVER_IMDIR,"suggested"))
+    makedir(os.path.join(SERVER_IMDIR,"feedbacked"))
+    makedir(os.path.join(SERVER_IMDIR,"generated"))
+    makedir(os.path.join(SERVER_IMDIR,"action_history"))
+    makedir(os.path.join(SERVER_IMDIR,"renderings","current"))
+    makedir(os.path.join(SERVER_IMDIR,"renderings","saved"))
     
     ######################################
     # texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
     
-    emptydir(SERVER_IMDIR,delete_dirs=False)
-    emptydir(os.path.join(SERVER_IMDIR,"suggested"),delete_dirs=True)
-    emptydir(os.path.join(SERVER_IMDIR,"renderings","current"),delete_dirs=True)
-    emptydir(os.path.join(SERVER_IMDIR,"renderings","saved"),delete_dirs=True)
+   
 
     products = [
         "nightstand_family",

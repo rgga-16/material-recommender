@@ -286,7 +286,7 @@
             <div class="column" id="prompt_keywords" style="border: solid 1px black;">
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <div class="row" id="keywords-header" on:click={() => {is_collapsed_keywords=!is_collapsed_keywords}} style="cursor:pointer;width:100%;"> 
-                    Add keywords to material 
+                    Add keywords to "{input_material.trim() !== '' ? input_material : 'your material'}"
                     {#if is_collapsed_keywords===true}
                         <img src="./logos/down-arrow-svgrepo-com.svg" style="width:25px; height: 25px;" alt="Expand">
                     {:else}
