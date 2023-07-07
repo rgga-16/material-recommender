@@ -424,7 +424,8 @@ materials_feedbacks = []
 
 def provide_material_feedback2(material_name, object_name, part_name, use_internet=False, attached_parts=None, design_brief=None):
     
-    feedback_model = "gpt-3.5-turbo-16k"
+    # feedback_model = "gpt-3.5-turbo-16k"
+    feedback_model = "gpt-4"
     aspects = ["durability", "maintenance", "sustainability", "assembly", "cost", "availability"]
     if(object_name==part_name):
         part_name=""
