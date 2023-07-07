@@ -13,6 +13,7 @@
 	import {curr_textureparts_path} from '../stores.js';
     import {action_history} from '../stores.js';
     import {addToHistory} from '../main.js';
+    import {getImage} from '../main.js';
 
     import {isDraggingImage} from '../stores.js';
     import {generated_texture_name} from '../stores.js';
@@ -116,7 +117,6 @@
 
     let dragged_texture_name = null;
     transferred_texture_name.subscribe(value=> {
-        // console.log("transferred_texture_name changed");
         dragged_texture_name = value;
     });
 
@@ -379,45 +379,39 @@
         const rect = renderer.domElement.getBoundingClientRect();
         return (event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom);
     }
+
+    // export async function transfer_texture_nohistory(object_name, part_name) {
+
+    // }
+
+
     // WIP
-    export async function transferTexture(image_path,normal_path,height_path) {
+    export async function transferTexture(object_name, part_name, image_path,normal_path,height_path) {
         let cloned_texture_parts = get(curr_texture_parts);
+        const index = model3d_infos.findIndex(item => item.name === part_name && item.parent === object_name);
+        if(index === -1) {
+            console.error("Error: Could not find the object in the model3d_infos array.");
+            alert("Error: Could not find the object in the model3d_infos array.");
+            return;
+        }
+        let model = model3d_infos[index]['model']['children'][0];
 
         //Code to convert normal_url and height_url to blob
-        let normal_mat_blob=null;
-        try {   
-            const response = await fetch("/get_image", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    "image_data": normal_path,
-                }),
-            });
-            const blob = await response.blob();
-            normal_mat_blob = URL.createObjectURL(blob);
-        } catch (error) {
-            console.error(error);
-        }
-        
-        let height_mat_blob=null;
-        try {   
-            const response = await fetch("/get_image", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    "image_data": height_path,
-                }),
-            });
-            const blob = await response.blob();
-            height_mat_blob = URL.createObjectURL(blob);
-        } catch (error) {
-            console.error(error);
-        }
+        let normal_mat_blob = await getImage(normal_path);
+        let height_mat_blob= await getImage(height_path);
+        let img_mat_blob = await getImage(image_path);
 
-        // ACTION HISTORY NEEDS TO TRACK selected variable
+        model = changeTexture(model,img_mat_blob, normal_mat_blob,height_mat_blob);
 
-        selected = changeTexture(selected,dragged_texture_url, normal_mat_blob,height_mat_blob);
+        // This function moves the file location of the texture map to the current directory
+        await moveTextureMap(image_path);
 
+        model3d_infos[index]['model']['children'][0] = model;
+        objects_3d.set(model3d_infos);
+
+        cloned_texture_parts[object_name][part_name]["mat_image_texture"] = dest_url;
+        cloned_texture_parts[object_name][part_name]["mat_normal_texture"] = normalmap_texture_url;
+        cloned_texture_parts[object_name][part_name]["mat_height_texture"] = heightmap_texture_url;
     }
 
     async function onPointerMove(event) {
@@ -429,10 +423,10 @@
             if (mouseDown) {
                 if(dragging) {
                     if (dragged_texture_url && dragged_textureimg_url && dragged_texture_name) { 
-                        if (dragged_texture_name==null || get(transferred_texture_name)==null) {
-                            alert("error");
-                            return;
-                        }
+                        // if (dragged_texture_name===null) {
+                        //     alert("error");
+                        //     return;
+                        // }
                         if(SELECTEDS.length > 0) {
                             for (let selected of SELECTEDS) {
                                 const index = SELECTED_INFOS.findIndex(item => item.name === selected.model_name && item.parent === selected.model_parent);
@@ -443,67 +437,31 @@
                                 
                                 let cloned_texture_parts = get(curr_texture_parts);
 
-                                dragged_textureimg_url
                                 const textureimg_url_noext = dragged_textureimg_url.split(".")[0];
                                 const ext = dragged_textureimg_url.split(".")[1];
                                 const texturenormal_url = textureimg_url_noext + "_normal." + ext;
                                 const textureheight_url = textureimg_url_noext + "_height." + ext;
-                                
-                                //Code to convert normal_url and height_url to blob
-                                let normal_mat_blob=null;
-                                try {   
-                                    const response = await fetch("/get_image", {
-                                        method: "POST",
-                                        headers: {"Content-Type": "application/json"},
-                                        body: JSON.stringify({
-                                            "image_data": texturenormal_url,
-                                        }),
-                                    });
-                                    const blob = await response.blob();
-                                    normal_mat_blob = URL.createObjectURL(blob);
-                                } catch (error) {
-                                    console.error(error);
-                                }
-                                
-                                let height_mat_blob=null;
-                                try {   
-                                    const response = await fetch("/get_image", {
-                                        method: "POST",
-                                        headers: {"Content-Type": "application/json"},
-                                        body: JSON.stringify({
-                                            "image_data": textureheight_url,
-                                        }),
-                                    });
-                                    const blob = await response.blob();
-                                    height_mat_blob = URL.createObjectURL(blob);
-                                } catch (error) {
-                                    console.error(error);
-                                }
 
-                                selected = changeTexture(selected,dragged_texture_url, normal_mat_blob,height_mat_blob);
-
-                                // This function moves the file location of the texture map to the current directory
-                                await moveTextureMap(dragged_textureimg_url);
+                                if (dragged_texture_name===null || dragged_texture_name===null) {
+                                    alert("Error in dragging and dropping texture. Please try again.");
+                                    return;
+                                }
+                                cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"] = dragged_texture_name;
+                                
+                                await transferTexture(selected_parent_object, selected_object_name, dragged_textureimg_url, texturenormal_url, textureheight_url);
 
                                 const old_mat_name = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"];
-
-                                
                                 const old_mat_image_texture = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"];
-                                
-                                let old_mat_normal_texture = "none";
+                                let old_mat_normal_texture = null;
                                 if ("mat_normal_texture" in cloned_texture_parts[selected_parent_object][selected_object_name]) {
                                     old_mat_normal_texture = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_normal_texture"];
                                 }
-                                
-                                let old_mat_height_texture = "none";
+                                let old_mat_height_texture = null;
                                 if ("mat_height_texture" in cloned_texture_parts[selected_parent_object][selected_object_name]) {
                                     old_mat_height_texture = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_height_texture"];
                                 }
-
-                                cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"] = dragged_texture_name;
-                                cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"] = dest_url;
-                                cloned_texture_parts[selected_parent_object][selected_object_name]["mat_normal_texture"] = normalmap_texture_url;
-                                cloned_texture_parts[selected_parent_object][selected_object_name]["mat_height_texture"] = heightmap_texture_url;
+                                
+                                
                                 
                                 // addToHistory(action_name,object,part, properties, old_values, new_values)
                                 addToHistory("Change Texture", 
@@ -517,33 +475,24 @@
                                 
                                 curr_texture_parts.set(cloned_texture_parts);
 
-                                
-                                console.log("AFTER");    
-                                console.log(get(curr_texture_parts));
-
-                                console.log("SELECTED OBJECT");
-                                console.log(selected);
-                                const models3d_idx = model3d_infos.findIndex(item => item.name === selected_object_name && item.parent === selected_parent_object);
-                                
-                                console.log("The selected object in models3d");
-                                console.log(model3d_infos[models3d_idx]);
-
-                                console.log("The selectd object in objects_3d");
-                                console.log(get(objects_3d)[models3d_idx]);
-
-                                // Code for updating the objects_3d model with the model with the updated texture
-                                model3d_infos[models3d_idx]['model']['children'][0] = selected;
-                                objects_3d.set(model3d_infos);
-                                console.log("UPDATED OBJECTS_3D");
-                                console.log(get(objects_3d))
 
                                 information_panel.displayTexturePart();
                             }
+                            dragging=false;
+                            dragged_texture_name=null;
+                            dragged_texture_url=null;
+                            dragged_textureimg_url=null;
+
                             transferred_texture_name.set(null);
                             transferred_texture_url.set(null);
                             transferred_textureimg_url.set(null);
                             isDraggingImage.set(false);
                         } else {
+                            dragging=false;
+                            dragged_texture_name=null;
+                            dragged_texture_url=null;
+                            dragged_textureimg_url=null;
+
                             transferred_texture_name.set(null);
                             transferred_texture_url.set(null);
                             transferred_textureimg_url.set(null);
@@ -554,6 +503,8 @@
                 }
 
             }
+        } else {
+            alert("improperly dragged");
         }
 
     }
@@ -604,9 +555,9 @@
 
     function changeTexture(object, url, normal_url, height_url) {
         
-        console.log("Image texture URL: " + url);
-        console.log("Normal texture URL: " + normal_url);
-        console.log("Height texture URL: " + height_url);
+        // console.log("Image texture URL: " + url);
+        // console.log("Normal texture URL: " + normal_url);
+        // console.log("Height texture URL: " + height_url);
 
         object.traverse((node) => {
             console.log(node);
@@ -617,29 +568,23 @@
                 if (Array.isArray(material)) {
                     material.forEach((mat) => {
                         const texturemap = new THREE.TextureLoader().load(url);
-                        
                         texturemap.wrapS = THREE.RepeatWrapping; 
                         texturemap.wrapT = THREE.RepeatWrapping; 
 
-                        // var bbox = new THREE.Box3().setFromObject(object);
-                        // const size = new THREE.Vector3();
-                        // bbox.getSize(size);
-                        // const length = size.x;
-                        // const width = size.z; 
-                        // texturemap.repeat.set(length, width); 
-
                         // WIP
-                        // const normalmap = new THREE.TextureLoader().load(normal_url);
-                        // const heightmap = new THREE.TextureLoader().load(height_url);
-                        // normalmap.wrapS = THREE.RepeatWrapping; heightmap.wrapS = THREE.RepeatWrapping;
-                        // normalmap.wrapT = THREE.RepeatWrapping; heightmap.wrapT = THREE.RepeatWrapping;
+                        const normalmap = new THREE.TextureLoader().load(normal_url);
+                        const heightmap = new THREE.TextureLoader().load(height_url);
+                        normalmap.wrapS = THREE.RepeatWrapping; 
+                        normalmap.wrapT = THREE.RepeatWrapping; 
+                        heightmap.wrapS = THREE.RepeatWrapping;
+                        heightmap.wrapT = THREE.RepeatWrapping;
                         // normalmap.repeat.set(length, width); heightmap.repeat.set(length, width);
-                        // mat.map = texturemap;
-                        // mat.normalMap = normalmap;
-                        // mat.normalScale = new THREE.Vector2(0.0, 0.0);
+                        mat.map = texturemap;
+                        mat.normalMap = normalmap;
+                        mat.normalScale = new THREE.Vector2(0.1, 0.1);
                         
-                        // mat.displacementMap = heightmap;
-                        // mat.displacementScale = 0.0;
+                        mat.bumpMap = heightmap;
+                        mat.bumpScale = 0.5;
                         // WIP
 
                         mat.transparent= true;
@@ -657,17 +602,14 @@
                     texturemap.wrapS = THREE.RepeatWrapping; normalmap.wrapS = THREE.RepeatWrapping; heightmap.wrapS = THREE.RepeatWrapping;
                     texturemap.wrapT = THREE.RepeatWrapping; normalmap.wrapT = THREE.RepeatWrapping; heightmap.wrapT = THREE.RepeatWrapping;
 
-                    // var bbox = new THREE.Box3().setFromObject(object);
-                    // const size = new THREE.Vector3();
-                    // bbox.getSize(size);
-                    // const length = size.x;
-                    // const width = size.z; 
-                    // texturemap.repeat.set(length, width); normalmap.repeat.set(length, width); heightmap.repeat.set(length, width);
+                    material.normalScale = new THREE.Vector2(0.1, 0.1);
+            
+                    console.log("BUMP SCALE: " + material.bumpScale);
+                    material.bumpScale = 0.5;
 
                     material.map = texturemap;
                     material.normalMap = normalmap;
-                    material.displacementMap = heightmap;
-                    material.displacementScale = 0.0;
+                    material.bumpMap = heightmap;
                     material.needsUpdate = true;
                     material.transparent= true;
                     material.color.setHex(0xffffff);

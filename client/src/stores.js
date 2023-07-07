@@ -111,7 +111,7 @@ export const generated_texture_name = writable(""); //Keeps track of the name of
 
 
 export let in_japanese = writable(false); //Keeps track of whether the language is in Japanese or not
-export let use_chatgpt = writable(false); //Keeps track of whether the app uses chatgpt or not
+export let use_chatgpt = writable(true); //Keeps track of whether the app uses chatgpt or not
 
 
 /* 
@@ -134,4 +134,9 @@ action_history = [
 ]
 
 */
-export let action_history = writable([]); //Keeps track of the action history
+export let action_history = writable({
+    actions: [],
+    currentIndex: -1
+}); //Keeps track of the action history
+
+export let threed_display_global = writable(null); //Keeps track of the 3D display

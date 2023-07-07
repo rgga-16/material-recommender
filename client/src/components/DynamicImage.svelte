@@ -42,7 +42,6 @@ function dragStart(event) {
         return;
     }
     isDraggingImage.set(true);
-    event.dataTransfer.setData("text/plain", event.target.src);
     transferred_texture_url.set(imagesource);
     transferred_textureimg_url.set(imagepath);
     transferred_texture_name.set(alt);
