@@ -12,6 +12,7 @@
 	import {displayWidth} from './stores.js';
 	import {displayHeight} from './stores.js';
 	import {threed_display_global} from './stores.js'
+	import {information_panel_global} from './stores.js'
 	import {objects_3d} from './stores.js';
 	import {design_brief} from './stores.js';
 	import {in_japanese} from './stores.js';
@@ -40,6 +41,10 @@
 	let is_loading_saved_renderings = false;
 
 	let information_panel; 
+	information_panel_global.subscribe(value => {
+		information_panel = value;
+	});
+
 	let threed_display;
 
 	const saved_renderings_height = 35;
@@ -273,6 +278,7 @@
 		displayWidth.set(threediv.offsetWidth);
 		displayHeight.set(threediv.offsetHeight);
 		threed_display_global.set(threed_display);
+		information_panel_global.set(information_panel);
 		console.log(get(curr_texture_parts));
 
 	});
@@ -316,7 +322,7 @@
 		<div class="actions-panel" class:collapsed={actions_panel_collapsed} style="width: {curr_actions_panel_width}%;">
 			
 			<button class="collapse-button"on:click={() => collapse_actions_panel()} 
-				style={actions_panel_collapsed ? "top: 50%; right: -175%; transform:rotate(270deg);" : "top: 50%; right: -7%; transform:rotate(270deg);"}
+				style={actions_panel_collapsed ? "top: 90%; right: -185%; transform:rotate(270deg);" : "top: 90%; right: -10%; transform:rotate(270deg);"}
 			>
 				{#if actions_panel_collapsed}
 					Expand

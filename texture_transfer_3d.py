@@ -54,6 +54,20 @@ class DALLE2():
     def text2texture(self,texture_str,n=4, gen_imsize=512):
         images_b64 = []
         images = []
+
+        # try: 
+        #     response = openai.Image.create(
+        #         prompt=texture_str,
+        #         n=1,
+        #         size=f"{256}x{256}",
+        #         response_format="b64_json"
+        #     )
+        # except openai.error.OpenAIError as e:
+        #     print(e.http_status)
+        #     print(e.error)
+        #     blank_img = Image.new('RGB',(256,256),color='black')
+        #     image_b64 = image.im_2_b64(blank_img)
+
         for _ in range(n):
             try: 
                 response = openai.Image.create(
@@ -84,7 +98,7 @@ class TextureDiffusion():
         self.pipe = StableDiffusionPipeline.from_pretrained(model_id,use_auth_token=True, torch_dtype=torch.float16).to(self.device)
         
         self.pipe.scheduler = DPMSolverMultistepScheduler.from_config(self.pipe.scheduler.config)
-        self.pipe.enable_sequential_cpu_offload()
+        # self.pipe.enable_sequential_cpu_offload()
         self.pipe.enable_attention_slicing(1)
 
     def to_cpu(self):
