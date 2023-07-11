@@ -2,18 +2,32 @@
     import {onMount} from 'svelte';
     import { Circle } from 'svelte-loading-spinners';
     import NumberSpinner from "svelte-number-spinner";
-    import GeneratedRenderings from './GeneratedRenderings.svelte';
     import GeneratedTextures from './GeneratedTextures.svelte';
-    import GeneratedTextures2 from './GeneratedTextures2.svelte';
-    import RefineTexture from './RefineTexture.svelte';
     import {curr_rendering_path} from '../../stores.js';
     import {curr_texture_parts} from '../../stores.js';
 	import {curr_textureparts_path} from '../../stores.js';
-    import {actions_panel_tab} from '../../stores.js';
     import {generate_tab_page} from '../../stores.js';
     import {generated_texture_name} from '../../stores.js';
     import { get } from 'svelte/store';
-    import ActionsPanel from '../ActionsPanel.svelte';
+    import {action_history} from '../../stores.js';
+    import { threed_display_global } from '../../stores.js';
+
+    import {transferred_texture_url} from '../../stores.js';
+    import {transferred_textureimg_url} from '../../stores.js';
+    import {transferred_texture_name} from '../../stores.js';
+
+    import {addToHistory} from '../../main.js';
+    import {getImage} from '../../main.js';
+
+    let history; 
+    action_history.subscribe(value => {
+        history = value;
+    });
+
+    let three_display;
+    threed_display_global.subscribe(value => {
+        three_display = value;
+    });
 
     export let onCallUpdateCurrentRendering
     function callUpdateCurrentRendering() {
@@ -44,6 +58,38 @@
         // const obj_and_part_json = await obj_and_part_resp.json(); 
         // objs_and_parts = obj_and_part_json;
     }); 
+
+    async function apply_texture() {
+        // console.log(selected_texture); //selected_texture is the absolute image path 
+
+        if(selected_texture == null) {
+            alert("Please select a texture");
+            return;
+        }
+
+        //Set the absolute texture image path to the global store
+        transferred_textureimg_url.update(value => {
+            value = selected_texture;
+            return value;
+        });
+
+        //First we have to convert it to Object URL using getImage();
+        let texturepath_obj_url = await getImage(selected_texture);
+
+        // Set the texture OBJ URL to the global store
+        transferred_texture_url.update(value => {
+            value = texturepath_obj_url;
+            return value;
+        });
+
+        //Set the texture name to the global store
+        transferred_texture_name.update(value => {
+            value = get(generated_texture_name);
+            return value;
+        });
+
+        three_display.fullTextureTransferAlgorithm();
+    }
 
     async function generate_similar_textures(texture_str) {
         input_material = texture_str
@@ -171,20 +217,6 @@
         current_page=value;
     });
 
-    function next_page() {
-        current_page+=1;
-        if (current_page >= n_pages) {
-            current_page=n_pages-1;
-        }
-    }
-
-    function prev_page() {
-        current_page-=1;
-        if(current_page < 0){
-            current_page=0;
-        }
-    }
-
     let active_obj_id=0;
     function switchObjectTab(id) {
         active_obj_id=id;
@@ -286,7 +318,7 @@
             <div class="column" id="prompt_keywords" style="border: solid 1px black;">
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <div class="row" id="keywords-header" on:click={() => {is_collapsed_keywords=!is_collapsed_keywords}} style="cursor:pointer;width:100%;"> 
-                    Add keywords to "{input_material.trim() !== '' ? input_material : 'your material'}"
+                    Add keywords to "{input_material.trim() !== '' ? input_material : ''}"
                     {#if is_collapsed_keywords===true}
                         <img src="./logos/down-arrow-svgrepo-com.svg" style="width:25px; height: 25px;" alt="Expand">
                     {:else}
@@ -350,10 +382,9 @@
             </div>
 
         {#if generated_textures.length > 0}
-                <p> Texture map results for: {get(generated_texture_name)}</p>
-                <GeneratedTextures pairs= {generated_textures} texture_name={get(generated_texture_name)} bind:selected_texture={selected_texture}/>
-                <!-- <GeneratedTextures2 pairs= {generated_textures} texture_name={get(generated_texture_name)} bind:selected_texture={selected_texture}/> -->
-                <!-- <p> {selected_textures.length}/{n_textures} textures selected. {#if selected_textures.length<=0} Please select at least 1 texture map to proceed.{/if}</p> -->
+            <p> Texture map results for: {get(generated_texture_name)}</p>
+            <GeneratedTextures pairs= {generated_textures} texture_name={get(generated_texture_name)} bind:selected_texture={selected_texture}/>
+                <!-- <button disabled={!selected_texture} on:click|preventDefault= {() => apply_texture()}> Apply texture </button> -->
         {:else if is_loading==true}
             <div class="images-placeholder">
                 Generating textures, please wait.
@@ -364,11 +395,6 @@
                 <pre>No material textures generated yet.</pre>
             </div>
         {/if}
-        <!-- <div class="carousel-nav-btns">
-            {#if generated_textures.length > 0}
-                <button disabled={selected_textures.length<=0} on:click|preventDefault={()=>next_page()}> Next </button>
-            {/if}
-        </div> -->
     </div>
 
 </div>
@@ -582,3 +608,21 @@
         <button on:click|preventDefault={()=>apply_to_curr_rendering(selected_index)}> Apply to current rendering </button>
     </div>
 </div> -->
+
+
+<!-- <script>
+    function next_page() {
+        current_page+=1;
+        if (current_page >= n_pages) {
+            current_page=n_pages-1;
+        }
+    }
+
+function prev_page() {
+    current_page-=1;
+    if(current_page < 0){
+        current_page=0;
+    }
+}
+</script> -->
+

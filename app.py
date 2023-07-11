@@ -16,9 +16,10 @@ LATEST_RENDER_ID=0
 use_chatgpt = True
 RENDER_MODE = 'CYCLES'
 
-texture_generator = DALLE2()
+# texture_generator = DALLE2()
+texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
 # fast_texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
-quality_texture_generator = DALLE2()
+# quality_texture_generator = DALLE2()
 
 app = Flask(__name__, static_folder="./client/public")
 
@@ -58,7 +59,6 @@ def retrieve_textures_from_history():
     Image.open(old_img_path).save(updated_old_img_path)
     Image.open(old_normal_path).save(updated_old_normal_path) 
     Image.open(old_height_path).save(updated_old_height_path)
-
 
     return jsonify({
         "updated_old_img_path":updated_old_img_path,
@@ -316,6 +316,7 @@ def generate_similar_textures():
     similar_textures = text2texture_similar(texture_str,impath,n_textures,gen_imsize=256)
 
     # texture_filenames = []
+    impath = impath.replace(" ","_")
     texture_loadpaths = [{
         'rendering': None,
         'texture': impath
@@ -461,6 +462,20 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
             Image.open(texture_path).save(curr_texture_path)
             texture_parts[obj][part]["mat_image_texture"] = curr_texture_path
 
+            if("mat_normal_texture" in list(texture_parts[obj][part].keys())):
+                normal_path = texture_parts[obj][part]["mat_normal_texture"]
+                normal_filename = os.path.basename(normal_path)
+                curr_normal_path = os.path.join(curr_render_savedir,normal_filename)
+                Image.open(normal_path).save(curr_normal_path)
+                texture_parts[obj][part]["mat_normal_texture"] = curr_normal_path
+            
+            if("mat_height_texture" in list(texture_parts[obj][part].keys())):
+                height_path = texture_parts[obj][part]["mat_height_texture"]
+                height_filename = os.path.basename(height_path)
+                curr_height_path = os.path.join(curr_render_savedir,height_filename)
+                Image.open(height_path).save(curr_height_path)
+                texture_parts[obj][part]["mat_height_texture"] = curr_height_path
+
             # This portion is to copy the model to the current rendering directory
             if("model" in list(texture_parts[obj][part].keys())):
                 model_path = texture_parts[obj][part]["model"] #Note: the model is a .gltf file which includes the texture map from ["mat_image_texture"]
@@ -516,7 +531,6 @@ def render():
                 destpath = os.path.join(curr_render_savedir,parent_obj,model_filename)
                 if not os.path.exists(destpath):
                     os.makedirs(os.path.dirname(destpath), exist_ok=True)
-                # textureparts[obj][part]["model"] = os.path.join(curr_render_savedir,model_filename) 
                 textureparts[obj][part]["model"] = os.path.join(curr_render_savedir,parent_obj,model_filename) 
     # current_texture_parts = copy.deepcopy(textureparts)
 
@@ -563,6 +577,20 @@ def add_to_saved_renderings(renderpath, texture_parts_path):
             save_texture_path = os.path.join(save_render_dir,texture_filename)
             Image.open(texture_path).save(save_texture_path)
             texture_parts[obj][part]["mat_image_texture"] = save_texture_path
+
+            if("mat_normal_texture" in list(texture_parts[obj][part].keys())):
+                normal_path = texture_parts[obj][part]["mat_normal_texture"]
+                normal_filename = os.path.basename(normal_path)
+                save_normal_path = os.path.join(save_render_dir,normal_filename)
+                Image.open(normal_path).save(save_normal_path)
+                texture_parts[obj][part]["mat_normal_texture"] = save_normal_path
+            
+            if("mat_height_texture" in list(texture_parts[obj][part].keys())):
+                height_path = texture_parts[obj][part]["mat_height_texture"]
+                height_filename = os.path.basename(height_path)
+                save_height_path = os.path.join(save_render_dir,height_filename)
+                Image.open(height_path).save(save_height_path)
+                texture_parts[obj][part]["mat_height_texture"] = save_height_path
 
             # This portion is to copy the model to the current rendering directory
             if("model" in list(texture_parts[obj][part].keys())):
@@ -626,10 +654,7 @@ def get_current_rendering():
 
     for obj in list(texture_parts.keys()):
         for part in list(texture_parts[obj].keys()):
-            # 'C:\\Users\\r-gal\\OneDrive\\Documents\\Academics\\PhD\\exploring-textures-with-stablediffusion\\client\\public\\gen_images\\renderings\\current\\blue marble.png'
             texture_path = texture_parts[obj][part]["mat_image_texture"]
-            # Output should be gen_images\\renderings\\current\\blue marble.png'
-            # texture_parts[obj][part]["mat_image_texture"] = texture_path.replace(STATIC_IMDIR,"")
             texture_parts[obj][part]["mat_image_texture"] = texture_path
 
     current_render_path = os.path.join(curr_render_savedir,"rendering.png")
@@ -689,7 +714,7 @@ if __name__ == "__main__":
         "pool-side"
     ]
 
-    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[1]) #Dir where the 3D scene (information, models, textures, renderings) is stored
+    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[2]) #Dir where the 3D scene (information, models, textures, renderings) is stored
     RENDER_DIR = os.path.join(DATA_DIR,"renderings")
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 
