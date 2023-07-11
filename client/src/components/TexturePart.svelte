@@ -6,6 +6,8 @@
     import {onMount} from 'svelte';
     import SvelteMarkdown from 'svelte-markdown';
 
+    import EditableTextbox from "./EditableTextbox.svelte";
+
     import {selected_objs_and_parts} from '../stores.js';
     import {saved_color_palettes} from "../stores.js";
     import {chatbot_input_message} from "../stores.js";
@@ -420,6 +422,7 @@
       generate_tab_page.set(0);
       gen_module.generate_textures(material_name);
     }
+    let none = "none";
 </script>
 
 <div class="card container">
@@ -433,33 +436,38 @@
   </div>
   <DynamicImage bind:this={image} imagepath={material_url} alt={material_name} size={"200px"}/>
   <div id="texture-details">
-        <div class="texture-name">
-          Material: <input type="text" readonly="readonly" bind:value={current_texture_parts[part_parent_name][part_name]['mat_name']}>
+        <div class="texture-name control">
+          Material: <EditableTextbox bind:text={current_texture_parts[part_parent_name][part_name]['mat_name']} />
         </div>
         {#if current_texture_parts[part_parent_name][part_name]['mat_color']}
-          <div class="texture-name">
-            Color: {current_texture_parts[part_parent_name][part_name]['mat_color']}
+          <div class="texture-name control">
+            Color: <input type="text" readonly="readonly" bind:value={current_texture_parts[part_parent_name][part_name]['mat_color']}>
           </div>
         {:else}
-          <div class="texture-name">Color: None</div>
+          <div class="texture-name control">
+            Color: <input type="text" readonly="readonly" value={"none"}>
+          </div>
         {/if}
         {#if current_texture_parts[part_parent_name][part_name]['mat_finish']}
-          <div class="texture-name">
-            Finish: {current_texture_parts[part_parent_name][part_name]['mat_finish']}
+          <div class="texture-name control">
+            Finish: <EditableTextbox bind:text={current_texture_parts[part_parent_name][part_name]['mat_finish']} />
           </div>
         {:else}
-          <div class="texture-name">
-            Finish: None
+          <div class="texture-name control">
+            Finish: <EditableTextbox bind:text={none} />
           </div>
         {/if}
         {#if get(use_chatgpt)}
           <div class="control">
             <button on:click|preventDefault={suggestSimilarMaterials}>Suggest similar materials </button>
-            <button on:click|preventDefault={requestMaterialFeedback}> Request feedback </button>
-            <label>
-              <input type="checkbox" bind:checked={use_design_brief} >
-              Based on design brief
-            </label>
+            <div style="border:1px black;">
+              <button on:click|preventDefault={requestMaterialFeedback}> Request feedback </button>
+              <label>
+                <input type="checkbox" bind:checked={use_design_brief} >
+                Based on design brief
+              </label>
+            </div>
+            
           </div>
         {/if}
   </div>
