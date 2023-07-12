@@ -8,7 +8,8 @@
 
     import EditableTextbox from "./EditableTextbox.svelte";
 
-    import {selected_objs_and_parts} from '../stores.js';
+    import {in_japanese, selected_objs_and_parts} from '../stores.js';
+    import {translate} from '../main.js';
     import {saved_color_palettes} from "../stores.js";
     import {chatbot_input_message} from "../stores.js";
     import {actions_panel_tab} from '../stores.js';
@@ -20,6 +21,11 @@
 
     import {createEventDispatcher} from 'svelte';
     import {curr_texture_parts} from '../stores.js';
+
+    let japanese;
+    in_japanese.subscribe(value => {
+      japanese = value;
+    });
 
     let current_texture_parts;
     curr_texture_parts.subscribe(value => {
@@ -321,13 +327,16 @@
 
     let feedback =undefined;
     let formatted_feedback = undefined;
+    let japanese_formatted_feedback = undefined;
+
+
     let intro_text=undefined;
     let references=undefined; 
     let activeAspect;
     async function requestMaterialFeedback() {
       const start = performance.now();
       feedback=undefined;
-      formatted_feedback=undefined; intro_text=undefined; references=undefined;
+      formatted_feedback=undefined; intro_text=undefined; references=undefined; japanese_formatted_feedback=undefined;
       switchTab("view-feedback");
 
       let context=null; 
@@ -374,6 +383,20 @@
       current_texture_parts[part_parent_name][part_name]['feedback']['intro_text'] = intro_text;
       current_texture_parts[part_parent_name][part_name]['feedback']['references'] = references;
       curr_texture_parts.set(current_texture_parts);
+
+
+      japanese_formatted_feedback={...formatted_feedback}; 
+      if(japanese) {
+        for (let aspect in japanese_formatted_feedback) {
+          japanese_formatted_feedback[aspect]['feedback'] = await translate("EN","JA",japanese_formatted_feedback[aspect]['feedback']);
+
+          for (let i=0; i < japanese_formatted_feedback[aspect]['suggestions'].length; i++) {
+            let suggestion = japanese_formatted_feedback[aspect]['suggestions'][i][0];
+            japanese_formatted_feedback[aspect]['suggestions'][i][0] = await translate("EN","JA",suggestion);
+          }
+        }
+      }
+
 
       const end = performance.now();
       console.log("Requesting material feedback took " + (end - start) + " milliseconds.");
@@ -437,34 +460,34 @@
   <DynamicImage bind:this={image} imagepath={material_url} alt={material_name} size={"200px"}/>
   <div id="texture-details">
         <div class="texture-name control">
-          Material: <EditableTextbox bind:text={current_texture_parts[part_parent_name][part_name]['mat_name']} />
+          {japanese ? "素材：" : "Material:"} <EditableTextbox bind:text={current_texture_parts[part_parent_name][part_name]['mat_name']} />
         </div>
         {#if current_texture_parts[part_parent_name][part_name]['mat_color']}
           <div class="texture-name control">
-            Color: <input type="text" readonly="readonly" bind:value={current_texture_parts[part_parent_name][part_name]['mat_color']}>
+           {japanese ? "カラー：": "Color:"}<input type="text" readonly="readonly" bind:value={current_texture_parts[part_parent_name][part_name]['mat_color']}>
           </div>
         {:else}
           <div class="texture-name control">
-            Color: <input type="text" readonly="readonly" value={"none"}>
+            {japanese ? "カラー：": "Color:"} <input type="text" readonly="readonly" value={"none"}>
           </div>
         {/if}
         {#if current_texture_parts[part_parent_name][part_name]['mat_finish']}
           <div class="texture-name control">
-            Finish: <EditableTextbox bind:text={current_texture_parts[part_parent_name][part_name]['mat_finish']} />
+            {japanese ? "素材仕上げ：": "Finish:"} <EditableTextbox bind:text={current_texture_parts[part_parent_name][part_name]['mat_finish']} />
           </div>
         {:else}
           <div class="texture-name control">
-            Finish: <EditableTextbox bind:text={none} />
+            {japanese ? "素材仕上げ：": "Finish:"} <EditableTextbox bind:text={none} />
           </div>
         {/if}
         {#if get(use_chatgpt)}
           <div class="control">
-            <button on:click|preventDefault={suggestSimilarMaterials}>Suggest similar materials </button>
+            <button on:click|preventDefault={suggestSimilarMaterials}>{japanese ? "類似素材の提案" : "Suggest similar materials"} </button>
             <div style="border:1px black;">
-              <button on:click|preventDefault={requestMaterialFeedback}> Request feedback </button>
+              <button on:click|preventDefault={requestMaterialFeedback}> {japanese ? "フィードバックのリクエスト": "Request feedback"}  </button>
               <label>
                 <input type="checkbox" bind:checked={use_design_brief} >
-                Based on design brief
+                {japanese ? "デザイン・ブリーフに基づく" : "Based on design brief"}
               </label>
             </div>
             
@@ -473,47 +496,45 @@
   </div>
 
   <div class="w3-bar w3-grey tabs">
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-finish'} on:click={()=>switchTab('adjust-finish')} id="adjust-finish-btn">Material Finish</button>
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-texture-map'} on:click={()=>switchTab('adjust-texture-map')} id="adjust-texture-btn">Texture Map</button>
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-color'} on:click={()=>switchTab('adjust-color')} id="adjust-color-btn">Color Finish</button>
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='attached-parts'} on:click={()=>switchTab('attached-parts')} id="attached-parts-btn">Attached Parts</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-finish'} on:click={()=>switchTab('adjust-finish')} id="adjust-finish-btn"> {japanese ? "素材仕上げ" : "Material Finish"} </button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-texture-map'} on:click={()=>switchTab('adjust-texture-map')} id="adjust-texture-btn"> {japanese ? "テクスチャマップ": "Texture Map"}</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-color'} on:click={()=>switchTab('adjust-color')} id="adjust-color-btn"> {japanese ? "カラー仕上げ" : "Color Finish"}</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='attached-parts'} on:click={()=>switchTab('attached-parts')} id="attached-parts-btn"> {japanese ? "付属部品" : "Attached Parts"}</button>
     {#if get(use_chatgpt)}
-      <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='view-feedback'} on:click={()=>switchTab('view-feedback')} id="view-feedback-btn">View Feedback</button>
+      <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='view-feedback'} on:click={()=>switchTab('view-feedback')} id="view-feedback-btn"> {japanese ? "フィードバックを見る" : "View Feedback"} </button>
     {/if}
   </div>
 
   <div class="card container tab-content" class:active={activeTab==='adjust-finish'}>
-    <h5><b>Adjust Finish</b></h5> 
+    <h5><b> {japanese ? "素材仕上げの調整" : "Adjust Material Finish"}</b></h5> 
     <div class="control">
-      <!-- <span>Is Transparent?: </span> 
-      <input type="checkbox" id="transparency" bind:checked={isTransparent} on:change={fook} /> -->
-      <span>Opacity: </span>
+      <span> {japanese ? "不透明度：" : "Opacity:"}   </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
         <RangeSlider on:change={updateOpacity} bind:values={opacity} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
     <div class="control">
-      <span>Roughness: </span>
+      <span> {japanese ? "粗さ：" : "Roughness:"}" </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
         <RangeSlider on:change={updateFinish} bind:values={roughness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
     <div class="control">
-      <span>Metalness: </span>
+      <span> {japanese ? "金属的だ：": "Metalness:"} </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
         <RangeSlider on:change={updateFinish} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
 
     <div class="control">
-      <span>Normal Map Strength: </span>
+      <span> {japanese ? "法線マップの強度:" : "Normal Map Strength:"} </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
         <RangeSlider on:change={updateNormalScale} bind:values={normalScale} min={0} max={10} step={0.1} float={true}/> 
       </div>
     </div>
 
     <div class="control">
-      <span>Height Map Strength: </span>
+      <span> {japanese ? "高さマップの強度:" : "Height Map Strength:"} </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
         <RangeSlider on:change={updateDisplacementScale} bind:values={displacementScale} min={0} max={100} step={0.1} float={true}/> 
       </div>
@@ -521,10 +542,10 @@
   </div>
 
   <div class="card container tab-content " class:active={activeTab==='adjust-texture-map'}>
-    <h5><b>Adjust Texture Map</b></h5>
+    <h5><b> {japanese ? "テクスチャマップを調整する": "Adjust Texture Map"} </b></h5>
     <div class="control">
       <div class="card container" style="height: auto;">
-        <h6> <b> Translation </b></h6>
+        <h6> <b> {japanese ? "平行移動": "Translation"} </b></h6>
         <div class="control">
           <span>X:</span>
           <NumberSpinner on:change={updateTextureMapOffset} bind:value={translationX} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
@@ -536,7 +557,7 @@
       </div>
 
       <div class="card container" style="height: auto;">
-        <h6> <b> Rotation </b></h6>
+        <h6> <b> {japanese ? "回転": "Rotation"} </b></h6>
         <div class="control">
           <span>Z: </span>
           <NumberSpinner on:change={updateTextureMapOrientation} bind:value={rotation} min=0 max=360 step=0.1 decimals=1 precision=0.1/>°
@@ -544,7 +565,7 @@
       </div>
 
       <div class="card container" style="height: auto;">
-        <h6> <b> Scale </b></h6>
+        <h6> <b> {japanese ? "スケール": "Scale"}  </b></h6>
         <div class="control">
           <span>X & Y: </span>
           <NumberSpinner on:change={updateTextureMapScale} bind:value={scale} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
@@ -562,7 +583,7 @@
   </div>
 
   <div class="card container tab-content" class:active={activeTab==='adjust-color'}>
-    <h5> <b> Adjust Color </b></h5>
+    <h5> <b> {japanese ? "カラー仕上げの調整": "Adjust Color Finish"}  </b></h5>
 
     <div class="control container" id="color-palette-header">
       <!-- No Colors Swatch Option -->
@@ -583,7 +604,7 @@
 
           {#if isOpen}
           <!-- Dropdown list of color palettes -->
-            <div class="dropdown-list" style="position: absolute; top: 30px; left: 35px; z-index=1;">
+            <div class="dropdown-list" style="position: absolute; top: 30px; left: 170px; z-index=1;">
                 <!-- Create a palette for the current material's color. -->
                 {#if material_color_palette}
                   <label class="control container palette selectable" class:selected={selected_palette_idx===0}>
@@ -600,7 +621,11 @@
                       <input type=radio bind:group={selected_palette_idx} name={j+1} value={j+1}>
                     </label>
                   {/each}
-                  <button on:click|preventDefault={() => addNewColorPalete()}> Add new </button>
+                  <button on:click|preventDefault={() => addNewColorPalete()}> 
+                    {japanese ? "新規追加" : "Add new"} 
+                    <img src="./logos/add-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Add new color palette">
+                    <!-- add-svgrepo-com.svg -->
+                  </button>
                 {:else}
                   {#each palettes as p,j}
                     <label class="control container palette selectable" class:selected={selected_palette_idx===j}>
@@ -610,7 +635,10 @@
                       <input type=radio bind:group={selected_palette_idx} name={j} value={j}>
                     </label>
                   {/each}
-                  <button on:click|preventDefault={() => addNewColorPalete()}> Add new </button>
+                  <button on:click|preventDefault={() => addNewColorPalete()}> 
+                    {japanese ? "新規追加" : "Add new"} 
+                    <img src="./logos/add-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Add new color palette">
+                  </button>
                 {/if}
             </div>
           {/if}
@@ -625,7 +653,7 @@
     <!-- Color swatch -->
     {#if selected_swatch_idx===undefined}
       <div id="current-swatch">
-        <pre> No color</pre>
+        <pre> {japanese ? "色なし": "No color"}  </pre>
       </div>
     {:else}
       <input id="current-swatch" type="color"  
@@ -637,70 +665,73 @@
 
   <div class="card container tab-content" class:active={activeTab==='attached-parts'}>
     {#if parents.length > 0}
-      <h5> <b> Attached Parts </b></h5>
+      <h5> <b> {japanese ? "付属部品" : "Attached Parts"} </b></h5>
       {#each parents as p}
         <div class="control container">
           <div class="card">
-            <h6> <b> Object: {p[0]}  </b></h6>
-            <h6> <b> Part: {p[1]} </b></h6>
+            <h6> <b> {japanese ? "オブジェクト：" : "Object:"}  {p[0]}  </b></h6>
+            <h6> <b> {japanese ? "パート" : "Part:"}  {p[1]} </b></h6>
           </div>
           <DynamicImage imagepath={current_texture_parts[p[0]][p[1]]["mat_image_texture"]} alt={current_texture_parts[p[0]][p[1]]["mat_name"]} size={"100px"}/>
         </div>
       {/each}
     {:else}
-      <p> This component is not attached to anything. </p>
+      <p> {japanese ? "このコンポーネントは何にも取り付けられていない。" : "This component is not attached to anything."}  </p>
     {/if}
   </div>
 
   {#if get(use_chatgpt)}
     <div class="card container tab-content" class:active={activeTab==='view-feedback'} style="flex-wrap:wrap;">
-      <h5> <b> Feedback </b></h5>
-        {#if formatted_feedback}
+      <h5> <b> {japanese ?  "フィードバック" : "Feedback"}</b></h5>
+        {#if formatted_feedback && japanese_formatted_feedback}
           <SvelteMarkdown source={intro_text} />
           <div class="w3-bar w3-grey tabs">
             {#each Object.keys(formatted_feedback) as aspect}
               <button class="w3-bar-item w3-button tab-btn" class:active={activeAspect===aspect} on:click={() => {activeAspect = aspect;}}>
-                {aspect}
+                {#if in_japanese}
+                  {aspect==="assembly" ? "組み立て" : aspect==="availability" ? "素材の入手性" : aspect==="cost" ? "コスト" : aspect==="durability" ? "素材の耐久性" : aspect==="maintenance" ? "素材のメンテナンス" :  aspect==="sustainability" ? "持続可能性" :  ""}
+                {:else}
+                  {aspect}
+                {/if}
               </button>
             {/each}
           </div>
 
           {#each Object.keys(formatted_feedback) as aspect}
             <div class="card container tab-content" class:active={activeAspect===aspect}>
-              <SvelteMarkdown source={formatted_feedback[aspect]['feedback']} />
+              <SvelteMarkdown source={japanese ? japanese_formatted_feedback[aspect]['feedback'] : formatted_feedback[aspect]['feedback']} />
               
               <div class="card container">
-                <h6> <b> <u> Suggestions </u>  </b></h6>
+                <h6> <b> <u>{japanese ? "ご提案": "Suggestions" }</u>  </b></h6>
                 <div class="control" style="justify-content:space-between;">
                   {#if formatted_feedback[aspect]['suggestions'].length <= 0}
-                    <p> No suggestions provided. </p>
+                    <p> {japanese ? "提案はない。" : "No suggestions provided."}  </p>
                   {:else}
-                    {#each formatted_feedback[aspect]['suggestions'] as suggestion}
+                    {#each formatted_feedback[aspect]['suggestions'] as suggestion, i}
                       <div class="card container" style="height:100%;">
                         {#if suggestion[1] === "material" && suggestion.length===3} 
-                          <span> <b> {suggestion[0]} </b></span>
+                          <span> <b> {japanese ? japanese_formatted_feedback[aspect]['suggestions'][i][0] : suggestion[0]} </b></span>
                           <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"} is_draggable={true}/>
-                          <span> <b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
-
+                          <span> <b> {japanese ? "素材" : suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)}  </b></span>
                           <button  on:click={() => {generate(suggestion[0])}}> 
-                            Generate more! 
+                            {japanese ? "もっと生み出せ！": "Generate more!"}
                             <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
                           </button>
                         {:else if suggestion[1] === "attachment" && suggestion.length===3}
-                          <span> <b> {suggestion[0]} </b></span>
+                          <span> <b> {japanese ? japanese_formatted_feedback[aspect]['suggestions'][i][0] : suggestion[0]} </b></span>
                           <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"}/>
-                          <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                          <span><b> {japanese ? "添付ファイル" : suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)}</b></span>
                         {:else if suggestion[1] === "finish" && suggestion.length===3}
-                          <span> <b> {suggestion[0]} </b></span>
+                          <span> <b> {japanese ? japanese_formatted_feedback[aspect]['suggestions'][i][0] : suggestion[0]} </b></span>
                           <div class="card container">
-                            <span> Opacity: {suggestion[2]["opacity"]}</span>
-                            <span> Roughness: {suggestion[2]["roughness"]}</span>
-                            <span> Metalness: {suggestion[2]["metallic"]}</span>
+                            <span> {japanese ? "不透明度：" : "Opacity:"} {suggestion[2]["opacity"]}</span>
+                            <span> {japanese ? "粗さ：" : "Roughness:"}  {suggestion[2]["roughness"]}</span>
+                            <span> {japanese ? "金属的だ：": "Metalness:"}  {suggestion[2]["metallic"]}</span>
                           </div>
-                          <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
-                          <button  on:click={() => {applyFinishSuggestion(suggestion[2])}}> Apply Finish </button>
+                          <span><b> {japanese ? "素材仕上げ" : suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
+                          <button  on:click={() => {applyFinishSuggestion(suggestion[2])}}> {japanese ? "仕上げを施す" : "Apply Finish"}  </button>
                         {:else}
-                          <span> <b> {suggestion[0]} </b></span>
+                          <span> <b> {japanese ? japanese_formatted_feedback[aspect]['suggestions'][i][0] : suggestion[0]} </b></span>
                           <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
                         {/if} 
                       </div>
@@ -713,16 +744,18 @@
             </div>
           {/each}
           
-          <h6> <b> <u> References </u>  </b></h6>
+          <h6> <b> <u> {japanese ? "参考文献" : "References"}</u>  </b></h6>
           <SvelteMarkdown source={references} />
         {:else if is_loading_feedback}
           <div class="images-placeholder">
-            Requesting feedback, please wait.
-            This may take around 60 to 90 seconds.
+            {japanese ? 
+              "フィードバックをリクエストしています。しばらくお待ちください。60〜90秒ほどかかる場合があります。" :
+              "Requesting feedback, please wait. This may take around 60 to 90 seconds."
+            }
             <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
           </div>
         {:else}
-          <p> No feedback yet. </p>
+          <p> {japanese ? "フィードバックはありません。" : "No feedback available."}  </p>
         {/if}
     </div>
   {/if}

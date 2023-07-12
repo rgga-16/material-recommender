@@ -5,6 +5,17 @@ import {curr_texture_parts} from './stores.js';
 import { threed_display_global } from './stores.js';
 import {get} from 'svelte/store';
 
+
+// const DEEPL_AUTHKEY='2c0ea470-3cef-d714-4176-cde832a9b2f5:fx';
+// const translator = new deepl.Translator(DEEPL_AUTHKEY);
+
+let japanese_curr_texture_parts;
+curr_texture_parts.subscribe(value => {
+	// japanese_curr_texture_parts = value;
+	
+
+});
+
 let history; 
 action_history.subscribe(value => {
 	history = value;
@@ -183,10 +194,23 @@ export async function addToHistory(action_name,object,part, properties, old_valu
 			currentIndex: newActions.length-1
 		}
 	});
-
-	
 	console.log(get(action_history));
+}
 
+export async function translate(source_lang, target_lang, text) {
+	const response = await fetch("/translate", {
+		method: "POST",
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify({
+			"text": text,
+			"target_lang": target_lang,
+			"source_lang": source_lang
+		}),
+	});
+	const json = await response.json();
+	const translated_text = await json['text'];
+	// console.log(translated_text);
+	return translated_text;
 }
 
 

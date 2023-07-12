@@ -12,6 +12,12 @@
     import {actions_panel_tab} from '../stores.js';
     import {generate_tab_page} from '../stores.js';
     import {use_chatgpt} from '../stores.js';
+    import {in_japanese} from '../stores.js';
+
+    let japanese;
+    in_japanese.subscribe(value => {
+        japanese = value;
+    });
 
     import {information_panel_tab} from '../stores.js';
     
@@ -183,16 +189,16 @@
 
 <div class="information-panel">
     <div class="w3-bar w3-grey tabs">
-        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='details'} on:click={()=>switchTab('details')}  id="details-btn">Details</button>
+        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='details'} on:click={()=>switchTab('details')}  id="details-btn">{japanese ? "詳細": "Details"}</button>
     </div>
 
     <div class="tab-content" class:active={activeTab==='details'} id="details">
-        <h3> Object Details </h3>
+        <h3> {japanese ? "オブジェクトの詳細" : "Object Details" }  </h3>
         {#if sel_objs_and_parts.length > 0}
             <div id="texture-part-details">  </div>
         {:else }
             <div class="images-placeholder">
-                No object selected. Please select an object in the 3D View.
+                {japanese ? "オブジェクトが選択されていません。3Dビューでオブジェクトを選択してください。": "No object selected. Please select an object in the 3D View."} 
             </div>
             <div id="texture-part-details"> </div>
         {/if}

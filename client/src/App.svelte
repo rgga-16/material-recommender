@@ -22,8 +22,14 @@
 
 	import {undoAction} from './main.js';
 	import {redoAction} from './main.js';
+	import {translate} from './main.js';
 
 	import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
+
+	let japanese;
+    in_japanese.subscribe(value => {
+        japanese = value;
+    });
 
 
 	let current_rendering_path;
@@ -70,14 +76,15 @@
 
 	
 	let design_brief_text="";
-	design_brief.subscribe(value => {
-		design_brief_text=value;
-	});
-
-	function updateDesignBrief() {
-		design_brief.set(design_brief_text);
-		design_brief_textarea.readOnly=true;
+	async function translateDesignBrief(orig_design_brief_text) {
+		const translated_design_brief = await translate("EN","JA",orig_design_brief_text);
+		design_brief_text= await {...translated_design_brief};
 	}
+
+	// function updateDesignBrief() {
+	// 	design_brief.set(design_brief_text);
+	// 	design_brief_textarea.readOnly=true;
+	// }
 
 	function hideDesignBrief() {
 		show_design_brief=false;
@@ -281,6 +288,12 @@
 		information_panel_global.set(information_panel);
 		console.log(get(curr_texture_parts));
 
+		if (japanese) {
+			await translateDesignBrief(get(design_brief));
+		}
+		else {
+			design_brief_text={...get(design_brief)};
+		}
 	});
 
 	let actions_panel_collapsed=false;
@@ -325,10 +338,10 @@
 				style={actions_panel_collapsed ? "top: 90%; right: -185%; transform:rotate(270deg);" : "top: 90%; right: -10%; transform:rotate(270deg);"}
 			>
 				{#if actions_panel_collapsed}
-					Expand
+					{japanese ? "展開する" : "Expand"}
 					<img src="./logos/dropdown-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 				{:else}
-					Collapse 
+					{japanese ? "折りたたむ": "Collapse"} 
 					<img src="./logos/dropup-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 				{/if}
 			</button>
@@ -338,7 +351,7 @@
 		<!-- Middle Section  -->
 		<div class="renderings" style="width: {curr_display_panel_width}%;">
 			<div class="display-panel" id="display" style="height: {curr_display_panel_height}%;">
-				<button id="design-brief-btn" on:click = {() => showDesignBrief()}> View Design Brief </button>
+				<button id="design-brief-btn" on:click = {() => showDesignBrief()}> {japanese ? "デザイン概要を見る" : "View Design Brief"} </button>
 				
 				<div id="action-history-btns">
 					<button id="" on:click = {() => {undoAction()}}> 
@@ -360,26 +373,32 @@
 					{#if is_loading_scene || is_rendering_scene || is_saving_scene}
 						<div class="images-placeholder">
 							{#if is_loading_scene}
-								Loading scene...
+								{japanese ? "ロード中...": "Loading scene..."}
 							{:else if is_saving_scene}
-								Saving scene...
+								{japanese ? "保存シーン..." : "Saving scene..."}
 							{:else if is_rendering_scene}
-								Rendering scene...
+								{japanese ? "レンダリングシーン": "Rendering scene..."}
 							{:else}
-								Updating scene...
+								{japanese ? "シーンの更新": "Updating scene..."}
 							{/if}
 							<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
 						</div>
 					{:else}
 						{#await promise}
-							<pre> Loading rendering. Please wait. </pre>
+							<pre> 
+								{japanese ? "レンダリングを読み込んでいます。しばらくお待ちください。": "Loading rendering. Please wait."} 
+							</pre>
 						{:then data} 
 							<div class="image">
 								<DynamicImage bind:this={current_rendering} imagepath={current_rendering_path} alt="Current rendering" size={"80%"}/>
 							</div>
 							<div class="display-buttons"> 
-								<button on:click|preventDefault={update_3dmodels_and_render}> Render </button>
-								<button on:click|preventDefault={save_scene}>Save Scene</button>
+								<button on:click|preventDefault={update_3dmodels_and_render}>
+									{japanese ? "レンダー" : "Render"}  
+								</button>
+								<button on:click|preventDefault={save_scene}>
+									{japanese ? "セーブシーン": "Save Scene"}
+								</button>
 							</div>
 
 						{/await}
@@ -390,23 +409,25 @@
 				<!-- Display 3D model/s -->
 				<div class="tab-content threed-display" class:active={activeDisplayTab==='3d_display'} id="threed_display_parent">
 						{#await promise}
-							<pre> Loading 3D viewer. Please wait. </pre>
+							<pre> 
+								{japanese ? "3Dビューアをロードしています。しばらくお待ちください。": "Loading 3D viewer. Please wait."}
+							</pre>
 						{:then data}
 							<ThreeDDisplay bind:this={threed_display} current_texture_parts={get(curr_texture_parts)} bind:information_panel={information_panel} {displayHeight} {displayWidth} />
 							<div class="display-buttons">
-								<button on:click|preventDefault={update_3dmodels_and_render}> Render </button>
-								<button on:click|preventDefault={save_scene}>Save Scene</button>
+								<button on:click|preventDefault={update_3dmodels_and_render}> {japanese ? "レンダー" : "Render"} </button>
+								<button on:click|preventDefault={save_scene}>{japanese ? "セーブシーン": "Save Scene"}</button>
 							</div>
 							{#if is_loading_scene || is_rendering_scene || is_saving_scene}
 								<div class="images-placeholder" id="threed-loading">
 									{#if is_loading_scene}
-										Loading scene...
+										{japanese ? "ロード中...": "Loading scene..."}
 									{:else if is_saving_scene}
-										Saving scene...
+										{japanese ? "保存シーン..." : "Saving scene..."}
 									{:else if is_rendering_scene}
-										Rendering scene...
+										{japanese ? "レンダリングシーン": "Rendering scene..."}
 									{:else}
-										Updating scene...
+										{japanese ? "シーンの更新": "Updating scene..."}
 									{/if}
 									<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
 								</div>
@@ -420,10 +441,10 @@
 			<div class="saved-renderings" style="height: {curr_saved_renderings_height}%;">
 				<button class="collapse-button"on:click={() => collapse_saved_renderings()} style="top: 0%; right: 50%;">
 					{#if saved_renderings_collapsed}
-						Expand
+						{japanese ? "展開する" : "Expand"}
 						<img src="./logos/dropup-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 					{:else}
-						Collapse
+						{japanese ? "折りたたむ": "Collapse"}
 						<img src="./logos/dropdown-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 					{/if}
 				</button>
@@ -431,18 +452,20 @@
 					<pre> Loading saved renderings. Please wait. </pre>
 				{:then data} 
 					<form on:submit|preventDefault={loadRendering(selected_saved_rendering_idx)}>
-						<h3>Saved Scenes</h3>
+						<h3>
+							{japanese ? "保存されたシーン": "Saved Scenes"}
+						</h3>
 						<div class="saved-renderings-list"> 
 							<button disabled={!(selected_saved_rendering_idx!=undefined)}> Load scene </button>
 							{#if saved_renderings.length===0}
 								{#if is_loading_saved_renderings}
 									<div class="images-placeholder">
-										Updating saved scenes...
+										{japanese ? "保存されたシーンの更新...": "Updating saved scenes..."}
 										<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
 									</div>
 								{:else}
 									<div class="images-placeholder" style="height:100%;">
-										No saved renderings yet.
+										{japanese ? "保存されたレンダリングはまだない。": "No saved renderings yet."}
 									</div>
 								{/if}
 							{:else}
@@ -451,7 +474,7 @@
 									<label class = "saved-rendering" class:selected={selected_saved_rendering_idx===i}>
 										<input type=radio bind:group={selected_saved_rendering_idx} name="option-{i}" value={i} />
 										<img src={saved_renderings["rendering_path"]} alt="saved rendering {i}" />
-										<span> Scene {i+1}</span>
+										<span> {japanese ? "シーン": "Scene"}  {i+1}</span>
 									</label>
 								{/each}
 							{/if}
@@ -468,10 +491,10 @@
 				style={information_panel_collapsed ? "top: 50%; left: -7%; transform:rotate(270deg);" : "top: 50%; left: -7%; transform:rotate(270deg);" }
 			>
 				{#if information_panel_collapsed}
-					<!-- Expand -->
+					{japanese ? "展開する" : "Expand"}
 					<img src="./logos/dropup-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 				{:else}
-					Collapse
+					{japanese ? "折りたたむ": "Collapse"}
 					<img src="./logos/dropdown-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 				{/if}
 			</button>
@@ -485,18 +508,23 @@
 
 		<div id="design-brief-popup" class:show={show_design_brief} >
 			<div id="design-brief-header" style="width:100%; height:auto; display:flex; flex-direction: row; background:lightgrey; justify-content:space-between;padding: 5px;">
-				<h3>Design Brief</h3>
+				<h3>
+					{japanese ? "デザイン・ブリーフ": "Design Brief"}
+				</h3>
 				<button  on:click|preventDefault={() => hideDesignBrief()}  >
 					<img src="./logos/exit-svgrepo-com.svg" alt="" style="width: 30px; height: 30px;" />
 				</button>	
 				
 			</div>
 			<div id="design-brief-body" style="overflow:auto; flex-grow:1;">
-				<textarea placeholder="No design brief yet. Please write your design brief here."readonly={true} bind:this={design_brief_textarea} bind:value={design_brief_text} style="width:100%; height:100%;"></textarea>
+				<textarea placeholder="No design brief yet. Please write your design brief here."
+				readonly={true} bind:this={design_brief_textarea} 
+				bind:value={design_brief_text} 
+				style="width:100%; height:100%;"></textarea>
 			</div>
 			<div id="design-brief-footer" style="width:100%; height:auto; display:flex; flex-direction: row; background:lightgrey; align-content:center; justify-content:center;padding: 5px;">
-				<button on:click|preventDefault={()=>editDesignBrief()}> Edit </button>
-				<button on:click|preventDefault={() => {updateDesignBrief(); hideDesignBrief()}}> Save </button>
+				<!-- <button on:click|preventDefault={()=>editDesignBrief()}> Edit </button>
+				<button on:click|preventDefault={() => {updateDesignBrief(); hideDesignBrief()}}> Save </button> -->
 			</div>
 		</div>
 	</div>

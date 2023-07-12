@@ -26,7 +26,6 @@ function toggleShowButton() {
     showButton=!showButton;
 }
 
-
 export async function getImage() {
     is_loading=true; 
     try {   
@@ -44,7 +43,6 @@ export async function getImage() {
     } finally {
         is_loading=false;
     }
-
 }
 
 function dragStart(event) {
