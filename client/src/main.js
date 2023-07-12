@@ -12,7 +12,7 @@ import {get} from 'svelte/store';
 let japanese_curr_texture_parts;
 curr_texture_parts.subscribe(value => {
 	// japanese_curr_texture_parts = value;
-	
+
 
 });
 
@@ -25,6 +25,18 @@ let three_display;
 threed_display_global.subscribe(value => {
 	three_display = value;
 });
+
+export function dictToString(input_dict) {
+	let temp = "";
+	for (const key in input_dict) {
+		temp += input_dict[key];
+	}
+	return temp;
+}
+
+export function isDict(obj) {
+	return typeof obj === 'object' && obj !== null && !Array.isArray(obj);
+}
 
 export async function undoAction() {
 

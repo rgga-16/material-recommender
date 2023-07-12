@@ -8,6 +8,11 @@
     import {onMount} from 'svelte';
     import {generate_module} from '../stores.js';
     import {get} from 'svelte/store';
+    import {in_japanese} from '../stores.js';
+    let japanese;
+    in_japanese.subscribe(value => {
+        japanese = value;
+    });
 
     export let onCallUpdateCurrentRendering;
     let generate;
@@ -36,9 +41,13 @@
 
 <div class="actions-panel">
   <div class="w3-bar w3-grey tabs">
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='generate'} on:click={()=>switchTab('generate')} id="generate-btn">Generate</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='generate'} on:click={()=>switchTab('generate')} id="generate-btn">
+      {japanese ? "生成する" : "Generate"}
+    </button>
     {#if get(use_chatgpt)}
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='chatbot'} on:click={()=>switchTab('chatbot')} id="chatbot-btn">ChatBot</button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='chatbot'} on:click={()=>switchTab('chatbot')} id="chatbot-btn">
+      {japanese ? "チャットボット" : "ChatBot"}
+    </button>
     {/if}
     <!-- <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_materials'} on:click={()=>switchTab('suggest_materials')} id="suggest-materials-btn">Suggest Materials</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_colors'} on:click={()=>switchTab('suggest_colors')} id="suggest-colors-btn">Suggest Colors</button> -->

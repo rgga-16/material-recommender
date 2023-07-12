@@ -364,8 +364,12 @@
 				
 				
 				<div class="w3-bar w3-grey tabs">
-					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='rendering_display'} on:click={()=>switchDisplayTab('rendering_display')} id="rendering-display-btn">Rendering View</button>
-					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='3d_display'} on:click={()=>switchDisplayTab('3d_display')} id="suggest-colors-btn">3D View</button>
+					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='rendering_display'} on:click={()=>switchDisplayTab('rendering_display')} id="rendering-display-btn">
+						{japanese ? "レンダリングビュー": "Rendering View"}
+					</button>
+					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='3d_display'} on:click={()=>switchDisplayTab('3d_display')} id="suggest-colors-btn">
+						{japanese ? "3Dビュー" : "3D View"}
+					</button>
 					
 				</div>
 				<!-- Display rendering -->
@@ -456,7 +460,9 @@
 							{japanese ? "保存されたシーン": "Saved Scenes"}
 						</h3>
 						<div class="saved-renderings-list"> 
-							<button disabled={!(selected_saved_rendering_idx!=undefined)}> Load scene </button>
+							<button disabled={!(selected_saved_rendering_idx!=undefined)}> 
+								{japanese ? "シーンを読み込む" : "Load scene"}
+							</button>
 							{#if saved_renderings.length===0}
 								{#if is_loading_saved_renderings}
 									<div class="images-placeholder">
