@@ -2,9 +2,14 @@
 <script>
     import PreviewCard from "./PreviewCard.svelte";
     import DynamicImage from "../DynamicImage.svelte";
+    import {onMount} from 'svelte';
     export let pairs;
     export let selected_texture=""; 
     export let texture_name;
+
+    onMount(() => {
+        console.log(texture_name);
+    });
 </script>
 
 <div class="image-grid">

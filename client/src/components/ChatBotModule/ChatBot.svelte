@@ -16,6 +16,10 @@
 
     import {translate} from '../../main.js';
 
+    let japanese;
+    in_japanese.subscribe(value => {
+        japanese = value;
+    });
 
     const dispatch = createEventDispatcher();
 
@@ -75,7 +79,7 @@
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
-                "prompt": get(in_japanese) ? await translate("JA","EN-US",inputMessage) : inputMessage,
+                "prompt": japanese ? await translate("JA","EN-US",inputMessage) : inputMessage,
                 "role":"user",
                 "use_internet": use_internet,
                 "context": context
@@ -135,7 +139,7 @@
         let role = json["role"];
         let suggested_color_palettes = json["suggested_color_palettes"];
 
-        if(get(in_japanese)) {
+        if(japanese) {
             // intro_text = await translate("EN","JA",intro_text);
             for(let i=0;i<suggested_color_palettes.length;i++) {
                 suggested_color_palettes[i]["name"] = await translate("EN","JA",suggested_color_palettes[i]["name"]);
@@ -209,7 +213,7 @@
         let message = json["response"];
         let role = json["role"];
 
-        if(get(in_japanese)) {
+        if(japanese) {
             message = await translate("EN","JA",message);
         }
         // message = "\""+ message +"\"";
@@ -261,7 +265,18 @@
     {#each messages as message}
         <div class="message">
             <div class="{message.role}">
-                <strong>{message.role}: </strong>
+                <strong>
+                    {#if japanese} 
+                        {#if message.role == "user"}
+                            あなた: 
+                        {:else if message.role=="assistant"}
+                            アシスタント: 
+                        {/if}
+                    {:else}
+                        {message.role}: 
+                    {/if}
+                    
+                </strong>
                 <SvelteMarkdown source={message.message} />
                 {#if message.type == "suggested_materials"}
                     {#each message.content as m, i}
@@ -270,7 +285,7 @@
                             on:click|preventDefault={()=> generate(m["name"])}
                             style="align-items: center; justify-content: center; cursor: pointer;"
                             >
-                                Generate more!
+                                {japanese ? "もっと生み出せ！" : "Generate more!"}"
                                 <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
                             </button>
                     {/each}
@@ -281,7 +296,9 @@
                                 <div class="color-card">
                                     <ColorPalette name={m["name"]} color_codes={m["codes"]} />
                                 </div>
-                                <button on:click={()=>saveColorPalette(m)}> Save Palette </button>
+                                <button on:click={()=>saveColorPalette(m)}> 
+                                    {japanese ? "パレットを保存する" : "Save Palette"} 
+                                </button>
                                 <SvelteMarkdown source={m["description"]} />
                             </li>
                         {/each}
@@ -293,10 +310,11 @@
     
     {#if is_loading_response}
         <div class="assistant" style="position:relative; min-height: 20%;">
-            <strong>assistant:</strong> 
+            <strong>
+                {japanese ? "アシスタント:" : "assistant:"}
+            </strong> 
             <div class="images-placeholder" style="position:absolute; top:0; left:0; z-index:2; width:100%; height:100%;">
-                Loading response, please wait.
-                This may take around 30 to 60 seconds.
+                {japanese ? "応答を読み込んでいます。しばらくお待ちください。" : "Loading response, please wait. This may take a while."}"
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
             </div>
         </div>
@@ -315,14 +333,18 @@
     <textarea style="width:100%;" bind:value="{inputMessage}" on:keydown="{e => e.key === 'Enter' && suggest_materials()}" placeholder="Type your queries for materials or color palettes here.." id="textarea"></textarea>
     <label>
         <input type="checkbox" bind:checked={use_internet} >
-        Use web search
+        {japanese ? "ウェブ検索を利用する" : "Use web search"}
     </label>
     <label>
         <input type="checkbox" bind:checked={use_design_brief} >
-        Based on design brief
+        {japanese ? "デザイン・ブリーフに基づく": "Based on design brief"}
     </label>
-    <button on:click|preventDefault={()=>suggest_materials()}>Suggest Materials</button>    
-    <button on:click|preventDefault={()=>suggest_color_palettes()}>Suggest Colors</button>   
+    <button on:click|preventDefault={()=>suggest_materials()}>
+        {japanese? "素材を提案する": "Suggest Materials"}
+    </button>    
+    <button on:click|preventDefault={()=>suggest_color_palettes()}>
+        {japanese ? "色を提案する": "Suggest Colors"}
+    </button>   
 </div>
 
 <style>

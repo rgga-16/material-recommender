@@ -15,13 +15,21 @@
     import {transferred_texture_url} from '../../stores.js';
     import {transferred_textureimg_url} from '../../stores.js';
     import {transferred_texture_name} from '../../stores.js';
+    import {in_japanese} from '../../stores.js';
 
     import {addToHistory} from '../../main.js';
+    import {translate} from '../../main.js';
     import {getImage} from '../../main.js';
+    import {isDict, dictToString} from '../../main.js';
 
     let history; 
     action_history.subscribe(value => {
         history = value;
+    });
+
+    let japanese;
+    in_japanese.subscribe(value => {
+        japanese = value;
     });
 
     let three_display;
@@ -59,55 +67,43 @@
         // objs_and_parts = obj_and_part_json;
     }); 
 
-    async function apply_texture() {
-        // console.log(selected_texture); //selected_texture is the absolute image path 
-
-        if(selected_texture == null) {
-            alert("Please select a texture");
-            return;
-        }
-
-        //Set the absolute texture image path to the global store
-        transferred_textureimg_url.update(value => {
-            value = selected_texture;
-            return value;
-        });
-
-        //First we have to convert it to Object URL using getImage();
-        let texturepath_obj_url = await getImage(selected_texture);
-
-        // Set the texture OBJ URL to the global store
-        transferred_texture_url.update(value => {
-            value = texturepath_obj_url;
-            return value;
-        });
-
-        //Set the texture name to the global store
-        transferred_texture_name.update(value => {
-            value = get(generated_texture_name);
-            return value;
-        });
-
-        three_display.fullTextureTransferAlgorithm();
-    }
-
     async function generate_similar_textures(texture_str) {
         input_material = texture_str
         is_loading=true; 
         generated_textures=[];
-        if(selected_prompt_keywords.length > 0) {
-            for (let i = 0; i < selected_prompt_keywords.length; i++) {
-                texture_str += ", " + selected_prompt_keywords[i];
+
+        let input = Object.assign("",texture_str);
+        let material = Object.assign("",texture_str);
+        if (isDict(input)) {
+            input = dictToString(input);
+        }
+        
+        let keywords = Object.assign([],selected_prompt_keywords);
+
+        if(keywords.length > 0) {
+            for (let i = 0; i < keywords.length; i++) {
+                let temp = keywords[i];
+                if(isDict(temp)) {
+                    temp = dictToString(temp);
+                    material = dictToString(material);
+                }
+
+                input += ", " + temp;
             }
         }
-        // console.log(selected_texture);
+        if(japanese) {
+            console.log(input);
+            input = await translate("JA", "EN-US", input);
+            material = await translate("JA", "EN-US", material);
+        }
+        input += ",  texture map, seamless, 4k";
+        console.log(input);
 
-        texture_str += ",  texture map, seamless, 4k";
         const results_response = await fetch("/generate_similar_textures", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
-                "texture_string": texture_str,
+                "texture_string": input,
                 "n":n_textures,
                 "imsize":448,
                 "impath":selected_texture,
@@ -118,7 +114,8 @@
         generated_textures = results_json["results"];
         is_loading=false;
 
-        generated_texture_name.set(input_material);
+        // generated_texture_name.set(input_material);
+        generated_texture_name.set(material);
     }
 
     export async function generate_textures(texture_str) {
@@ -127,18 +124,39 @@
         selected_texture=null;
         generated_textures=[];
 
-        if(selected_prompt_keywords.length > 0) {
-            for (let i = 0; i < selected_prompt_keywords.length; i++) {
-                texture_str += ", " + selected_prompt_keywords[i];
+        let input = Object.assign("",texture_str);
+        let material = Object.assign("",texture_str);
+        if (isDict(input)) {
+            input = dictToString(input);
+            material = dictToString(material);
+        }
+
+        console.log(input);
+        let keywords = Object.assign([],selected_prompt_keywords);
+
+        if(keywords.length > 0) {
+            for (let i = 0; i < keywords.length; i++) {
+                let temp = keywords[i];
+                if(isDict(temp)) {
+                    temp = dictToString(temp);
+                }
+                input += ", " + temp;
             }
         }
 
-        texture_str += ",  texture map, seamless, 4k";
+        if(japanese) {
+            console.log(input);
+            input = await translate("JA", "EN-US", input);
+            material = await translate("JA", "EN-US", material);
+        }
+        input += ",  texture map, seamless, 4k";
+        console.log(input);
+
         const results_response = await fetch("/generate_textures", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
-                "texture_string": texture_str,
+                "texture_string": input,
                 "n":n_textures,
                 "imsize":448,
             }),
@@ -148,68 +166,12 @@
         generated_textures = results_json["results"];
         is_loading=false;
 
-        generated_texture_name.set(input_material);
+        // generated_texture_name.set(input_material);
+        generated_texture_name.set(material);
         
     }
 
-    async function apply_textures() {
-        rendering_texture_pairs=[];
-        selected_obj_parts_dict = {};
-        if (selected_object_parts.length <= 0) { alert("Please select at least 1 object part"); return }
-        is_loading=true;
-        for (let i = 0; i < selected_object_parts.length; i++) {
-            let splitted = selected_object_parts[i].split("-");
-            let obj = splitted[0];
-            let part = splitted[1];
-            if(obj in selected_obj_parts_dict) {
-                selected_obj_parts_dict[obj].push(part);
-            } else {
-                selected_obj_parts_dict[obj] = [part]; 
-            }
-        }
-        const results_response = await fetch("/apply_textures", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                "obj_parts_dict": selected_obj_parts_dict,
-                "selected_texturepaths":selected_textures,
-                "texture_string":input_material
-            }),
-        });
-        const results_json = await results_response.json();
-        rendering_texture_pairs = results_json["results"];
-        is_loading=false;
-    }
-
-    async function apply_to_curr_rendering(index) {
-        // console.log("apply to curr rendering");
-        if(index==undefined) {
-            alert("Please select one of the options"); 
-            return;
-        }
-        let selected_render_texture_pair = rendering_texture_pairs[index];
-        let selected_rendering_path = selected_render_texture_pair.rendering; 
-        let selected_texture_path = selected_render_texture_pair.texture; 
-        let selected_rendering_info = selected_render_texture_pair.info; 
-        let selected_info_path = selected_render_texture_pair.info_path;
-        const response = await fetch("/apply_to_current_rendering", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                "rendering_path": selected_rendering_path,
-                "texture_parts":selected_rendering_info,
-                "textureparts_path": selected_info_path
-            }),
-        });
-
-        const json = await response.json();
-        curr_rendering_path.set(json["rendering_path"]);
-        curr_texture_parts.set(await json["texture_parts"]);
-		curr_textureparts_path.set(await json["textureparts_path"]);
-
-        callUpdateCurrentRendering();
-    }
-
+    
     const n_pages = 4;
 
     let current_page = 0;
@@ -294,11 +256,18 @@
         const json = await response.json();
         is_loading_keywords=false;
         brainstormed_prompt_keywords = json["brainstormed_prompt_keywords"];
+
+        if (japanese) {
+            for(let i = 0; i < brainstormed_prompt_keywords.length; i++) {
+                let k = brainstormed_prompt_keywords[i];
+                brainstormed_prompt_keywords[i] = await translate("EN","JA",k);
+            }
+        }
     }
 </script>
 
 <div class="material_generator">
-    <header> Material Generator </header>
+    <h3> {japanese ? "素材ジェネレーター" : "Material Generator"}  </h3>
 
     <div class="page" class:hidden={current_page!=0} id="generate_materials">
             <div class="row">
@@ -308,9 +277,9 @@
                         generate_textures(input_material);
                     }
                 }} 
-                placeholder="Type in a material..." required/>
+                placeholder={japanese ? "素材を入力してください..." : "Type in a material..."} required/>
                 <div class="column">
-                    <span> No. of texture maps: </span>
+                    <span> {japanese ? "テクスチャマップの数：": "No. of texture maps:"}  </span>
                     <NumberSpinner bind:value={n_textures} min={1} max={20} step=1/>
                 </div>
             </div>
@@ -318,7 +287,13 @@
             <div class="column" id="prompt_keywords" style="border: solid 1px black;">
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <div class="row" id="keywords-header" on:click={() => {is_collapsed_keywords=!is_collapsed_keywords}} style="cursor:pointer;width:100%;"> 
-                    Add keywords to "{input_material.trim() !== '' ? input_material : ''}"
+                    {#if japanese} 
+                        "{input_material.trim() !== '' ? input_material : ''}"にキーワードを追加
+                    {:else}
+                        Add keywords to "{input_material.trim() !== '' ? input_material : ''}"
+                    {/if}
+                    
+                    
                     {#if is_collapsed_keywords===true}
                         <img src="./logos/down-arrow-svgrepo-com.svg" style="width:25px; height: 25px;" alt="Expand">
                     {:else}
@@ -334,12 +309,19 @@
                                         add_keyword(keyword);
                                     }
                                 }} 
-                                placeholder="Type in a keyword..."> 
-                                <button on:click|preventDefault={()=>add_keyword(keyword)}>Add</button>
+                                placeholder={japanese ? "キーワードを入力してください..." : "Type in a keyword..."}> 
+                                <button on:click|preventDefault={()=>add_keyword(keyword)}>
+                                    {japanese ? "追加" : "Add"}
+                                    <img src="./logos/add-svgrepo-com.svg" style="width:18px; height:18px; align-items: center; justify-content: center;" alt="Add keyword">
+                                </button>
                             </div>
                             <div class="row">
                                 <button on:click|preventDefault={brainstorm_prompt_keywords} style="margin-right: 10px;"> 
-                                    Brainstorm keywords for "{input_material}" 
+                                    {#if japanese} 
+                                        "{input_material}"のキーワードをブレインストーミングする 
+                                    {:else}
+                                        Brainstorm keywords for "{input_material}" 
+                                    {/if}
                                 </button>
                             </div>
                         </div>
@@ -364,12 +346,14 @@
                                 {/each}
                             {:else if is_loading_keywords}
                                 <div class="images-placeholder" style="height:20%;">
-                                    Brainstorming keywords...
+                                    {japanese ? "キーワードを考える" : "Brainstorming keywords..."}
                                     <Circle size="30" color="#FF3E00" unit="px" duration="1s" />
                                 </div>
                             {/if}
                             {#if brainstormed_prompt_keywords.length <= 0 && manual_prompt_keywords.length <= 0}
-                                <p> No keywords added. </p>
+                                <p> 
+                                    {japanese ? "キーワードは追加されていない。" : "No keywords added."}"
+                                </p>
                             {/if}
                         </div>
 
@@ -377,22 +361,32 @@
             </div>
 
             <div class="row">
-                <button disabled={!selected_texture} on:click|preventDefault={() => generate_similar_textures(input_material)}> Generate Similar Textures</button>
-                <button on:click|preventDefault={() => generate_textures(input_material)}> Generate Textures </button>
+                <button disabled={!selected_texture} on:click|preventDefault={() => generate_similar_textures(input_material)}> 
+                    {japanese ? "類似素材テクスチャを生成する"  : "Generate Similar Textures"}
+                </button>
+                <button on:click|preventDefault={() => generate_textures(input_material)}> 
+                    {japanese ? "素材テクスチャを生成する" : "Generate Textures"} 
+                </button>
             </div>
 
         {#if generated_textures.length > 0}
-            <p> Texture map results for: {get(generated_texture_name)}</p>
+            <p> 
+                {#if japanese}
+                    {input_material}のテクスチャマップの結果
+                {:else}
+                    Texture map results for: {input_material}
+                {/if}
+            </p>
             <GeneratedTextures pairs= {generated_textures} texture_name={get(generated_texture_name)} bind:selected_texture={selected_texture}/>
-                <!-- <button disabled={!selected_texture} on:click|preventDefault= {() => apply_texture()}> Apply texture </button> -->
         {:else if is_loading==true}
             <div class="images-placeholder">
-                Generating textures, please wait.
+                {japanese ? "テクスチャを生成しています。お待ちください。" : "Generating textures, please wait."}
                 <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
             </div>
         {:else}
             <div class="images-placeholder">
-                <pre>No material textures generated yet.</pre>
+                <pre> {japanese ? "素材テクスチャはまだ生成されていない。" : "No material textures generated yet."} 
+                </pre>
             </div>
         {/if}
     </div>
@@ -624,5 +618,64 @@ function prev_page() {
         current_page=0;
     }
 }
+
+async function apply_textures() {
+        rendering_texture_pairs=[];
+        selected_obj_parts_dict = {};
+        if (selected_object_parts.length <= 0) { alert("Please select at least 1 object part"); return }
+        is_loading=true;
+        for (let i = 0; i < selected_object_parts.length; i++) {
+            let splitted = selected_object_parts[i].split("-");
+            let obj = splitted[0];
+            let part = splitted[1];
+            if(obj in selected_obj_parts_dict) {
+                selected_obj_parts_dict[obj].push(part);
+            } else {
+                selected_obj_parts_dict[obj] = [part]; 
+            }
+        }
+        const results_response = await fetch("/apply_textures", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                "obj_parts_dict": selected_obj_parts_dict,
+                "selected_texturepaths":selected_textures,
+                "texture_string":input_material
+            }),
+        });
+        const results_json = await results_response.json();
+        rendering_texture_pairs = results_json["results"];
+        is_loading=false;
+    }
+
+    async function apply_to_curr_rendering(index) {
+        // console.log("apply to curr rendering");
+        if(index==undefined) {
+            alert("Please select one of the options"); 
+            return;
+        }
+        let selected_render_texture_pair = rendering_texture_pairs[index];
+        let selected_rendering_path = selected_render_texture_pair.rendering; 
+        let selected_texture_path = selected_render_texture_pair.texture; 
+        let selected_rendering_info = selected_render_texture_pair.info; 
+        let selected_info_path = selected_render_texture_pair.info_path;
+        const response = await fetch("/apply_to_current_rendering", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                "rendering_path": selected_rendering_path,
+                "texture_parts":selected_rendering_info,
+                "textureparts_path": selected_info_path
+            }),
+        });
+
+        const json = await response.json();
+        curr_rendering_path.set(json["rendering_path"]);
+        curr_texture_parts.set(await json["texture_parts"]);
+		curr_textureparts_path.set(await json["textureparts_path"]);
+
+        callUpdateCurrentRendering();
+    }
+
 </script> -->
 

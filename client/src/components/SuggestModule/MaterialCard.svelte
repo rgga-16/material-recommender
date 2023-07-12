@@ -14,8 +14,8 @@
         navigator.clipboard.writeText(text);
     }
 
-    let display_name = {...material_name};
-    let display_info = {...material_info};
+    let display_name = Object.assign("",material_name);
+    let display_info = Object.assign("",material_info);
 
     in_japanese.subscribe(value => {
         if (value) {

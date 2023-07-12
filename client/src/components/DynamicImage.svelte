@@ -6,6 +6,12 @@ import {transferred_textureimg_url} from '../stores.js';
 import {transferred_texture_name} from '../stores.js';
 import {isDraggingImage} from '../stores.js';
 import { threed_display_global } from '../stores.js';
+import {in_japanese} from '../stores.js';
+
+let japanese;
+in_japanese.subscribe(value => {
+    japanese = value;
+});
 
 // This component is a dynamic image component. It should dynamically load an image given its path.
 export let imagepath; //Image path that will be passed to the server to get the image
@@ -86,7 +92,9 @@ onMount(getImage);
         <div class="container">
             <img src={imagesource} alt={alt ? alt:"Image"} style="max-width: {size}; max-height:{size}" draggable={is_draggable} on:dragstart={dragStart}>
             {#if is_draggable}
-                <button class="button" on:mouseenter={toggleShowButton} on:mouseleave={toggleShowButton} on:click={apply_texture}> Apply Texture </button>
+                <button class="button" on:mouseenter={toggleShowButton} on:mouseleave={toggleShowButton} on:click={apply_texture}> 
+                    {japanese ? "テクスチャーを貼る": "Apply Texture"}
+                </button>
             {/if}
         </div>
             
