@@ -1,5 +1,6 @@
 <script>
     // Based on https://codepen.io/marlasdaughter/pen/yGZZLp
+    
     export let color_codes; 
     export let name;
 

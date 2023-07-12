@@ -3,6 +3,7 @@ import { writable } from 'svelte/store';
 export const curr_rendering_path = writable(""); 
 export const curr_textureparts_path = writable(""); 
 export const curr_texture_parts = writable({});
+export const japanese_curr_texture_parts = writable({});
 
 export const models_setup_path = writable("");
 export const models_setup = writable({});
@@ -48,6 +49,26 @@ Location: The bedroom is located in a modern urban apartment in a bustling city.
 
 Please note that the design brief is flexible and can be further refined based on the client's specific requirements and preferences.
 `); //Keeps track of the design brief
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // selected_objs_and_parts = [
 //     { part_name: "part1", 
@@ -110,8 +131,8 @@ export const isDraggingImage = writable(false); //Keeps track of whether an imag
 export const generated_texture_name = writable(""); //Keeps track of the name of the generated texture
 
 
-export let in_japanese = writable(false); //Keeps track of whether the language is in Japanese or not
-export let use_chatgpt = writable(false); //Keeps track of whether the app uses chatgpt or not
+export let in_japanese = writable(true); //Keeps track of whether the language is in Japanese or not
+export let use_chatgpt = writable(true); //Keeps track of whether the app uses chatgpt or not
 
 
 /* 

@@ -1,6 +1,8 @@
 <script>
     import DynamicImage from "../DynamicImage.svelte";
     import SvelteMarkdown from 'svelte-markdown';
+    import {in_japanese} from '../../stores.js';
+    import {translate} from '../../main.js';
     export let material_path;
     export let material_name;
     export let material_info; 
@@ -12,17 +14,34 @@
         navigator.clipboard.writeText(text);
     }
 
+    let display_name = {...material_name};
+    let display_info = {...material_info};
+
+    in_japanese.subscribe(value => {
+        if (value) {
+            translate("EN","JA",material_name).then((result) => {
+                display_name = result;
+            });
+            translate("EN","JA",material_info).then((result) => {
+                display_info = result;
+            });
+        } else {
+            display_name = material_name;
+            display_info = material_info;
+        }
+    });
+
 </script>
 
 <div class="card">
-    <h3> {material_name} </h3>
+    <h3> {display_name} </h3>
     <div class="card-body">
         <div class="image-container">
             <DynamicImage imagepath={material_path} alt={material_name} is_draggable={true} />
         </div>
         <div class="text-container">
           <!-- <SvelteMarkdown source={material_info} /> -->
-            <p>{material_info}</p>
+          <p>{display_info}</p>
         </div>
     </div>
     <!-- <button on:click={copyText}>Copy to clipboard</button> -->

@@ -9,9 +9,12 @@
 
     import {actions_panel_tab} from '../../stores.js';
     import {generate_tab_page} from '../../stores.js';
+    import {in_japanese} from '../../stores.js';
     import {createEventDispatcher} from 'svelte';
     import {get} from 'svelte/store';
     import SvelteMarkdown from 'svelte-markdown';
+
+    import {translate} from '../../main.js';
 
 
     const dispatch = createEventDispatcher();
@@ -67,11 +70,12 @@
         if(use_design_brief) {
             context = get(design_brief);
         }
+
         const response = await fetch("/suggest_materials", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
-                "prompt": inputMessage,
+                "prompt": get(in_japanese) ? await translate("JA","EN-US",inputMessage) : inputMessage,
                 "role":"user",
                 "use_internet": use_internet,
                 "context": context
@@ -84,7 +88,11 @@
         let intro_text = json["intro_text"];
         let role = json["role"];
         let suggested_materials = json["suggested_materials"];
-        // console.log(suggested_materials);
+        console.log(suggested_materials);
+
+        // if(get(in_japanese)) {
+        //     intro_text = await translate("EN","JA",intro_text);
+        // }
 
         let message_type = "suggested_materials";
         messages.push({
@@ -93,6 +101,7 @@
             "type": message_type,
             "content": suggested_materials
         });
+
         messages = messages;
     }
 
@@ -125,6 +134,15 @@
         let intro_text = json["intro_text"];
         let role = json["role"];
         let suggested_color_palettes = json["suggested_color_palettes"];
+
+        if(get(in_japanese)) {
+            // intro_text = await translate("EN","JA",intro_text);
+            for(let i=0;i<suggested_color_palettes.length;i++) {
+                suggested_color_palettes[i]["name"] = await translate("EN","JA",suggested_color_palettes[i]["name"]);
+                suggested_color_palettes[i]["description"] = await translate("EN","JA",suggested_color_palettes[i]["description"]);
+            }
+        }
+
         // console.log(suggested_color_palettes);
 
         let message_type = "suggested_color_palettes";
@@ -187,8 +205,15 @@
         const response = await fetch('./init_query');
         const json = await response.json();
         is_loading_response=false;
+
         let message = json["response"];
         let role = json["role"];
+
+        if(get(in_japanese)) {
+            message = await translate("EN","JA",message);
+        }
+        // message = "\""+ message +"\"";
+
         messages.push({
             "message": message,
             "role": role
@@ -238,10 +263,8 @@
             <div class="{message.role}">
                 <strong>{message.role}: </strong>
                 <SvelteMarkdown source={message.message} />
-                <!-- <p> {message.message} </p> -->
                 {#if message.type == "suggested_materials"}
                     {#each message.content as m, i}
-                        <!-- <div style="display:flex; flex-direction:row;"> -->
                             <MaterialCard material_path={m["filepath"]} material_name={m["name"]} material_info={m["reason"]} index={i}/>
                             <button 
                             on:click|preventDefault={()=> generate(m["name"])}
@@ -250,10 +273,7 @@
                                 Generate more!
                                 <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
                             </button>
-                        <!-- </div> -->
-                        
                     {/each}
-                
                 {:else if message.type=="suggested_color_palettes"}
                     <ol>
                         {#each message.content as m,i}
@@ -262,7 +282,6 @@
                                     <ColorPalette name={m["name"]} color_codes={m["codes"]} />
                                 </div>
                                 <button on:click={()=>saveColorPalette(m)}> Save Palette </button>
-                                <!-- <p> {m["description"]} </p> -->
                                 <SvelteMarkdown source={m["description"]} />
                             </li>
                         {/each}

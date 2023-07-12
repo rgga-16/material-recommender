@@ -1,5 +1,5 @@
 from flask import Flask, send_from_directory, request, jsonify, send_file
-import random, requests, json, copy, shutil, os, base64, io, time
+import random, requests, json, copy, shutil, os, base64, io, time, deepl
 from PIL import Image
 from texture_transfer_3d import TextureDiffusion, DALLE2, text2texture_similar
 from configs import *
@@ -18,10 +18,30 @@ RENDER_MODE = 'CYCLES'
 
 # texture_generator = DALLE2()
 texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
+
 # fast_texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
 # quality_texture_generator = DALLE2()
 
+
+
 app = Flask(__name__, static_folder="./client/public")
+
+DEEPL_AUTHKEY='2c0ea470-3cef-d714-4176-cde832a9b2f5:fx'
+translator = deepl.Translator(DEEPL_AUTHKEY)
+@app.route("/translate", methods=['POST'])
+def translate():
+    form_data = request.get_json()
+    text = form_data["text"]
+    target_lang = form_data["target_lang"]
+    source_lang = form_data["source_lang"]
+
+    result = translator.translate_text(text, source_lang=source_lang, target_lang=target_lang)
+
+    if isinstance(result,list):
+        
+        print("translation is a list for some reason")
+        print()
+    return jsonify({"text":result.text})
 
 @app.route("/get_static_dir")
 def get_static_dir():
