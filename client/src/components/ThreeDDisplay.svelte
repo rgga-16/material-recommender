@@ -500,75 +500,7 @@
                     if (dragged_texture_url && dragged_textureimg_url && dragged_texture_name) { 
                         fullTextureTransferAlgorithm();
 
-                        // if(SELECTEDS.length > 0) {
-                        //     for (let selected of SELECTEDS) {
-                        //         const index = SELECTED_INFOS.findIndex(item => item.name === selected.model_name && item.parent === selected.model_parent);
-
-                        //         let SELECTED_INFO = SELECTED_INFOS[index];
-                        //         let selected_object_name = SELECTED_INFO.name;
-                        //         let selected_parent_object = SELECTED_INFO.parent;
-                                
-                        //         let cloned_texture_parts = get(curr_texture_parts);
-
-                        //         const textureimg_url_noext = dragged_textureimg_url.split(".")[0];
-                        //         const ext = dragged_textureimg_url.split(".")[1];
-                        //         const texturenormal_url = textureimg_url_noext + "_normal." + ext;
-                        //         const textureheight_url = textureimg_url_noext + "_height." + ext;
-
-                        //         if (dragged_texture_name===null || dragged_texture_name===null) {
-                        //             alert("Error in dragging and dropping texture. Please try again.");
-                        //             return;
-                        //         }
-                                
-
-                        //         const old_mat_name = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"];
-                        //         const old_mat_image_texture = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_image_texture"];
-                        //         let old_mat_normal_texture = null;
-                        //         if ("mat_normal_texture" in cloned_texture_parts[selected_parent_object][selected_object_name]) {
-                        //             old_mat_normal_texture = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_normal_texture"];
-                        //         }
-                        //         let old_mat_height_texture = null;
-                        //         if ("mat_height_texture" in cloned_texture_parts[selected_parent_object][selected_object_name]) {
-                        //             old_mat_height_texture = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_height_texture"];
-                        //         }
-
-                        //         cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"] = dragged_texture_name;
-                                
-                        //         await transferTexture(selected_parent_object, selected_object_name, dragged_textureimg_url, texturenormal_url, textureheight_url);
-                                
-                        //         addToHistory("Change Texture", 
-                        //         selected_parent_object, selected_object_name, 
-                        //         ["mat_name","mat_image_texture","mat_normal_texture",
-                        //         "mat_height_texture"], 
-                        //         [old_mat_name,old_mat_image_texture,old_mat_normal_texture,
-                        //         old_mat_height_texture], 
-                        //         [dragged_texture_name,dest_url,
-                        //         normalmap_texture_url,heightmap_texture_url]);
-                                
-                        //         curr_texture_parts.set(cloned_texture_parts);
-                        //         information_panel.displayTexturePart();
-                        //     }
-                        //     dragging=false;
-                        //     dragged_texture_name=null;
-                        //     dragged_texture_url=null;
-                        //     dragged_textureimg_url=null;
-
-                        //     transferred_texture_name.set(null);
-                        //     transferred_texture_url.set(null);
-                        //     transferred_textureimg_url.set(null);
-                        //     isDraggingImage.set(false);
-                        // } else {
-                        //     dragging=false;
-                        //     dragged_texture_name=null;
-                        //     dragged_texture_url=null;
-                        //     dragged_textureimg_url=null;
-
-                        //     transferred_texture_name.set(null);
-                        //     transferred_texture_url.set(null);
-                        //     transferred_textureimg_url.set(null);
-                        //     isDraggingImage.set(false);
-                        //     alert("No selected object. Please select an object first.");
-                        // }
+                    
                     }
                 }
 
@@ -654,7 +586,7 @@
                         mat.normalScale = new THREE.Vector2(0.1, 0.1);
                         
                         mat.bumpMap = heightmap;
-                        mat.bumpScale = 0.5;
+                        mat.displacementScale = 0.00;
                         // WIP
 
                         mat.transparent= true;
@@ -674,8 +606,8 @@
 
                     material.normalScale = new THREE.Vector2(0.1, 0.1);
             
-                    console.log("BUMP SCALE: " + material.bumpScale);
-                    material.bumpScale = 0.5;
+                    console.log("BUMP SCALE: " + material.displacementScale);
+                    material.displacementScale = 0.00;
 
                     material.map = texturemap;
                     material.normalMap = normalmap;

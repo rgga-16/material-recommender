@@ -293,7 +293,7 @@
 		threed_display_global.set(threed_display);
 		information_panel_global.set(information_panel);
 		console.log(get(curr_texture_parts));
-		design_brief_text={...get(design_brief)};
+		design_brief_text=get(design_brief);
 
 	});
 

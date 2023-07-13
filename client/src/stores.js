@@ -11,62 +11,40 @@ export const models_setup = writable({});
 export const chatbot_input_message = writable(""); //Keeps track of the input message in the chatbot
 
 export const design_brief = writable(`
-Design Brief: Bedroom Design for a Modern Urban Dweller
+デザイン概要: 日本人夫婦のためのモダンなミニマリスト主寝室
+人口動態
+クライアントは、日本の賑やかな都市東京に住む30代前半の日本人夫婦です。 彼らは二人とも働くプロフェッショナルで、忙しい一日の後にリラックスできる居心地の良いベッドルームを望んでいます。
 
-Demographics and Target Market: The client is a young professional in their late 20s, working in a creative industry. They have a busy lifestyle and value comfort, functionality, and aesthetics. The target market includes individuals who appreciate contemporary design and seek a peaceful retreat within their urban living space.
+プロジェクトの背景
+プロジェクトの背景は、クライアントのライフスタイルを反映した温かみのある魅力的な色調を備えたモダンなミニマリスト デザインを作成することです。 デザインには現代的な要素と伝統的な要素が混在している必要があります。
 
-Background of the Project: The project aims to create a stylish and functional bedroom that reflects the client's personality and provides a serene sanctuary amidst the bustling city life. The design should incorporate elements that cater to the client's needs and preferences while complementing their modern lifestyle.
+好みのデザインスタイル
+寝室に好まれるデザインスタイルは、スカンジナビアの美学を加えたモダンなミニマリストです。
 
-Preferred Design Style: The preferred design style for the bedroom is a blend of modern and minimalist aesthetics. Clean lines, sleek furniture, and a neutral color palette will be used to create a calming and sophisticated atmosphere.
+求める雰囲気や雰囲気
+寝室に求められる雰囲気と雰囲気は、穏やかで、心地よく、リラックスできるものでなければなりません。 照明は柔らかくて温かみのある、居心地の良い親密な雰囲気でなければなりません。
 
-Desired Feel and Ambience: The client desires a tranquil and cozy atmosphere in the bedroom. The space should evoke a sense of relaxation, allowing them to unwind after a long day. The ambience should be warm, inviting, and conducive to restful sleep.
+クライアントの好み
+クライアントは、すっきりとしたラインと幾何学的な形状を備えたミニマルなデザインを好みます。 また、寝室には木材などの天然素材を好む傾向があります。
 
-Preferred Colors, Materials, and Finishes: The client prefers a neutral color scheme with a focus on earthy tones such as beige, taupe, and soft greys. They appreciate natural materials like wood and stone, as well as textures such as linen and velvet. The finishes should be matte and understated, contributing to the overall minimalist aesthetic.
+バジェット
+プロジェクトの予算は約10万ペソです。 これは、家具や装飾品の費用をカバーできる適度な予算です。
 
-Budget: The client has a moderate budget for the project, allowing for quality materials and furnishings without excessive extravagance.
+家具と付属品
+ベッドルームには次の家具とアクセサリーが含まれます。
+クイーンサイズの低めのプラットフォームベッドで、木製のヘッドボードと両側にサイドテーブルが組み込まれています。
+マット仕上げの白い引き出し 2 つと木のアクセントが付いたキャビネット。
+32インチのテレビです。
+ニュートラルな質感のカーペット。
+自然光を部屋に取り込む、柔らかく明るい色のカーテン。
+フォトフレームや本を展示するためのいくつかのフローティングシェルフ。
+手入れが簡単な屋内植物を備えた陶器のプランター、数冊の本、Bang & Olufsen のヘッドフォンのセット。
+計画された用途
+寝室の計画的な用途は、睡眠、リラクゼーション、くつろぎです。 ベッドの両側に組み込まれたサイドテーブルには、本、タブレット、デバイスを十分に収納できます。 フローティングシェルフはインテリアの書籍コレクションを展示するために使用されます。
 
-Furniture and Accessories: The bedroom will include the following furniture and accessories:
-
-Bed: A queen-sized bed with pillows, a comfortable mattress, a cozy blanket, a throw blanket, a sleek bedframe, and a padded headboard. The bed will feature built-in sidetables on each side.
-
-Two closed drawers: These drawers will provide storage for clothing and personal items, maintaining a clutter-free environment.
-
-An open drawer: This drawer will serve as a display area for decorative items or books.
-
-TV: A wall-mounted TV will be positioned for comfortable viewing from the bed.
-
-Carpet: A plush, neutral-colored carpet will cover the bedroom floor, adding warmth and comfort.
-
-Curtains: Floor-to-ceiling curtains in a light fabric will be installed to control natural light and provide privacy.
-
-Shelves: Minimalist floating shelves will be mounted on the walls to showcase books, potted plants, and decorative accessories.
-
-Accessories: Potted plants, books, figurines, and headphones will be strategically placed to add personal touches and enhance the overall ambiance.
-
-Planned Uses of the Bedroom: The bedroom will serve as a multifunctional space, primarily for relaxation, sleep, and personal rejuvenation. It will also provide a cozy reading nook, a small entertainment area for watching TV, and a display space for the client's favorite books and decorative items.
-
-Location: The bedroom is located in a modern urban apartment in a bustling city. The environment is vibrant and dynamic, and the design should create a peaceful oasis within this energetic setting. The city is fictional, allowing for creative freedom in designing the bedroom to suit various urban locations.
-
-Please note that the design brief is flexible and can be further refined based on the client's specific requirements and preferences.
+位置
+ベッドルームは東京都内の湾岸エリアにある高層マンションにあります。 環境は都会的で、賑やかで、モダンです。 しかし、デザインアプローチは、カップルが都市の多忙なエネルギーから逃れて休憩時間を過ごすことができる、まるで隠れ家か聖域のように感じるリラックスできる空間を作り出すことで、忙しい環境を相殺することを目指しています。
 `); //Keeps track of the design brief
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -118,7 +96,7 @@ export const saved_color_palettes = writable([
 
 export const actions_panel_tab = writable("generate"); //Keeps track of which tab is currently selected in the actions panel
 export const information_panel_tab = writable("details"); //Keeps track of which tab is currently selected in the information panel
-export const display_panel_tab = writable("3d_display")
+export const display_panel_tab = writable("3d_display");
 
 export const generate_module = writable(); //Keeps track of the generate module. Used if you want to call the module to generate something.
 
