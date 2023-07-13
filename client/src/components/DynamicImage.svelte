@@ -90,7 +90,8 @@ onMount(getImage);
             <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
         {:else}
         <div class="container">
-            <img src={imagesource} alt={alt ? alt:"Image"} style="max-width: {size}; max-height:{size}" draggable={is_draggable} on:dragstart={dragStart}>
+            <!-- <img src={imagesource} alt={alt ? alt:"Image"} style="max-width: {size}; max-height:{size}" draggable={is_draggable} on:dragstart={dragStart}> -->
+            <img src={imagesource} alt={alt ? alt:"Image"} style="max-width: {size}; max-height:{size}" draggable={false}> 
             {#if is_draggable}
                 <button class="button" on:mouseenter={toggleShowButton} on:mouseleave={toggleShowButton} on:click={apply_texture}> 
                     {japanese ? "テクスチャーを貼る": "Apply Texture"}

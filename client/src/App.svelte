@@ -19,6 +19,7 @@
 	import {use_chatgpt} from './stores.js';
 	import {get} from 'svelte/store';
 	import {onMount} from "svelte";	
+	import {action_history} from './stores.js';
 
 	import {undoAction} from './main.js';
 	import {redoAction} from './main.js';
@@ -30,6 +31,11 @@
     in_japanese.subscribe(value => {
         japanese = value;
     });
+
+	let history;
+	action_history.subscribe(value => {
+		history = value;
+	});
 
 
 	let current_rendering_path;
@@ -287,13 +293,8 @@
 		threed_display_global.set(threed_display);
 		information_panel_global.set(information_panel);
 		console.log(get(curr_texture_parts));
+		design_brief_text={...get(design_brief)};
 
-		if (japanese) {
-			await translateDesignBrief(get(design_brief));
-		}
-		else {
-			design_brief_text={...get(design_brief)};
-		}
 	});
 
 	let actions_panel_collapsed=false;
@@ -354,14 +355,21 @@
 				<button id="design-brief-btn" on:click = {() => showDesignBrief()}> {japanese ? "デザイン概要を見る" : "View Design Brief"} </button>
 				
 				<div id="action-history-btns">
-					<button id="" on:click = {() => {undoAction()}}> 
+					<button id="" on:click = {() => {undoAction()}} disabled={history.currentIndex <= -1}> 
+						<!-- {#if history.currentIndex > -1}
+							Undo "{history.actions[history.currentIndex]["name"]}"
+						{/if} -->
+						
 						<img src="./logos/undo-small-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 					</button>
-					<button id="" on:click = {() => {redoAction()}}> 
+					<button id="" on:click = {() => {redoAction()}} disabled={history.currentIndex >= history.actions.length - 1}> 
+						<!-- {#if history.currentIndex < history.actions.length - 1}
+							Redo "{history.actions[history.currentIndex+1]["name"]}"
+						{/if} -->
+						
 						<img src="./logos/redo-small-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 					</button>
 				</div>
-				
 				
 				<div class="w3-bar w3-grey tabs">
 					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='rendering_display'} on:click={()=>switchDisplayTab('rendering_display')} id="rendering-display-btn">
@@ -370,7 +378,6 @@
 					<button class='w3-bar-item w3-button tab-btn' class:active={activeDisplayTab==='3d_display'} on:click={()=>switchDisplayTab('3d_display')} id="suggest-colors-btn">
 						{japanese ? "3Dビュー" : "3D View"}
 					</button>
-					
 				</div>
 				<!-- Display rendering -->
 				<div class="tab-content rendering-display" class:active={activeDisplayTab==='rendering_display'}>
@@ -404,39 +411,37 @@
 									{japanese ? "セーブシーン": "Save Scene"}
 								</button>
 							</div>
-
 						{/await}
 					{/if}
 				</div>
 
-
 				<!-- Display 3D model/s -->
 				<div class="tab-content threed-display" class:active={activeDisplayTab==='3d_display'} id="threed_display_parent">
-						{#await promise}
-							<pre> 
-								{japanese ? "3Dビューアをロードしています。しばらくお待ちください。": "Loading 3D viewer. Please wait."}
-							</pre>
-						{:then data}
-							<ThreeDDisplay bind:this={threed_display} current_texture_parts={get(curr_texture_parts)} bind:information_panel={information_panel} {displayHeight} {displayWidth} />
-							<div class="display-buttons">
-								<button on:click|preventDefault={update_3dmodels_and_render}> {japanese ? "レンダー" : "Render"} </button>
-								<button on:click|preventDefault={save_scene}>{japanese ? "セーブシーン": "Save Scene"}</button>
+					{#await promise}
+						<pre> 
+							{japanese ? "3Dビューアをロードしています。しばらくお待ちください。": "Loading 3D viewer. Please wait."}
+						</pre>
+					{:then data}
+						<ThreeDDisplay bind:this={threed_display} current_texture_parts={get(curr_texture_parts)} bind:information_panel={information_panel} {displayHeight} {displayWidth} />
+						<div class="display-buttons">
+							<button on:click|preventDefault={update_3dmodels_and_render}> {japanese ? "レンダー" : "Render"} </button>
+							<button on:click|preventDefault={save_scene}>{japanese ? "セーブシーン": "Save Scene"}</button>
+						</div>
+						{#if is_loading_scene || is_rendering_scene || is_saving_scene}
+							<div class="images-placeholder" id="threed-loading">
+								{#if is_loading_scene}
+									{japanese ? "ロード中...": "Loading scene..."}
+								{:else if is_saving_scene}
+									{japanese ? "保存シーン..." : "Saving scene..."}
+								{:else if is_rendering_scene}
+									{japanese ? "レンダリングシーン": "Rendering scene..."}
+								{:else}
+									{japanese ? "シーンの更新": "Updating scene..."}
+								{/if}
+								<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
 							</div>
-							{#if is_loading_scene || is_rendering_scene || is_saving_scene}
-								<div class="images-placeholder" id="threed-loading">
-									{#if is_loading_scene}
-										{japanese ? "ロード中...": "Loading scene..."}
-									{:else if is_saving_scene}
-										{japanese ? "保存シーン..." : "Saving scene..."}
-									{:else if is_rendering_scene}
-										{japanese ? "レンダリングシーン": "Rendering scene..."}
-									{:else}
-										{japanese ? "シーンの更新": "Updating scene..."}
-									{/if}
-									<Circle size="60" color="#FF3E00" unit="px" duration="1s" />
-								</div>
-							{/if}
-						{/await}
+						{/if}
+					{/await}
 				</div>
 			</div>
 			
