@@ -54,6 +54,8 @@
         const textureparts_div = document.getElementById("texture-part-details");
         textureparts_div.innerHTML='';
 
+        // console.log(current_texture_parts);
+
         for(let i=0; i < sel_objs_and_parts.length; i++) {
             let selected_part_parent = sel_objs_and_parts[i].parent; 
             let selected_part = sel_objs_and_parts[i].name;
@@ -64,8 +66,8 @@
             let parents = current_texture_parts[selected_part_parent][selected_part]["parents"];
 
             let material_color = null;
-            if(current_texture_parts.hasOwnProperty('mat_color')) {
-                material_color = current_texture_parts[selected_part_parent][selected_part]["mat_color"];
+            if(current_texture_parts.hasOwnProperty('color')) {
+                material_color = current_texture_parts[selected_part_parent][selected_part]["color"];
             }
             let texturepart = new TexturePart({
                 target: textureparts_div,

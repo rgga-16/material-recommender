@@ -9,7 +9,7 @@
     import EditableTextbox from "./EditableTextbox.svelte";
 
     import {in_japanese, selected_objs_and_parts} from '../stores.js';
-    import {translate} from '../main.js';
+    import {translate,addToHistory} from '../main.js';
     import {saved_color_palettes} from "../stores.js";
     import {chatbot_input_message} from "../stores.js";
     import {actions_panel_tab} from '../stores.js';
@@ -20,7 +20,14 @@
     import {get} from 'svelte/store';
 
     import {createEventDispatcher} from 'svelte';
-    import {curr_texture_parts} from '../stores.js';
+    import {curr_texture_parts, objects_3d, information_panel_global} from '../stores.js';
+
+    let isMouseDown=false;
+
+    let information_panel;
+    information_panel_global.subscribe(value => {
+      information_panel = value;
+    });
 
     let japanese;
     in_japanese.subscribe(value => {
@@ -30,6 +37,11 @@
     let current_texture_parts;
     curr_texture_parts.subscribe(value => {
       current_texture_parts = value;
+    });
+
+    let all_3d_objects;
+    objects_3d.subscribe(value => {
+      all_3d_objects = value;
     });
     
     export let part_name;
@@ -91,7 +103,6 @@
     let selected_palette_idx=0;
     saved_color_palettes.subscribe(value => {
       palettes=value;
-      // selected_palette_idx=0;
     });
 
     let selected_swatch_idx = undefined;
@@ -106,8 +117,6 @@
     export function updateImage() {
       image.getImage();
     }
-    // console.log(parents);
-
     function updateNormalScale() {
       selected_objs_and_parts.update(value => {
         value[index].model.children[0].material.normalScale.x = normalScale[0];
@@ -123,6 +132,24 @@
       });
     }
 
+    function changeProperty(property, new_value, old_value=0) {
+      if(current_texture_parts[part_parent_name][part_name][property]) {
+        old_value = current_texture_parts[part_parent_name][part_name][property];
+      }
+      curr_texture_parts.update(value => {
+        value[part_parent_name][part_name][property] = new_value;
+        return value;
+      });
+      addToHistory("Change " + property, 
+        part_parent_name, part_name, 
+        [property], 
+        [old_value], 
+        [new_value]
+      );
+      // information_panel.displayTexturePart();
+    }
+
+
     function updateOpacity() {
       selected_objs_and_parts.update(value => {
         value[index].model.children[0].material.transparent= true;
@@ -131,13 +158,34 @@
       });
     }
 
-
-    function updateFinish() {
+    function updateMetalness() {
       selected_objs_and_parts.update(value => {
-        value[index].model.children[0].material.roughness = roughness[0];
         value[index].model.children[0].material.metalness = metalness[0];
         return value;
       });
+      // let old_metalness=0.5;
+      // if(current_texture_parts[part_parent_name][part_name]['mat_metalness']) {
+      //   old_metalness = current_texture_parts[part_parent_name][part_name]['mat_metalness'];
+      // }
+      // curr_texture_parts.update(value => {
+      //   value[part_parent_name][part_name]['mat_metalness'] = metalness[0];
+      //   return value;
+      // });
+    }
+
+    function updateRoughness() {
+      selected_objs_and_parts.update(value => {
+        value[index].model.children[0].material.roughness = roughness[0];
+        return value;
+      });
+      // let old_roughness=0.5;
+      // if(current_texture_parts[part_parent_name][part_name]['roughness']) {
+      //   old_roughness = current_texture_parts[part_parent_name][part_name]['roughness'];
+      // }
+      // curr_texture_parts.update(value => {
+      //   value[part_parent_name][part_name]['roughness'] = roughness[0];
+      //   return value;
+      // });
     }
 
     function radianToDegree(radians) {
@@ -301,7 +349,7 @@
       const hexNumber = parseInt(color.substring(1), 16);
       // console.log(hexNumber);
 
-      current_texture_parts[part_parent_name][part_name]['mat_color'] = hexNumber;
+      current_texture_parts[part_parent_name][part_name]['color'] = hexNumber;
       curr_texture_parts.set(current_texture_parts);
 
       selected_objs_and_parts.update(value => {
@@ -428,6 +476,34 @@
         references = current_texture_parts[part_parent_name][part_name]['feedback']['references'];
         activeAspect= Object.keys(formatted_feedback)[0];
       }
+
+      if(current_texture_parts[part_parent_name][part_name]['opacity']) {
+        opacity = [current_texture_parts[part_parent_name][part_name]['opacity']];
+      }
+      if(current_texture_parts[part_parent_name][part_name]['mat_metalness']) {
+        metalness = [current_texture_parts[part_parent_name][part_name]['mat_metalness']];
+      }
+      if(current_texture_parts[part_parent_name][part_name]['roughness']) {
+        roughness = [current_texture_parts[part_parent_name][part_name]['roughness']];
+      }
+      if(current_texture_parts[part_parent_name][part_name]['color']) {
+        material_color = current_texture_parts[part_parent_name][part_name]['color'];
+        material_color_palette = {
+          name: 'Custom', 
+          palette: [
+            material_color,
+            "#FFFFFF",
+            "#FFFFFF",
+            "#FFFFFF",
+            "#FFFFFF",
+          ]
+        };
+        palettes.unshift(material_color_palette);
+        palettes=palettes;
+        selected_palette_idx=0;
+        selected_swatch_idx=0;
+      }
+
       console.log(parents);
       gen_module = get(generate_module);
     });
@@ -462,9 +538,9 @@
         <div class="texture-name control">
           {japanese ? "素材：" : "Material:"} <EditableTextbox bind:text={current_texture_parts[part_parent_name][part_name]['mat_name']} />
         </div>
-        {#if current_texture_parts[part_parent_name][part_name]['mat_color']}
+        {#if current_texture_parts[part_parent_name][part_name]['color']}
           <div class="texture-name control">
-           {japanese ? "カラー：": "Color:"}<input type="text" readonly="readonly" bind:value={current_texture_parts[part_parent_name][part_name]['mat_color']}>
+            {japanese ? "カラー：": "Color:"}<input type="text" readonly="readonly" bind:value={current_texture_parts[part_parent_name][part_name]['color']}>
           </div>
         {:else}
           <div class="texture-name control">
@@ -509,34 +585,35 @@
     <h5><b> {japanese ? "素材仕上げの調整" : "Adjust Material Finish"}</b></h5> 
     <div class="control">
       <span> {japanese ? "不透明度：" : "Opacity:"}   </span>
-      <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
-        <RangeSlider on:change={updateOpacity} bind:values={opacity} min={0} max={1} step={0.1} float={true} pips/> 
+      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("opacity", opacity[0], 1.0)}}> 
+        <!-- <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeOpacity()}}>  -->
+        <RangeSlider on:change={updateOpacity} bind:values={opacity} min={0} max={1} step={0.1} float={true} pips /> 
       </div>
     </div>
     <div class="control">
       <span> {japanese ? "粗さ：" : "Roughness:"}" </span>
-      <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
-        <RangeSlider on:change={updateFinish} bind:values={roughness} min={0} max={1} step={0.1} float={true} pips/> 
+      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("roughness", roughness[0], 0.5)}}> 
+        <RangeSlider on:change={updateRoughness} bind:values={roughness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
     <div class="control">
       <span> {japanese ? "金属的だ：": "Metalness:"} </span>
-      <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
-        <RangeSlider on:change={updateFinish} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips/> 
+      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("roughness", roughness[0], 0.5)}}> 
+        <RangeSlider on:change={updateMetalness} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
 
     <div class="control">
       <span> {japanese ? "法線マップの強度:" : "Normal Map Strength:"} </span>
-      <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
+      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}> 
         <RangeSlider on:change={updateNormalScale} bind:values={normalScale} min={0} max={10} step={0.1} float={true}/> 
       </div>
     </div>
 
     <div class="control">
       <span> {japanese ? "高さマップの強度:" : "Height Map Strength:"} </span>
-      <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
-        <RangeSlider on:change={updateDisplacementScale} bind:values={displacementScale} min={0} max={100} step={0.1} float={true}/> 
+      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}> 
+        <RangeSlider on:change={updateDisplacementScale} bind:values={displacementScale} min={0} max={0.5} step={0.01} float={true}/> 
       </div>
     </div>
   </div>
@@ -546,11 +623,11 @@
     <div class="control">
       <div class="card container" style="height: auto;">
         <h6> <b> {japanese ? "平行移動": "Translation"} </b></h6>
-        <div class="control">
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}>
           <span>X:</span>
           <NumberSpinner on:change={updateTextureMapOffset} bind:value={translationX} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
         </div>
-        <div class="control">
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}>
           <span>Y:</span>
           <NumberSpinner on:change={updateTextureMapOffset} bind:value={translationY} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
         </div>
@@ -558,7 +635,7 @@
 
       <div class="card container" style="height: auto;">
         <h6> <b> {japanese ? "回転": "Rotation"} </b></h6>
-        <div class="control">
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}>
           <span>Z: </span>
           <NumberSpinner on:change={updateTextureMapOrientation} bind:value={rotation} min=0 max=360 step=0.1 decimals=1 precision=0.1/>°
         </div>
@@ -566,15 +643,15 @@
 
       <div class="card container" style="height: auto;">
         <h6> <b> {japanese ? "スケール": "Scale"}  </b></h6>
-        <div class="control">
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}>
           <span>X & Y: </span>
           <NumberSpinner on:change={updateTextureMapScale} bind:value={scale} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
         </div>
-        <div class="control">
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}>
           <span>X: </span>
           <NumberSpinner on:change={updateTextureMapScale} bind:value={scaleX} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
         </div>
-        <div class="control">
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}>
           <span>Y: </span>
           <NumberSpinner on:change={updateTextureMapScale} bind:value={scaleY} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
         </div>
@@ -624,7 +701,6 @@
                   <button on:click|preventDefault={() => addNewColorPalete()}> 
                     {japanese ? "新規追加" : "Add new"} 
                     <img src="./logos/add-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Add new color palette">
-                    <!-- add-svgrepo-com.svg -->
                   </button>
                 {:else}
                   {#each palettes as p,j}
@@ -659,6 +735,8 @@
       <input id="current-swatch" type="color"  
         bind:value={palettes[selected_palette_idx]['palette'][selected_swatch_idx]}
         on:change={() => updateColor()}
+        on:mousedown={() => isMouseDown=true} 
+        on:mouseup = {() => isMouseDown=false}
       >
     {/if}
   </div>

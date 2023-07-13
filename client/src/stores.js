@@ -74,9 +74,9 @@ Please note that the design brief is flexible and can be further refined based o
 //     { part_name: "part1", 
 //       obj_name: "obj1",
 //       mat_metallic: 0.5, //THREE.MeshStandardMaterial.metalness
-//       mat_roughness: 0.5, //THREE.MeshStandardMaterial.roughness
+//       roughness: 0.5, //THREE.MeshStandardMaterial.roughness
 //       mat_transparent: false, //THREE.MeshStandardMaterial.transparent
-//       mat_opacity: 1, //THREE.MeshStandardMaterial.opacity
+//       opacity: 1, //THREE.MeshStandardMaterial.opacity
 //       texture_url: "texture1", //THREE.MeshStandardMaterial.map
 //       color: "color1" //THREE.MeshStandardMaterial.color
 //     },...
@@ -131,8 +131,8 @@ export const isDraggingImage = writable(false); //Keeps track of whether an imag
 export const generated_texture_name = writable(""); //Keeps track of the name of the generated texture
 
 
-export let in_japanese = writable(true); //Keeps track of whether the language is in Japanese or not
-export let use_chatgpt = writable(true); //Keeps track of whether the app uses chatgpt or not
+export let in_japanese = writable(false); //Keeps track of whether the language is in Japanese or not
+export let use_chatgpt = writable(false); //Keeps track of whether the app uses chatgpt or not
 
 
 /* 
@@ -153,7 +153,6 @@ action_history = [
         }
     }
 ]
-
 */
 export let action_history = writable({
     actions: [],

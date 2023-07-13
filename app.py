@@ -781,7 +781,7 @@ if __name__ == "__main__":
 #     obj = form_data["selected_obj"]
 #     part = form_data["selected_part"]
 
-#     texture_parts[obj][part]["mat_color"] = form_data["color"] if "color" in list(form_data.keys()) else None
+#     texture_parts[obj][part]["color"] = form_data["color"] if "color" in list(form_data.keys()) else None
 
 #     with open(textureparts_path,"w") as f:
 #         json.dump(texture_parts,f,indent=4)

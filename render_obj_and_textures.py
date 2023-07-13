@@ -628,8 +628,8 @@ if __name__=="__main__":
 #             if "mat_transforms" in texture_object_parts[model_key][part].keys(): 
 #                 part_material_transforms = texture_object_parts[model_key][part]["mat_transforms"]
 
-#             if "mat_color" in texture_object_parts[model_key][part].keys():
-#                 part_material_color = texture_object_parts[model_key][part]["mat_color"]
+#             if "color" in texture_object_parts[model_key][part].keys():
+#                 part_material_color = texture_object_parts[model_key][part]["color"]
             
 #             # part_path = os.path.join(models_dir,model_key, f'{part}.obj')
 #             # obj = renderer.load_object(part_path,loc=parts_info['loc'],rot=parts_info['rot'],scale=parts_info['scale'])

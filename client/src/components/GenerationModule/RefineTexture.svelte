@@ -21,19 +21,19 @@
 
 
     function updateDisplayedColor() {
-        let mat_color_div = document.getElementById("mat-color");
-        mat_color_div.innerHTML='';
+        let color_div = document.getElementById("mat-color");
+        color_div.innerHTML='';
 
         let elements = [
             "<span> Material: " + rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_name"] + "</span>",
             "<div id='dynamic-image-container'></div>",
-            "<span> Color: " + ("mat_color" in rendering_texture_pairs[selected_index].info[selected_obj][selected_part] ? rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["mat_color"] : "None applied") + "</span>"
+            "<span> Color: " + ("color" in rendering_texture_pairs[selected_index].info[selected_obj][selected_part] ? rendering_texture_pairs[selected_index].info[selected_obj][selected_part]["color"] : "None applied") + "</span>"
         ]
         let html = "";
         elements.forEach(element => {
             html += element;
         });
-        mat_color_div.innerHTML = html;
+        color_div.innerHTML = html;
 
         const dynamic_image_container = document.getElementById("dynamic-image-container");
         new DynamicImage({
