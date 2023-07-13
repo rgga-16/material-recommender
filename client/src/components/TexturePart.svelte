@@ -127,12 +127,12 @@
 
     function updateDisplacementScale() {
       selected_objs_and_parts.update(value => {
-        value[index].model.children[0].material.bumpScale = displacementScale[0];
+        value[index].model.children[0].material.displacementScale = displacementScale[0];
         return value;
       });
     }
 
-    function changeProperty(property, new_value, old_value=0) {
+    export function changeProperty(property, new_value, old_value=0) {
       if(current_texture_parts[part_parent_name][part_name][property]) {
         old_value = current_texture_parts[part_parent_name][part_name][property];
       }
@@ -150,42 +150,26 @@
     }
 
 
-    function updateOpacity() {
+    export function updateOpacity(opacity_val) {
       selected_objs_and_parts.update(value => {
         value[index].model.children[0].material.transparent= true;
-        value[index].model.children[0].material.opacity = opacity[0];
+        value[index].model.children[0].material.opacity = opacity_val;
         return value;
       });
     }
 
-    function updateMetalness() {
+    export function updateMetalness(metalness_val) {
       selected_objs_and_parts.update(value => {
-        value[index].model.children[0].material.metalness = metalness[0];
+        value[index].model.children[0].material.metalness = metalness_val;
         return value;
       });
-      // let old_metalness=0.5;
-      // if(current_texture_parts[part_parent_name][part_name]['mat_metalness']) {
-      //   old_metalness = current_texture_parts[part_parent_name][part_name]['mat_metalness'];
-      // }
-      // curr_texture_parts.update(value => {
-      //   value[part_parent_name][part_name]['mat_metalness'] = metalness[0];
-      //   return value;
-      // });
     }
 
-    function updateRoughness() {
+    export function updateRoughness(roughness_val) {
       selected_objs_and_parts.update(value => {
-        value[index].model.children[0].material.roughness = roughness[0];
+        value[index].model.children[0].material.roughness = roughness_val;
         return value;
       });
-      // let old_roughness=0.5;
-      // if(current_texture_parts[part_parent_name][part_name]['roughness']) {
-      //   old_roughness = current_texture_parts[part_parent_name][part_name]['roughness'];
-      // }
-      // curr_texture_parts.update(value => {
-      //   value[part_parent_name][part_name]['roughness'] = roughness[0];
-      //   return value;
-      // });
     }
 
     function radianToDegree(radians) {
@@ -460,7 +444,7 @@
       opacity = [material.opacity];
       roughness = [material.roughness]; 
       metalness = [material.metalness];
-      displacementScale = [material.bumpScale];
+      displacementScale = [material.displacementScale];
       normalScale = [material.normalScale.x];
       isTransparent = material.transparent;
 
@@ -586,20 +570,19 @@
     <div class="control">
       <span> {japanese ? "不透明度：" : "Opacity:"}   </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("opacity", opacity[0], 1.0)}}> 
-        <!-- <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeOpacity()}}>  -->
-        <RangeSlider on:change={updateOpacity} bind:values={opacity} min={0} max={1} step={0.1} float={true} pips /> 
+        <RangeSlider on:change={() => updateOpacity(opacity[0])} bind:values={opacity} min={0} max={1} step={0.1} float={true} pips /> 
       </div>
     </div>
     <div class="control">
-      <span> {japanese ? "粗さ：" : "Roughness:"}" </span>
+      <span> {japanese ? "粗さ：" : "Roughness:"} </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("roughness", roughness[0], 0.5)}}> 
-        <RangeSlider on:change={updateRoughness} bind:values={roughness} min={0} max={1} step={0.1} float={true} pips/> 
+        <RangeSlider on:change={() => updateRoughness(roughness[0])} bind:values={roughness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
     <div class="control">
       <span> {japanese ? "金属的だ：": "Metalness:"} </span>
-      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("roughness", roughness[0], 0.5)}}> 
-        <RangeSlider on:change={updateMetalness} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips/> 
+      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("metalness", metalness[0], 0.5)}}> 
+        <RangeSlider on:change={() => updateMetalness(metalness[0])} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
 

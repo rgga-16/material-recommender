@@ -16,8 +16,8 @@ LATEST_RENDER_ID=0
 use_chatgpt = True
 RENDER_MODE = 'CYCLES'
 
-# texture_generator = DALLE2()
-texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
+texture_generator = DALLE2()
+# texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
 
 # fast_texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
 # quality_texture_generator = DALLE2()
@@ -734,7 +734,7 @@ if __name__ == "__main__":
         "pool-side"
     ]
 
-    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[2]) #Dir where the 3D scene (information, models, textures, renderings) is stored
+    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[1]) #Dir where the 3D scene (information, models, textures, renderings) is stored
     RENDER_DIR = os.path.join(DATA_DIR,"renderings")
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 

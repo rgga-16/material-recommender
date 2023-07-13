@@ -6,6 +6,7 @@
 
     import {selected_objs_and_parts} from '../stores.js';
     import TexturePart from './TexturePart.svelte';
+    import TextureParts  from './TextureParts.svelte';
     import PartPairs from './PartPairs.svelte';
     import {onMount} from 'svelte';
 
@@ -53,9 +54,7 @@
         let textureparts=[];
         const textureparts_div = document.getElementById("texture-part-details");
         textureparts_div.innerHTML='';
-
         // console.log(current_texture_parts);
-
         for(let i=0; i < sel_objs_and_parts.length; i++) {
             let selected_part_parent = sel_objs_and_parts[i].parent; 
             let selected_part = sel_objs_and_parts[i].name;
@@ -86,9 +85,114 @@
             textureparts=textureparts;
         }
 
+        if(textureparts.length > 1) {
+            let textureparts_panel = new TextureParts({
+                target: textureparts_div,
+                props: {
+                    texturepart_panels: textureparts
+                }
+            });
+            // textureparts.push(textureparts_panel);
+            // textureparts=textureparts;
+        }
+
     }
 
-    function displayTextureParts() {
+    
+    curr_texture_parts.subscribe(value => {
+		current_texture_parts = value;
+	});
+
+    onMount(async () => {
+        // updateAndDisplayPartPairs();
+        // displayTextureParts();
+        // console.log(current_texture_parts);
+    });
+
+</script>
+
+<div class="information-panel">
+    <div class="w3-bar w3-grey tabs">
+        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='details'} on:click={()=>switchTab('details')}  id="details-btn">{japanese ? "詳細": "Details"}</button>
+    </div>
+
+    <div class="tab-content" class:active={activeTab==='details'} id="details">
+        <h3> {japanese ? "オブジェクトの詳細" : "Object Details" }  </h3>
+        {#if sel_objs_and_parts.length > 0}
+            <div id="texture-part-details"> 
+
+            </div>
+        {:else }
+            <div class="images-placeholder">
+                {japanese ? "オブジェクトが選択されていません。3Dビューでオブジェクトを選択してください。": "No object selected. Please select an object in the 3D View."} 
+            </div>
+            <div id="texture-part-details"> </div>
+        {/if}
+    </div>
+
+
+
+    
+</div>
+
+<style>
+
+    #texture-part-details {
+        height:auto;
+    }
+
+    .information-panel {
+        display: flex;
+        align-items:center;
+        justify-content:center;
+        flex-direction: column;
+        width:100%;
+        height: 100%; 
+        text-align: center;
+    }
+    .tab-btn {
+        height:100%;
+    }
+
+    .tab-btn.active {
+        background-color: rgb(89, 185, 218);
+    }
+
+    .tab-btn.active:hover {
+        background-color: rgb(89, 185, 218);
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width:100%;
+        padding: 5px;
+        overflow: auto; 
+        justify-content:flex-start;
+        align-items:center;
+    }
+
+    .images-placeholder {
+        width: 100%;
+        height: 50%;
+        border: 1px dashed black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+</style>
+
+<!-- Old Code -->
+
+<!-- 
+    <script>
+        function displayTextureParts() {
         textureparts=[];
         selected_parts = Object.keys(current_texture_parts[selected_obj]);
         const textureparts_div = document.getElementById("texture-parts");
@@ -105,6 +209,8 @@
             });
             textureparts.push(texturepart);
         }
+
+        
     }
 
     function updatePartPairs() {
@@ -177,94 +283,9 @@
         is_loading=false;
     }
 
-    curr_texture_parts.subscribe(value => {
-		current_texture_parts = value;
-	});
 
-    onMount(async () => {
-        // updateAndDisplayPartPairs();
-        // displayTextureParts();
-        // console.log(current_texture_parts);
-    });
-
-</script>
-
-<div class="information-panel">
-    <div class="w3-bar w3-grey tabs">
-        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='details'} on:click={()=>switchTab('details')}  id="details-btn">{japanese ? "詳細": "Details"}</button>
-    </div>
-
-    <div class="tab-content" class:active={activeTab==='details'} id="details">
-        <h3> {japanese ? "オブジェクトの詳細" : "Object Details" }  </h3>
-        {#if sel_objs_and_parts.length > 0}
-            <div id="texture-part-details">  </div>
-        {:else }
-            <div class="images-placeholder">
-                {japanese ? "オブジェクトが選択されていません。3Dビューでオブジェクトを選択してください。": "No object selected. Please select an object in the 3D View."} 
-            </div>
-            <div id="texture-part-details"> </div>
-        {/if}
-    </div>
-
-
-
-    
-</div>
-
-<style>
-
-    #texture-part-details {
-        height:auto;
-    }
-
-    .information-panel {
-        display: flex;
-        align-items:center;
-        justify-content:center;
-        flex-direction: column;
-        width:100%;
-        height: 100%; 
-        text-align: center;
-    }
-    .tab-btn {
-        height:100%;
-    }
-
-    .tab-btn.active {
-        background-color: rgb(89, 185, 218);
-    }
-
-    .tab-btn.active:hover {
-        background-color: rgb(89, 185, 218);
-    }
-
-    .tab-content {
-        display: none;
-    }
-
-    .tab-content.active {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        width:100%;
-        padding: 5px;
-        overflow: auto; 
-        justify-content:flex-start;
-        align-items:center;
-    }
-
-    .images-placeholder {
-        width: 100%;
-        height: 50%;
-        border: 1px dashed black;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
-</style>
-
-<!-- Old Code -->
+    </script>
+ -->
 
 <!-- {#each selected_parts as child_part, i}
         {#if current_texture_parts[selected_obj][child_part]["parents"].length > 0}
