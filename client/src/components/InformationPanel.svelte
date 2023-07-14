@@ -22,7 +22,10 @@
 
     import {information_panel_tab} from '../stores.js';
     
-    let current_texture_parts = get(curr_texture_parts);
+    let current_texture_parts;
+    curr_texture_parts.subscribe(value => {
+        current_texture_parts = value;
+    });
 
     let sel_objs_and_parts = null; 
     selected_objs_and_parts.subscribe(value => {
@@ -50,63 +53,62 @@
         information_panel_tab.set(tab);
     }
 
-    export function displayTexturePart() {
-        let textureparts=[];
-        const textureparts_div = document.getElementById("texture-part-details");
-        textureparts_div.innerHTML='';
-        // console.log(current_texture_parts);
-        for(let i=0; i < sel_objs_and_parts.length; i++) {
-            let selected_part_parent = sel_objs_and_parts[i].parent; 
-            let selected_part = sel_objs_and_parts[i].name;
+    // export function displayTexturePart() {
+    //     let textureparts=[];
+    //     const textureparts_div = document.getElementById("texture-part-details");
+    //     textureparts_div.innerHTML='';
+    //     // console.log(current_texture_parts);
+    //     for(let i=0; i < sel_objs_and_parts.length; i++) {
+    //         let selected_part_parent = sel_objs_and_parts[i].parent; 
+    //         let selected_part = sel_objs_and_parts[i].name;
             
-            let mat_name = current_texture_parts[selected_part_parent][selected_part]["mat_name"];
-            let material_url = current_texture_parts[selected_part_parent][selected_part]["mat_image_texture"];
-            let material_finish = current_texture_parts[selected_part_parent][selected_part]["mat_finish"];
-            let parents = current_texture_parts[selected_part_parent][selected_part]["parents"];
+    //         let mat_name = current_texture_parts[selected_part_parent][selected_part]["mat_name"];
+    //         let material_url = current_texture_parts[selected_part_parent][selected_part]["mat_image_texture"];
+    //         let material_finish = current_texture_parts[selected_part_parent][selected_part]["mat_finish"];
+    //         let parents = current_texture_parts[selected_part_parent][selected_part]["parents"];
 
-            let material_color = null;
-            if(current_texture_parts.hasOwnProperty('color')) {
-                material_color = current_texture_parts[selected_part_parent][selected_part]["color"];
-            }
-            let texturepart = new TexturePart({
-                target: textureparts_div,
-                props: {
-                    index:i,
-                    part_parent_name: selected_part_parent,
-                    part_name: selected_part,
-                    material_name: mat_name,
-                    material_url: material_url,
-                    material_finish: material_finish,
-                    material_color: material_color,
-                    parents:parents
-                }
-            });
-            textureparts.push(texturepart);
-            textureparts=textureparts;
-        }
+    //         let material_color = null;
+    //         if(current_texture_parts.hasOwnProperty('color')) {
+    //             material_color = current_texture_parts[selected_part_parent][selected_part]["color"];
+    //         }
+    //         let texturepart = new TexturePart({
+    //             target: textureparts_div,
+    //             props: {
+    //                 index:i,
+    //                 part_parent_name: selected_part_parent,
+    //                 part_name: selected_part,
+    //                 material_name: mat_name,
+    //                 material_url: material_url,
+    //                 material_finish: material_finish,
+    //                 material_color: material_color,
+    //                 parents:parents
+    //             }
+    //         });
+    //         textureparts.push(texturepart);
+    //         textureparts=textureparts;
+    //     }
 
-        if(textureparts.length > 1) {
-            let textureparts_panel = new TextureParts({
-                target: textureparts_div,
-                props: {
-                    texturepart_panels: textureparts
-                }
-            });
-            // textureparts.push(textureparts_panel);
-            // textureparts=textureparts;
-        }
+    //     if(textureparts.length > 1) {
+    //         let textureparts_panel = new TextureParts({
+    //             target: textureparts_div,
+    //             props: {
+    //                 texturepart_panels: textureparts
+    //             }
+    //         });
+    //         textureparts.unshift(textureparts_panel);
+    //         textureparts=textureparts;
+    //     }
 
-    }
+    // }
 
     
     curr_texture_parts.subscribe(value => {
 		current_texture_parts = value;
 	});
 
+
     onMount(async () => {
-        // updateAndDisplayPartPairs();
-        // displayTextureParts();
-        // console.log(current_texture_parts);
+        // add_multi_textureparts_panel();
     });
 
 </script>
@@ -120,7 +122,19 @@
         <h3> {japanese ? "オブジェクトの詳細" : "Object Details" }  </h3>
         {#if sel_objs_and_parts.length > 0}
             <div id="texture-part-details"> 
-
+                {#if sel_objs_and_parts.length > 1}
+                    <TextureParts bind:texturepart_panels={textureparts} />
+                {/if}
+                {#each sel_objs_and_parts as sel_obj_part, i}
+                    <TexturePart bind:this={textureparts[i]} 
+                        index={i}
+                        part_parent_name={sel_obj_part.parent}
+                        part_name={sel_obj_part.name}
+                        material_name={current_texture_parts[sel_obj_part.parent][sel_obj_part.name]['mat_name']}
+                        material_url={current_texture_parts[sel_obj_part.parent][sel_obj_part.name]['mat_image_texture']}
+                        parents={current_texture_parts[sel_obj_part.parent][sel_obj_part.name]['parents']}
+                    /> 
+                {/each}
             </div>
         {:else }
             <div class="images-placeholder">

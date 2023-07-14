@@ -1,3 +1,4 @@
+<svelte:options accessors={true}/>
 <script>
     import DynamicImage from "./DynamicImage.svelte";
     import NumberSpinner from "svelte-number-spinner";
@@ -19,9 +20,13 @@
     import {use_chatgpt} from '../stores.js';
     import {get} from 'svelte/store';
 
-    import {createEventDispatcher} from 'svelte';
     import {curr_texture_parts, objects_3d, information_panel_global} from '../stores.js';
 
+    let image;
+    export function updateImage() {
+      image.getImage();
+    }
+    
     let isMouseDown=false;
 
     let information_panel;
@@ -37,6 +42,9 @@
     let current_texture_parts;
     curr_texture_parts.subscribe(value => {
       current_texture_parts = value;
+      if(image) {
+        image.getImage();
+      }
     });
 
     let all_3d_objects;
@@ -44,23 +52,24 @@
       all_3d_objects = value;
     });
     
-    export let part_name;
+    export let index;
     export let part_parent_name;
-
+    export let part_name;
     export let material_name; 
-    export let material_finish; 
     export let material_url;
+    export let material_finish; 
     export let material_color=null; //Color code of the material
-
-    let use_design_brief = false;
-
     /**
      * parents = [
      *  (object, part)
      * 
      * ]
      */
-    export let parents = []; //List of parts that this part is attached to.
+     export let parents = []; //List of parts that this part is attached to.
+
+    let use_design_brief = false;
+
+    
     let material_color_palette = null;
 
     if (material_color) {
@@ -78,7 +87,6 @@
 
     let is_loading_feedback=false;
     
-    export let index;
     let material;
     let opacity=[0.5];
     let roughness=[0.5]
@@ -113,21 +121,18 @@
         isOpen = !isOpen;
     }
 
-    let image;
-    export function updateImage() {
-      image.getImage();
-    }
-    function updateNormalScale() {
+    
+    export function updateNormalScale(normalScale) {
       selected_objs_and_parts.update(value => {
-        value[index].model.children[0].material.normalScale.x = normalScale[0];
-        value[index].model.children[0].material.normalScale.y = normalScale[0];
+        value[index].model.children[0].material.normalScale.x = normalScale;
+        value[index].model.children[0].material.normalScale.y = normalScale;
         return value;
       });
     }
 
-    function updateDisplacementScale() {
+    export function updateDisplacementScale(displacementScale) {
       selected_objs_and_parts.update(value => {
-        value[index].model.children[0].material.displacementScale = displacementScale[0];
+        value[index].model.children[0].material.displacementScale = displacementScale;
         return value;
       });
     }
@@ -146,7 +151,6 @@
         [old_value], 
         [new_value]
       );
-      // information_panel.displayTexturePart();
     }
 
 
@@ -180,130 +184,131 @@
       return degrees * (Math.PI/180);
     }
 
-    function setOrientation(map) {
-      map.rotation = degreeToRadians(rotation);
+    
+
+    function setScale(map, x_or_y, value) {
+      map.repeat[x_or_y] = value;
     }
 
-    function setScale(map) {
-      map.repeat.x = scaleX;
-      map.repeat.y = scaleY;
+    function setOffset(map,x_or_y, value) {
+      map.offset[x_or_y] = value;
     }
 
-    function setOffset(map) {
-      map.offset.x = translationX;
-      map.offset.y = translationY;
-    }
 
-    function updateTextureMapOffset() {
+    export function updateTextureMapOffset(x_or_y,val) {
       selected_objs_and_parts.update(value => {
-        setOffset(value[index].model.children[0].material.map);
+        setOffset(value[index].model.children[0].material.map, x_or_y,val);
+
         if (value[index].model.children[0].material.normalMap) {
-          setOffset(value[index].model.children[0].material.normalMap);
+          setOffset(value[index].model.children[0].material.normalMap, x_or_y,val);
         }
         if (value[index].model.children[0].material.aoMap) {
-          setOffset(value[index].model.children[0].material.aoMap);
+          setOffset(value[index].model.children[0].material.aoMap, x_or_y,val);
         }
         if (value[index].model.children[0].material.alphaMap) {
-          setOffset(value[index].model.children[0].material.alphaMap);
+          setOffset(value[index].model.children[0].material.alphaMap, x_or_y,val);
         }
         if(value[index].model.children[0].material.emissiveMap) {
-          setOffset(value[index].model.children[0].material.emissiveMap);
+          setOffset(value[index].model.children[0].material.emissiveMap, x_or_y,val);
         }
         if (value[index].model.children[0].material.lightMap) {
-          setOffset(value[index].model.children[0].material.lightMap);
+          setOffset(value[index].model.children[0].material.lightMap, x_or_y,val);
         }
         if(value[index].model.children[0].material.metalnessMap) {
-          setOffset(value[index].model.children[0].material.metalnessMap);
+          setOffset(value[index].model.children[0].material.metalnessMap, x_or_y,val);
         }
         if(value[index].model.children[0].material.roughnessMap) {
-          setOffset(value[index].model.children[0].material.roughnessMap);
+          setOffset(value[index].model.children[0].material.roughnessMap, x_or_y,val);
         }
         if(value[index].model.children[0].material.displacementMap) {
-          setOffset(value[index].model.children[0].material.displacementMap);
+          setOffset(value[index].model.children[0].material.displacementMap, x_or_y,val);
         }
         if(value[index].model.children[0].material.bumpMap) {
-          setOffset(value[index].model.children[0].material.bumpMap);
+          setOffset(value[index].model.children[0].material.bumpMap, x_or_y,val);
         }
         if(value[index].model.children[0].material.envMap) {
-          setOffset(value[index].model.children[0].material.envMap);
+          setOffset(value[index].model.children[0].material.envMap, x_or_y,val);
         }
         return value;
       });
     }
 
-    function updateTextureMapScale() {
+    export function updateTextureMapScale(x_or_y,val) {
       selected_objs_and_parts.update(value => {
-        setScale(value[index].model.children[0].material.map);
+        setScale(value[index].model.children[0].material.map, x_or_y, val);
         if (value[index].model.children[0].material.normalMap) {
-          setScale(value[index].model.children[0].material.normalMap);
+          setScale(value[index].model.children[0].material.normalMap, x_or_y, val);
         }
         if (value[index].model.children[0].material.aoMap) {
-          setScale(value[index].model.children[0].material.aoMap);
+          setScale(value[index].model.children[0].material.aoMap, x_or_y, val);
         }
         if (value[index].model.children[0].material.alphaMap) {
-          setScale(value[index].model.children[0].material.alphaMap);
+          setScale(value[index].model.children[0].material.alphaMap, x_or_y, val);
         }
         if(value[index].model.children[0].material.emissiveMap) {
-          setScale(value[index].model.children[0].material.emissiveMap);
+          setScale(value[index].model.children[0].material.emissiveMap, x_or_y, val);
         }
         if (value[index].model.children[0].material.lightMap) {
-          setScale(value[index].model.children[0].material.lightMap);
+          setScale(value[index].model.children[0].material.lightMap, x_or_y, val);
         }
         if(value[index].model.children[0].material.metalnessMap) {
-          setScale(value[index].model.children[0].material.metalnessMap);
+          setScale(value[index].model.children[0].material.metalnessMap, x_or_y, val);
         }
         if(value[index].model.children[0].material.roughnessMap) {
-          setScale(value[index].model.children[0].material.roughnessMap);
+          setScale(value[index].model.children[0].material.roughnessMap, x_or_y, val);
         }
         if(value[index].model.children[0].material.displacementMap) {
-          setScale(value[index].model.children[0].material.displacementMap);
+          setScale(value[index].model.children[0].material.displacementMap, x_or_y, val);
         }
         if(value[index].model.children[0].material.bumpMap) {
-          setScale(value[index].model.children[0].material.bumpMap);
+          setScale(value[index].model.children[0].material.bumpMap, x_or_y, val);
         }
         if(value[index].model.children[0].material.envMap) {
-          setScale(value[index].model.children[0].material.envMap);
+          setScale(value[index].model.children[0].material.envMap, x_or_y, val);
         }
         return value;
       });
     }
 
-    function updateTextureMapOrientation() {
-      // map.rotation = rotation;
+    function setOrientation(map,rot) {
+      map.rotation = degreeToRadians(rot);
+    }
+
+    export function updateTextureMapOrientation(rot) {
       selected_objs_and_parts.update(value => {
-        setOrientation(value[index].model.children[0].material.map);
+        setOrientation(value[index].model.children[0].material.map,rot);
         if (value[index].model.children[0].material.normalMap) {
-          setOrientation(value[index].model.children[0].material.normalMap);
+          setOrientation(value[index].model.children[0].material.normalMap,rot);
         }
         if (value[index].model.children[0].material.aoMap) {
-          setOrientation(value[index].model.children[0].material.aoMap);
+          setOrientation(value[index].model.children[0].material.aoMap,rot);
         }
         if (value[index].model.children[0].material.alphaMap) {
-          setOrientation(value[index].model.children[0].material.alphaMap);
+          setOrientation(value[index].model.children[0].material.alphaMap,rot);
         }
         if(value[index].model.children[0].material.emissiveMap) {
-          setOrientation(value[index].model.children[0].material.emissiveMap);
+          setOrientation(value[index].model.children[0].material.emissiveMap,rot);
         }
         if (value[index].model.children[0].material.lightMap) {
-          setOrientation(value[index].model.children[0].material.lightMap);
+          setOrientation(value[index].model.children[0].material.lightMap,rot);
         }
         if(value[index].model.children[0].material.metalnessMap) {
-          setOrientation(value[index].model.children[0].material.metalnessMap);
+          setOrientation(value[index].model.children[0].material.metalnessMap,rot);
         }
         if (value[index].model.children[0].material.bumpMap) {
-          setOrientation(value[index].model.children[0].material.bumpMap);
+          setOrientation(value[index].model.children[0].material.bumpMap,rot);
         }
         if(value[index].model.children[0].material.displacementMap) {
-          setOrientation(value[index].model.children[0].material.displacementMap);
+          setOrientation(value[index].model.children[0].material.displacementMap,rot);
         }
         if(value[index].model.children[0].material.envMap) {
-          setOrientation(value[index].model.children[0].material.envMap);
+          setOrientation(value[index].model.children[0].material.envMap,rot);
         }
         if(value[index].model.children[0].material.normalMap) {
-          setOrientation(value[index].model.children[0].material.normalMap);
+          setOrientation(value[index].model.children[0].material.normalMap,rot);
         }
         if (value[index].model.children[0].material.roughnessMap) {
-          setOrientation(value[index].model.children[0].material.roughnessMap);
+          setOrientation(value[index].model.children[0].material.roughnessMap,rot);
         }
         return value;
       });
@@ -517,7 +522,7 @@
     {/if}
     
   </div>
-  <DynamicImage bind:this={image} imagepath={material_url} alt={material_name} size={"200px"}/>
+  <DynamicImage bind:this={image} bind:imagepath={material_url} alt={material_name} size={"200px"}/>
   <div id="texture-details">
         <div class="texture-name control">
           {japanese ? "素材：" : "Material:"} <EditableTextbox bind:text={current_texture_parts[part_parent_name][part_name]['mat_name']} />
@@ -585,18 +590,16 @@
         <RangeSlider on:change={() => updateMetalness(metalness[0])} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
-
     <div class="control">
-      <span> {japanese ? "法線マップの強度:" : "Normal Map Strength:"} </span>
-      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}> 
-        <RangeSlider on:change={updateNormalScale} bind:values={normalScale} min={0} max={10} step={0.1} float={true}/> 
+      <span> {japanese ? "法線マップの強度:" : "Normal Scale:"} </span>
+      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("normalScale", normalScale[0], 0.5)}}> 
+        <RangeSlider on:change={() => updateNormalScale(normalScale[0])} bind:values={normalScale} min={0} max={10} step={0.1} float={true}/> 
       </div>
     </div>
-
     <div class="control">
-      <span> {japanese ? "高さマップの強度:" : "Height Map Strength:"} </span>
-      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}> 
-        <RangeSlider on:change={updateDisplacementScale} bind:values={displacementScale} min={0} max={0.5} step={0.01} float={true}/> 
+      <span> {japanese ? "高さマップの強度:" : "Height Scale:"} </span>
+      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("displacementScale", displacementScale[0], 0.00)}}> 
+        <RangeSlider on:change={() => updateDisplacementScale(displacementScale[0])} bind:values={displacementScale} min={0} max={0.5} step={0.01} float={true}/> 
       </div>
     </div>
   </div>
@@ -604,39 +607,40 @@
   <div class="card container tab-content " class:active={activeTab==='adjust-texture-map'}>
     <h5><b> {japanese ? "テクスチャマップを調整する": "Adjust Texture Map"} </b></h5>
     <div class="control">
+
       <div class="card container" style="height: auto;">
         <h6> <b> {japanese ? "平行移動": "Translation"} </b></h6>
-        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}>
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("offsetX", translationX, 0.0)}}>
           <span>X:</span>
-          <NumberSpinner on:change={updateTextureMapOffset} bind:value={translationX} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={() => updateTextureMapOffset("x",translationX)} bind:value={translationX} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
         </div>
-        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}>
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("offsetY", translationY, 0.0)}}>
           <span>Y:</span>
-          <NumberSpinner on:change={updateTextureMapOffset} bind:value={translationY} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={() => updateTextureMapOffset("y",translationY)} bind:value={translationY} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
         </div>
       </div>
 
       <div class="card container" style="height: auto;">
         <h6> <b> {japanese ? "回転": "Rotation"} </b></h6>
-        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}>
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("rotation",rotation,0)}}>
           <span>Z: </span>
-          <NumberSpinner on:change={updateTextureMapOrientation} bind:value={rotation} min=0 max=360 step=0.1 decimals=1 precision=0.1/>°
+          <NumberSpinner on:change={() =>  updateTextureMapOrientation(rotation)} bind:value={rotation} min=0 max=360 step=0.1 decimals=1 precision=0.1/>°
         </div>
       </div>
 
       <div class="card container" style="height: auto;">
         <h6> <b> {japanese ? "スケール": "Scale"}  </b></h6>
-        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}>
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scale,0); changeProperty("scaleY",scale,1)}}>
           <span>X & Y: </span>
-          <NumberSpinner on:change={updateTextureMapScale} bind:value={scale} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={() => {updateTextureMapScale("x",scale);updateTextureMapScale("y",scale)}} bind:value={scale} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
         </div>
-        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}>
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scaleX,1)}}>
           <span>X: </span>
-          <NumberSpinner on:change={updateTextureMapScale} bind:value={scaleX} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={() => updateTextureMapScale("x",scaleX)} bind:value={scaleX} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
         </div>
-        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => isMouseDown=false}>
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleY",scaleY,1)}}>
           <span>Y: </span>
-          <NumberSpinner on:change={updateTextureMapScale} bind:value={scaleY} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={() => updateTextureMapScale("y",scaleY)} bind:value={scaleY} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
         </div>
       </div>
     </div>
