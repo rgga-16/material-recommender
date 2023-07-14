@@ -299,7 +299,6 @@
                             SELECTEDS[0] = clicked_object;
                             // console.log(clicked_object);
                             // console.log(model3d_infos);
-                            // const index = model3d_infos.findIndex(item => item.model.children[0].name === clicked_object.model_name);
                             const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
                             
                             // console.log(get(curr_texture_parts));
