@@ -61,7 +61,7 @@
         current_texture_parts=get(curr_texture_parts);
         get_models();
         setup_scene();
-        information_panel.displayTexturePart();
+        //information_panel.displayTexturePart();
         
     }
 
@@ -112,7 +112,7 @@
                 normalmap_texture_url,heightmap_texture_url]);
                 
                 curr_texture_parts.set(cloned_texture_parts);
-                information_panel.displayTexturePart();
+                //information_panel.displayTexturePart();
             }
             dragging=false;
             dragged_texture_name=null;
@@ -292,7 +292,7 @@
                             SELECTED_INFOS=SELECTED_INFOS;
                             selected_objs_and_parts.set(SELECTED_INFOS);
                             // console.log(get(selected_objs_and_parts));
-                            information_panel.displayTexturePart();
+                            //information_panel.displayTexturePart();
                         } else { //If shift is not held, want to select only one object
                             SELECTEDS = [];
                             SELECTED_INFOS = [];
@@ -309,7 +309,7 @@
                             SELECTED_INFOS=SELECTED_INFOS;
                             selected_objs_and_parts.set(SELECTED_INFOS);
                             // console.log(get(selected_objs_and_parts));
-                            information_panel.displayTexturePart();
+                            //information_panel.displayTexturePart();
                         }
                     } else {
                         if (SELECTEDS.length > 0) {
@@ -334,13 +334,13 @@
                     SELECTEDS=SELECTEDS;    
                     SELECTED_INFOS=SELECTED_INFOS;
                     selected_objs_and_parts.set(SELECTED_INFOS);
-                    information_panel.displayTexturePart();
+                    //information_panel.displayTexturePart();
                     removeHighlightsFromUnselecteds();
                 }
                 SELECTEDS=SELECTEDS;    
                 SELECTED_INFOS=SELECTED_INFOS;
                 selected_objs_and_parts.set(SELECTED_INFOS);
-                information_panel.displayTexturePart();
+                //information_panel.displayTexturePart();
             }
         } else {// If the user clicks on an empty space, then we want to deselect the selected object.
             if (SELECTEDS.length > 0) {
@@ -355,7 +355,7 @@
             // console.log("Nothing's been selected.")
         }
         // console.log(get(selected_objs_and_parts));
-        // information_panel.displayTexturePart();
+        // //information_panel.displayTexturePart();
         removeHighlightsFromUnselecteds();
     }
 
@@ -584,7 +584,7 @@
                         mat.normalMap = normalmap;
                         mat.normalScale = new THREE.Vector2(0.1, 0.1);
                         
-                        mat.bumpMap = heightmap;
+                        mat.displacementMap = heightmap;
                         mat.displacementScale = 0.00;
                         // WIP
 
@@ -610,7 +610,7 @@
 
                     material.map = texturemap;
                     material.normalMap = normalmap;
-                    material.bumpMap = heightmap;
+                    material.displacementMap = heightmap;
                     material.needsUpdate = true;
                     material.transparent= true;
                     material.color.setHex(0xffffff);
@@ -836,7 +836,7 @@ DUMP
             // alert('You clicked on the highlighted part: ' + highlightedPart.name);
             selected_part_name.set(selectedPart.name);
             selected_obj_name.set(selectedPart.parent);
-            information_panel.displayTexturePart();
+            //information_panel.displayTexturePart();
 
         } else {
             selectedPart.model.children[0].material = originalSelectedMaterial;

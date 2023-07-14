@@ -45,6 +45,10 @@ export function isDict(obj) {
 	return typeof obj === 'object' && obj !== null && !Array.isArray(obj);
 }
 
+function degreeToRadians(degrees) {
+	return degrees * (Math.PI/180);
+}
+
 export async function undoAction() {
 
 	if (history.currentIndex > -1) {
@@ -57,6 +61,9 @@ export async function undoAction() {
 		const currentIndex = history.currentIndex;
 		const old_or_new = "old";
 
+		// Get the 3D model by accessing 3D objects store using object and part variables.
+		const idx = all_3d_objects.findIndex(item => item.name === part && item.parent === object);
+		let object_3d = all_3d_objects[idx]; //Get the 3D model
 		if(action.name.toLowerCase() == "change texture"){
 			const response = await fetch("/retrieve_textures_from_action_history", {
 				method: "POST",
@@ -78,9 +85,7 @@ export async function undoAction() {
 			three_display.transferTexture(object, part, updated_old_mat_name,updated_old_img_path, updated_old_normal_path, updated_old_height_path);
 			
 		} else if (action.name.toLowerCase()=="change opacity") {
-			// Get the 3D model by accessing 3D objects store using object and part variables.
-			const idx = all_3d_objects.findIndex(item => item.name === part && item.parent === object);
-			let object_3d = all_3d_objects[idx]; //Get the 3D model
+			
 			const old_opacity = properties_dict["opacity"][old_or_new]; // Set the old opacity of the 3D model
 			//Update the opacity of the 3D model in the curr_texture_parts store
 			curr_texture_parts.update(value => {
@@ -95,12 +100,9 @@ export async function undoAction() {
 			})
 			// Make the 3D model the selected object, so that we can see the change in the Information Panel
 			selected_objs_and_parts.set([object_3d]);
-			information_panel.displayTexturePart();
 			console.log("undoed opacity!");
 		} else if (action.name.toLowerCase()=="change roughness") {
-			// Get the 3D model by accessing 3D objects store using object and part variables.
-			const idx = all_3d_objects.findIndex(item => item.name === part && item.parent === object);
-			let object_3d = all_3d_objects[idx]; //Get the 3D model
+			
 			const old_roughness = properties_dict["roughness"][old_or_new]; // Set the old roughness of the 3D model
 			//Update the roughness of the 3D model in the curr_texture_parts store
 			curr_texture_parts.update(value => {
@@ -114,7 +116,6 @@ export async function undoAction() {
 			})
 			// Make the 3D model the selected object, so that we can see the change in the Information Panel
 			selected_objs_and_parts.set([object_3d]);
-			information_panel.displayTexturePart();
 			console.log("undoed roughness!");
 		} else if (action.name.toLowerCase()=="change metalness") {
 			// Get the 3D model by accessing 3D objects store using object and part variables.
@@ -133,12 +134,8 @@ export async function undoAction() {
 			})
 			// Make the 3D model the selected object, so that we can see the change in the Information Panel
 			selected_objs_and_parts.set([object_3d]);
-			information_panel.displayTexturePart();
 			console.log("undoed metalness!");
 		} else if (action.name.toLowerCase()=="change color") {
-			// Get the 3D model by accessing 3D objects store using object and part variables.
-			const idx = all_3d_objects.findIndex(item => item.name === part && item.parent === object);
-			let object_3d = all_3d_objects[idx]; //Get the 3D model
 
 			const old_color = properties_dict["color"][old_or_new]; // Set the old color of the 3D model
 			//Update the color of the 3D model in the curr_texture_parts store
@@ -153,8 +150,119 @@ export async function undoAction() {
 			})
 			// Make the 3D model the selected object, so that we can see the change in the Information Panel
 			selected_objs_and_parts.set([object_3d]);
-			information_panel.displayTexturePart();
 			console.log("undoed color!");
+		} else if (action.name.toLowerCase()=="change normalscale") {
+			const old_normalScale = properties_dict["normalScale"][old_or_new]; // Set the old normalScale of the 3D model
+			//Update the normalScale of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["normalScale"] = old_normalScale;
+				return value;
+			});
+			//Update the normalScale of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.normalScale.set(old_normalScale, old_normalScale);
+				return objects;
+			});
+			// Make the 3D model the selected object, so that we can see the change in the Information Panel
+			selected_objs_and_parts.set([object_3d]);
+			console.log("undoed normalScale!");
+		} else if (action.name.toLowerCase()=="change displacementscale") {	
+			const old_displacementScale = properties_dict["displacementScale"][old_or_new]; // Set the old displacementScale of the 3D model
+			//Update the displacementScale of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["displacementScale"] = old_displacementScale;
+				return value;
+			});
+			//Update the displacementScale of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.displacementScale = old_displacementScale;
+				return objects;
+			});
+			// Make the 3D model the selected object, so that we can see the change in the Information Panel
+			selected_objs_and_parts.set([object_3d]);
+			console.log("undoed displacementScale!");
+		} else if (action.name.toLowerCase() == "change offsetx") {
+			const old_offsetx = properties_dict["offsetX"][old_or_new]; // Set the old offsetx of the 3D model
+			//Update the offsetx of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["offsetX"] = old_offsetx;
+				return value;
+			});
+			//Update the offsetx of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.map.offset.x = old_offsetx;
+				if (objects[idx].model.children[0].material.normalMap) objects[idx].model.children[0].material.normalMap.offset.x = old_offsetx;
+				if (objects[idx].model.children[0].material.displacementMap) objects[idx].model.children[0].material.displacementMap.offset.x = old_offsetx;
+				return objects;
+			});
+			selected_objs_and_parts.set([object_3d]);
+			console.log("undoed offsetx!");
+
+		} else if (action.name.toLowerCase() == "change offsety") {
+			const old_offsety = properties_dict["offsetY"][old_or_new]; // Set the old offsety of the 3D model
+			//Update the offsety of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["offsetY"] = old_offsety;
+				return value;
+			});
+			//Update the offsety of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.map.offset.y = old_offsety;
+				if (objects[idx].model.children[0].material.normalMap) objects[idx].model.children[0].material.normalMap.offset.y = old_offsety;
+				if (objects[idx].model.children[0].material.displacementMap) objects[idx].model.children[0].material.displacementMap.offset.y = old_offsety;
+				return objects;
+			});
+			selected_objs_and_parts.set([object_3d]);
+			console.log("undoed offsety!");
+
+		} else if (action.name.toLowerCase() =="change rotation") {
+			const old_rotation = properties_dict["rotation"][old_or_new]; // Set the old rotation of the 3D model
+			//Update the rotation of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["rotation"] = old_rotation;
+				return value;
+			});
+			//Update the rotation of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.map.rotation = degreeToRadians(old_rotation);
+				if (objects[idx].model.children[0].material.normalMap) objects[idx].model.children[0].material.normalMap.rotation = degreeToRadians(old_rotation);
+				if (objects[idx].model.children[0].material.displacementMap) objects[idx].model.children[0].material.displacementMap.rotation = degreeToRadians(old_rotation);
+				return objects;
+			});
+			selected_objs_and_parts.set([object_3d]);
+			console.log("undoed rotation!");
+		} else if(action.name.toLowerCase() == "change scalex") {
+			const old_scalex = properties_dict["scaleX"][old_or_new]; // Set the old scalex of the 3D model
+			//Update the scalex of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["scaleX"] = old_scalex;
+				return value;
+			}	);
+			//Update the scalex of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.map.repeat["x"] = old_scalex;
+				if (objects[idx].model.children[0].material.normalMap) objects[idx].model.children[0].material.normalMap.repeat["x"] = old_scalex;
+				if (objects[idx].model.children[0].material.displacementMap) objects[idx].model.children[0].material.displacementMap.repeat["x"] = old_scalex;
+				return objects;
+			});
+			selected_objs_and_parts.set([object_3d]);
+			console.log("undoed scalex!");
+		} else if(action.name.toLowerCase() == "change scaley") {
+			const old_scaley = properties_dict["scaleY"][old_or_new]; // Set the old scalex of the 3D model
+			//Update the scalex of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["scaleY"] = old_scaley;
+				return value;
+			}	);
+			//Update the scalex of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.map.repeat["y"] = old_scaley;
+				if (objects[idx].model.children[0].material.normalMap) objects[idx].model.children[0].material.normalMap.repeat["y"] = old_scaley;
+				if (objects[idx].model.children[0].material.displacementMap) objects[idx].model.children[0].material.displacementMap.repeat["y"] = old_scaley;
+				return objects;
+			});
+			selected_objs_and_parts.set([object_3d]);
+			console.log("undoed scaley!");
 		}
 
 		// Update the action history 
@@ -189,6 +297,10 @@ export async function redoAction() {
 		const currentIndex = history.currentIndex;
 		const old_or_new = "new";
 
+		// Get the 3D model by accessing 3D objects store using object and part variables.
+		const idx = all_3d_objects.findIndex(item => item.name === part && item.parent === object);
+		let object_3d = all_3d_objects[idx]; //Get the 3D model
+
 		if(action.name.toLowerCase() == "change texture"){
 			const response = await fetch("/retrieve_textures_from_action_history", {
 				method: "POST",
@@ -208,9 +320,7 @@ export async function redoAction() {
 			const updated_old_mat_name = history.actions[history.currentIndex]["properties"]["mat_name"][old_or_new];
 			three_display.transferTexture(object, part, updated_old_mat_name, updated_old_img_path, updated_old_normal_path, updated_old_height_path);
 		} else if (action.name.toLowerCase()=="change opacity") {
-			// Get the 3D model by accessing 3D objects store using object and part variables.
-			const idx = all_3d_objects.findIndex(item => item.name === part && item.parent === object);
-			let object_3d = all_3d_objects[idx]; //Get the 3D model
+			
 			const old_opacity = properties_dict["opacity"][old_or_new]; // Set the old opacity of the 3D model
 			//Update the opacity of the 3D model in the curr_texture_parts store
 			curr_texture_parts.update(value => {
@@ -225,12 +335,9 @@ export async function redoAction() {
 			})
 			// Make the 3D model the selected object, so that we can see the change in the Information Panel
 			selected_objs_and_parts.set([object_3d]);
-			information_panel.displayTexturePart();
-			console.log("undoed opacity!");
+			console.log("redoed opacity!");
 		} else if (action.name.toLowerCase()=="change roughness") {
-			// Get the 3D model by accessing 3D objects store using object and part variables.
-			const idx = all_3d_objects.findIndex(item => item.name === part && item.parent === object);
-			let object_3d = all_3d_objects[idx]; //Get the 3D model
+			
 			const old_roughness = properties_dict["roughness"][old_or_new]; // Set the old roughness of the 3D model
 			//Update the roughness of the 3D model in the curr_texture_parts store
 			curr_texture_parts.update(value => {
@@ -244,12 +351,9 @@ export async function redoAction() {
 			})
 			// Make the 3D model the selected object, so that we can see the change in the Information Panel
 			selected_objs_and_parts.set([object_3d]);
-			information_panel.displayTexturePart();
-			console.log("undoed roughness!");
+			console.log("redoed roughness!");
 		} else if (action.name.toLowerCase()=="change metalness") {
-			// Get the 3D model by accessing 3D objects store using object and part variables.
-			const idx = all_3d_objects.findIndex(item => item.name === part && item.parent === object);
-			let object_3d = all_3d_objects[idx]; //Get the 3D model
+			
 			const old_metalness = properties_dict["metalness"][old_or_new]; // Set the old metalness of the 3D model	
 			//Update the metalness of the 3D model in the curr_texture_parts store
 			curr_texture_parts.update(value => {
@@ -263,12 +367,8 @@ export async function redoAction() {
 			})
 			// Make the 3D model the selected object, so that we can see the change in the Information Panel
 			selected_objs_and_parts.set([object_3d]);
-			information_panel.displayTexturePart();
-			console.log("undoed metalness!");
+			console.log("redoed metalness!");
 		} else if (action.name.toLowerCase()=="change color") {
-			// Get the 3D model by accessing 3D objects store using object and part variables.
-			const idx = all_3d_objects.findIndex(item => item.name === part && item.parent === object);
-			let object_3d = all_3d_objects[idx]; //Get the 3D model
 
 			const old_color = properties_dict["color"][old_or_new]; // Set the old color of the 3D model
 			//Update the color of the 3D model in the curr_texture_parts store
@@ -283,8 +383,119 @@ export async function redoAction() {
 			})
 			// Make the 3D model the selected object, so that we can see the change in the Information Panel
 			selected_objs_and_parts.set([object_3d]);
-			information_panel.displayTexturePart();
-			console.log("undoed color!");
+			console.log("redoed color!");
+		} else if (action.name.toLowerCase()=="change normalscale") {
+			const old_normalScale = properties_dict["normalScale"][old_or_new]; // Set the old normalScale of the 3D model
+			//Update the normalScale of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["normalScale"] = old_normalScale;
+				return value;
+			});
+			//Update the normalScale of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.normalScale.set(old_normalScale, old_normalScale);
+				return objects;
+			});
+			// Make the 3D model the selected object, so that we can see the change in the Information Panel
+			selected_objs_and_parts.set([object_3d]);
+			console.log("redoed normalScale!");
+		} else if (action.name.toLowerCase()=="change displacementscale") {	
+			const old_displacementScale = properties_dict["displacementScale"][old_or_new]; // Set the old displacementScale of the 3D model
+			//Update the displacementScale of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["displacementScale"] = old_displacementScale;
+				return value;
+			});
+			//Update the displacementScale of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.displacementScale = old_displacementScale;
+				return objects;
+			});
+			// Make the 3D model the selected object, so that we can see the change in the Information Panel
+			selected_objs_and_parts.set([object_3d]);
+			console.log("redoed displacementScale!");
+		} else if (action.name.toLowerCase() == "change offsetx") {
+			const old_offsetx = properties_dict["offsetX"][old_or_new]; // Set the old offsetx of the 3D model
+			//Update the offsetx of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["offsetX"] = old_offsetx;
+				return value;
+			});
+			//Update the offsetx of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.map.offset.x = old_offsetx;
+				objects[idx].model.children[0].material.normalMap.offset.x = old_offsetx;
+				objects[idx].model.children[0].material.displacementMap.offset.x = old_offsetx;
+				return objects;
+			});
+			selected_objs_and_parts.set([object_3d]);
+			console.log("undoed offsetx!");
+
+		} else if (action.name.toLowerCase() == "change offsety") {
+			const old_offsety = properties_dict["offsetY"][old_or_new]; // Set the old offsety of the 3D model
+			//Update the offsety of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["offsetY"] = old_offsety;
+				return value;
+			});
+			//Update the offsety of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.map.offset.y = old_offsety;
+				objects[idx].model.children[0].material.normalMap.offset.y = old_offsety;
+				objects[idx].model.children[0].material.displacementMap.offset.y = old_offsety;
+				return objects;
+			});
+			selected_objs_and_parts.set([object_3d]);
+			console.log("undoed offsety!");
+
+		} else if (action.name.toLowerCase() =="change rotation") {
+			const old_rotation = properties_dict["rotation"][old_or_new]; // Set the old rotation of the 3D model
+			//Update the rotation of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["rotation"] = old_rotation;
+				return value;
+			});
+			//Update the rotation of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.map.rotation = degreeToRadians(old_rotation);
+				objects[idx].model.children[0].material.normalMap.rotation = degreeToRadians(old_rotation);
+				objects[idx].model.children[0].material.displacementMap.rotation = degreeToRadians(old_rotation);
+				return objects;
+			});
+			selected_objs_and_parts.set([object_3d]);
+			console.log("undoed rotation!");
+		} else if(action.name.toLowerCase() == "change scalex") {
+			const old_scalex = properties_dict["scaleX"][old_or_new]; // Set the old scalex of the 3D model
+			//Update the scalex of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["scaleX"] = old_scalex;
+				return value;
+			}	);
+			//Update the scalex of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.map.repeat.x = old_scalex;
+				objects[idx].model.children[0].material.normalMap.repeat.x = old_scalex;
+				objects[idx].model.children[0].material.displacementMap.repeat.x = old_scalex;
+				return objects;
+			});
+			selected_objs_and_parts.set([object_3d]);
+			console.log("undoed scalex!");
+		} else if(action.name.toLowerCase() == "change scaley") {
+			const old_scaley = properties_dict["scaleY"][old_or_new]; // Set the old scalex of the 3D model
+			//Update the scalex of the 3D model in the curr_texture_parts store
+			curr_texture_parts.update(value => {
+				value[object][part]["scaleY"] = old_scaley;
+				return value;
+			}	);
+			//Update the scalex of the 3D model in the objects_3d store
+			objects_3d.update(objects => {
+				objects[idx].model.children[0].material.map.repeat.y = old_scaley;
+				objects[idx].model.children[0].material.normalMap.repeat.y = old_scaley;
+				objects[idx].model.children[0].material.displacementMap.repeat.y = old_scaley;
+				return objects;
+			});
+			selected_objs_and_parts.set([object_3d]);
+			console.log("undoed scaley!");
 		}
 	}
 }
