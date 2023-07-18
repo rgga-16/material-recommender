@@ -17,15 +17,12 @@ Here is how you can navigate in the 3D view.
 -- You can view the material, color, and material finish  it is using. You can further edit the name of the material and material finish.
 -- Here, I'll show you the several things you can do when adjusting the material of an object.
 
-
-
 --- First, the Material Finish tab lets you set different material properties like opacity, roughness, and metalness using the sliders below.
 ---- Opacity adjusts the object's opacity between 0 (transparent) and 1 (opaque). This is useful if you are working with materials like glass.
 ---- Roughness adjusts the object's shine between 0 (glossy) and 1 (matte). This is useful if you want to add gloss to your material. 
 ---- Metalness can be set between 0 (non-metallic) and 1 (metallic). You set this if you are dealing with materials like steel.
 ---- Normal Scale can be used to increase the details of the material's surface, making it look more rough. 
 ---- Height Scale (Buggy. Not sure if to include this)
-
 
 --- Next, the Texture Map tab allows you to adjust the texture's transformation by sliding the values or entoer your own value.
 ---- Translation sets the horizontal (X) and vertical (Y) placement of the texture map.
@@ -69,3 +66,47 @@ Here is how you can navigate in the 3D view.
 - Here's another example. You if I wanted wood with a specific grain, I can type in "vertical grain" or "horizontal grain" to get that grain of my wood.
 
 
+3) Part 3: Suggestions Tab and Feedback Tab
+- Hello! This tutorial will show you how to use the ChatBot and Feedback Modules of the co-creative system. 
+- Let's start with the Chatbot. The ChatBot module is located on the second tab of the left panel of the screen.
+- The ChatBot uses ChatGPT to suggest materials and color palettes for your 3D objects.
+- Let's try suggesting materials.
+- In the textbox, let's ask for wood materials that are of Scandinavian interior design style and are moderately low cost.
+(*type "For a drawer, you suggest wood materials that are of Scandinavian style and are moderately low cost?")
+- Keep in mind to make your queries specific to get better suggestions from the ChatBot.
+- Before proceeding, you can check the "Use Web Search" checkbox and the "Based on the Design Brief" checkbox.
+-- The "Use Web Search" checkbox enables the Chatbot to websearch and use references to answer your queries.
+-- This is useful if you want it to suggest materials & colors based on current trends like this year's Pantone color.
+-- Since ChatGPT only has knowledge until September, 2021.
+-- The "Based on the Design Brief" checkbox enables the Chatbot to suggest materials & colors, considering the design brief.
+-- The design brief is a specification given to you by the client on how they want their bedroom to be designed.
+-- You can view the design brief by clicking on the Design Brief button on the right.
+-- Checking the checkbox makes the Chatbot suggests with the brief in mind, making it more context-aware.
+-- Let's click on these two checkboxes
+-- And then click on the "Suggest Materials" button. 
+-- This may take a while, and may take longer if you clicked on either or both of the checkboxes.
+-- AFter suggesting, the Chatbot will return a list of materials, their texture maps, and the explanations why.
+-- You can directly apply the suggest material onto the object.
+-- But if you want to generate more texture maps of that material, just click "Generate More!".
+-- This will lead you back to the Material Generator, where you can apply more texture maps of that material.
+
+-- Let's try suggesting colors, with both checkboxes checked.
+-- Again, this may take a while, and may take longer if you clicked on either or both of the checkboxes.
+-- The Chatbot will return a list of color palettes, their palette names, and their explanations why.
+-- You can save these color palettes, and then use them when applying a color finish. 
+
+-- Lastly, the Feedback Module provides feedback on an object or component based on the material used. 
+--- You request for feedback by clicking on the "Request Feedback" button.
+--- Similar to the chatbot, can also check the "Based on the Design Brief" checkbox to give feedback based on the design brief.
+--- Requesting for feedback may take a while, so please wait. 
+--- After, it will provide feedback on several aspects like cost, availability, and sustainability. 
+--- In each aspect, it will provide its explanation, and make suggestions on how to improve that aspect.
+--- These suggestions can be materials, attachments, and finishes.
+--- Similar to the ChatBot, you can directly apply the material onto the object or generate more.
+--- With the suggested finish, you can apply those settings to the object's material finish. 
+
+-- In summary, we learned how to use the ChatBot module and the Feedback Module.
+--- The ChatBot module can suggest materials and colors based on your queries.
+--- The Feedback module gives material-aware feedback on the 3D object or component based on several aspects, and provides suggestions to improve them.
+--- Both modules can be used in context with the design brief by clicking on their checkboxes.
+--- FIN.
