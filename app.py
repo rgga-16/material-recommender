@@ -725,13 +725,13 @@ if __name__ == "__main__":
     
     ######################################
     # texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
-    
-   
 
     products = [
         "nightstand_family",
         "bedroom",
-        "pool-side"
+        "pool-side",
+        "pool-side-small",
+        "regular_bathroom"
     ]
 
     DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[1]) #Dir where the 3D scene (information, models, textures, renderings) is stored
@@ -767,11 +767,7 @@ if __name__ == "__main__":
 
 
 
-
 ################################# DUMPSTER #########################################
-
-
-
 # @app.route("/add_color_to_rendering", methods=['POST'])
 # def add_color_to_rendering():
 #     form_data = request.get_json()

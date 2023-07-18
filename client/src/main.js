@@ -523,7 +523,6 @@ export async function addToHistory(action_name,object,part, properties, old_valu
 	if(properties.length != old_values.length || properties.length != new_values.length){
 		throw new Error("addToHistory: properties, old_values, and new_values must be the same length") ;
 	}
-
 	let properties_dict = {};
 	for(let i = 0; i < properties.length; i++){
 		properties_dict[properties[i]] = {
@@ -531,14 +530,12 @@ export async function addToHistory(action_name,object,part, properties, old_valu
 			"new": new_values[i]
 		}
 	}
-
 	let action = {
 		"name": action_name,
 		"object": object,
 		"part": part,
 		"properties": properties_dict
 	}
-
 	// console.log(history.actions[history.currentIndex]["properties"]);
 
 	if (action.name.toLowerCase() == "change texture") {
@@ -564,7 +561,6 @@ export async function addToHistory(action_name,object,part, properties, old_valu
 		action["properties"]["mat_normal_texture"]["new"] = await json["updated_new_normal_path"];
 		action["properties"]["mat_height_texture"]["new"] = await json["updated_new_height_path"];
 	}
-
 
 	action_history.update(history => {
 		// const newActions = history.actions.slice(0, history.currentIndex+1);

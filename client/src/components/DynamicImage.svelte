@@ -62,22 +62,22 @@ function dragStart(event) {
     transferred_texture_name.set(alt);
 }
 
-async function apply_texture() {
-        transferred_textureimg_url.update(value => {
-            value = imagepath;
-            return value;
-        });
-        // let texturepath_obj_url = await getImage(imagepath);
-        transferred_texture_url.update(value => {
-            value = imagesource;
-            return value;
-        });
-        transferred_texture_name.update(value => {
-            value = alt;
-            return value;
-        });
-        three_display.fullTextureTransferAlgorithm();
-    }
+export async function apply_texture() {
+    transferred_textureimg_url.update(value => {
+        value = imagepath;
+        return value;
+    });
+    // let texturepath_obj_url = await getImage(imagepath);
+    transferred_texture_url.update(value => {
+        value = imagesource;
+        return value;
+    });
+    transferred_texture_name.update(value => {
+        value = alt;
+        return value;
+    });
+    three_display.fullTextureTransferAlgorithm();
+}
 
 
 $: getImage();
