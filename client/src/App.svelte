@@ -17,6 +17,8 @@
 	import {design_brief} from './stores.js';
 	import {in_japanese} from './stores.js';
 	import {use_chatgpt} from './stores.js';
+
+
 	import {get} from 'svelte/store';
 	import {onMount} from "svelte";	
 	import {action_history} from './stores.js';
@@ -26,7 +28,6 @@
 	import {translate} from './main.js';
 
 	import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
-
 	let japanese;
     in_japanese.subscribe(value => {
         japanese = value;
@@ -58,11 +59,18 @@
 	});
 
 	let threed_display;
+	// threed_display_global.subscribe(value => {
+	// 	threed_display = value;
+	// });
+
+	// threed_display_global.update(value => {
+	// 		threed_display = value;
+	// 		return value;
+	// });
 
 	const saved_renderings_height = 35;
 	const actions_panel_width = 23;
 	const information_panel_width = 32;
-
 
 	let curr_saved_renderings_height=saved_renderings_height;
 	let curr_actions_panel_width = actions_panel_width;
@@ -80,22 +88,15 @@
 		design_brief_textarea.readOnly=false;
 	}
 
-	
 	let design_brief_text="";
 	async function translateDesignBrief(orig_design_brief_text) {
 		const translated_design_brief = await translate("EN","JA",orig_design_brief_text);
 		design_brief_text= await {...translated_design_brief};
 	}
 
-	// function updateDesignBrief() {
-	// 	design_brief.set(design_brief_text);
-	// 	design_brief_textarea.readOnly=true;
-	// }
-
 	function hideDesignBrief() {
 		show_design_brief=false;
 	}
-
 
 	let current_rendering; 
 	async function getSavedRenderings() {
@@ -105,7 +106,6 @@
 		return data;
 	}
 	const saved_renderings_promise = getSavedRenderings();
-
 
 	async function updateCurrentRendering() {
 		is_loading=true;
@@ -159,7 +159,6 @@
                 "textureparts_path": selected["textureparts_path"]
             }),
         });
-
         const data = await response.json();
 		curr_rendering_path.set(await data["rendering_path"]);
 		curr_texture_parts.set(await data["texture_parts"]);
@@ -290,10 +289,24 @@
 		const threediv = document.getElementById("display");
 		displayWidth.set(threediv.offsetWidth);
 		displayHeight.set(threediv.offsetHeight);
+		
+
+		// threed_display_global.update(value => {
+		// 	threed_display = value;
+		// 	return value;
+		// });
+
+		console.log(threed_display);
 		threed_display_global.set(threed_display);
 		information_panel_global.set(information_panel);
 		console.log(get(curr_texture_parts));
 		design_brief_text=get(design_brief);
+
+		console.log("THE THREED DISPLAY SHOULD BE UPDATED")
+		console.log(get(threed_display_global))
+		if(get(threed_display_global)==null || get(threed_display_global)==undefined) {
+			alert("3D viewer is not loaded! please refresh the page.")
+		}
 
 	});
 
@@ -355,18 +368,17 @@
 				<button id="design-brief-btn" on:click = {() => showDesignBrief()}> {japanese ? "デザイン概要を見る" : "View Design Brief"} </button>
 				
 				<div id="action-history-btns">
-					<button id="" on:click = {() => {undoAction()}} disabled={history.currentIndex <= -1}> 
+					<button id="" on:click = {() => {undoAction()}} disabled={history.currentIndex <= -1} title={history.currentIndex <= -1 ? "" : "Undo " + history.actions[history.currentIndex]["name"]}> 
 						<!-- {#if history.currentIndex > -1}
 							Undo "{history.actions[history.currentIndex]["name"]}"
 						{/if} -->
 						
 						<img src="./logos/undo-small-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 					</button>
-					<button id="" on:click = {() => {redoAction()}} disabled={history.currentIndex >= history.actions.length - 1}> 
+					<button id="" on:click = {() => {redoAction()}} disabled={history.currentIndex >= history.actions.length - 1} > 
 						<!-- {#if history.currentIndex < history.actions.length - 1}
 							Redo "{history.actions[history.currentIndex+1]["name"]}"
 						{/if} -->
-						
 						<img src="./logos/redo-small-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 					</button>
 				</div>
