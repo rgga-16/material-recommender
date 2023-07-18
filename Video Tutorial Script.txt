@@ -1,0 +1,71 @@
+Tutorials
+
+1) Part 1: Basic Functions (don't show chatgpt) (In Bedroom)
+- Hello! In this tutorial, I will show you how to use the basic controls of the co-creative system. Let's start with the middle panel of the screen (highlight center). 
+- Here, you can view your 3D scene using the 3D View tab and Rendering view.  
+- *Show Image Rendering view tab*. In the Image Rendering ......
+- *Show 3D view tab*. In the 3D View tab, you can interact with the 3D objects in your scene. This is where you will do most of your editing.
+
+Here is how you can navigate in the 3D view.
+-- Hold right click + drag : rotate view
+-- Hold middle mouse click + drag: pan view
+-- If you hover a mouse over an object and it turns red, you can select it.
+-- If you left click on an object, you can see its details on the right panel called "Object Details".
+
+-- Object Details Tab
+-- You can view the object being selected. If you selected a component, you see its name and the object it is a part of.
+-- You can view the material, color, and material finish  it is using. You can further edit the name of the material and material finish.
+-- Here, I'll show you the several things you can do when adjusting the material of an object.
+
+
+
+--- First, the Material Finish tab lets you set different material properties like opacity, roughness, and metalness using the sliders below.
+---- Opacity adjusts the object's opacity between 0 (transparent) and 1 (opaque). This is useful if you are working with materials like glass.
+---- Roughness adjusts the object's shine between 0 (glossy) and 1 (matte). This is useful if you want to add gloss to your material. 
+---- Metalness can be set between 0 (non-metallic) and 1 (metallic). You set this if you are dealing with materials like steel.
+---- Normal Scale can be used to increase the details of the material's surface, making it look more rough. 
+---- Height Scale (Buggy. Not sure if to include this)
+
+
+--- Next, the Texture Map tab allows you to adjust the texture's transformation by sliding the values or entoer your own value.
+---- Translation sets the horizontal (X) and vertical (Y) placement of the texture map.
+---- Rotation rotates the texture map by degrees.
+---- Scale sets the sizing of the texture map. 
+
+--- Next, the Color Finish tab lets you add a color to the material by using the color picker or by clicking on a swatch in your palette. 
+--- By clicking the dropdown arrow, you can also add new color palettes. 
+
+(Show side table component)
+--- Lastly, for object components, the Attached Parts tab informs you on the other components it is attached to and the materials they are made of, for your reference.
+
+-- Multiple selection
+-- Multi editing.
+
+-- If you made a mistake when you are editing, you can press the Undo button on the top of the screen. You can hover your mouse over to see the change it will undo.
+-- If you want to go back to the change you made, you can press the Redo button. 
+
+-- Rendering, Saving, and Loading Scenes
+-- Once you are satisfied with your edits, you can render the 3D scene by clicking on the render button. The newly rendered scene will be shown in the Image Rendering view.
+-- After that, you can save your scene by clicking on the Save Scene button. Don't forget to render first before you save!
+(*Fade to 2 different scenes)
+-- If you want to load a scene that you saved, first select the scene in the Saved Scenes panel, and then click Load Scene.
+
+
+2) Part 2: Generator Tab
+- Hello! In this tutorial, I will show you how to use the Material Generator of the co-creative system. It is located on the left panel of the screen (highlight left panel).
+- This uses a text-to-image generator like StableDiffusion or DALL-E, that can create images from text input. Here, this is used to create texture maps from input material names.
+- First, let's say we want to make a texture map of oak wood. First, type in the textbox "oak wood". 
+- Next, you can specify the number of texture maps you want to make. It can be from 1 to 20.
+- Then, you click "Generate Textures". The time taken to create the textures depends on the number of textures you specified to make. 
+- After that, you will see the generated image textures of "oak wood".  
+
+- To apply the texture onto an object, first select the object you want to apply.
+- Next, hover over one of the texture maps and you will see an "Apply Texture" button. 
+- When you click it, the texture is then applied. 
+- You can also apply the texture onto multiple objects by holding shift and selecting the multiple objects, and then clicking "Apply Texture". 
+- Then, you can adjust accordingly.
+- However, the material generator is not always accurate. (show example of stainless steel). For example, if I type in stainless steel, you would expect a smooth steel texture, but not all of them look like that. This is where you can add keywords to your input.
+- For example, if I wanted stainless steel, I would type in words like "smooth" or "shiny". If you can't think of keywords, you can click on the "Brainstorm keywords" button. This uses ChatGPT to brainstorm keywords for you related to your material. 
+- Here's another example. You if I wanted wood with a specific grain, I can type in "vertical grain" or "horizontal grain" to get that grain of my wood.
+
+
