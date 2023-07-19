@@ -330,25 +330,28 @@
 
 
 <div class="message-input">
-    <textarea style="width:100%;" bind:value="{inputMessage}" on:keydown="{e => e.key === 'Enter' && suggest_materials()}" placeholder="Type your queries for materials or color palettes here.." id="textarea"></textarea>
-    <label>
-        <input type="checkbox" bind:checked={use_internet} >
-        {japanese ? "ウェブ検索を利用する" : "Use web search"}
-    </label>
-    <label>
-        <input type="checkbox" bind:checked={use_design_brief} >
-        {japanese ? "デザイン・ブリーフに基づく": "Based on design brief"}
-    </label>
-    <button on:click|preventDefault={()=>suggest_materials()}>
-        {japanese? "素材を提案する": "Suggest Materials"}
-    </button>    
-    <button on:click|preventDefault={()=>suggest_color_palettes()}>
-        {japanese ? "色を提案する": "Suggest Colors"}
-    </button>   
+    <textarea style="width:100%;height:100%;" bind:value="{inputMessage}" on:keydown="{e => e.key === 'Enter' && suggest_materials()}" placeholder="Type your queries for materials or color palettes here.." id="textarea"></textarea>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;align-content:center;">
+        <label>
+            <input type="checkbox" bind:checked={use_internet} >
+            {japanese ? "ウェブ検索を利用する" : "Web search"}
+        </label>
+        <label>
+            <input type="checkbox" bind:checked={use_design_brief} >
+            {japanese ? "デザイン・ブリーフに基づく": "Design brief"}
+        </label>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;align-content:center;">
+        <button on:click|preventDefault={()=>suggest_materials()}>
+            {japanese? "素材を提案する": "Suggest Materials"}
+        </button>    
+        <button on:click|preventDefault={()=>suggest_color_palettes()}>
+            {japanese ? "色を提案する": "Suggest Colors"}
+        </button>   
+    </div>
 </div>
 
 <style>
-
     .floating-div {
         padding: 10px;
         position: absolute;
@@ -368,9 +371,6 @@
         z-index: 1;
         gap: 5px;
     }
-
-
-
     .message-input {
         position: relative;
         display: flex;
@@ -379,15 +379,13 @@
         align-items: center;
         padding: 10px;
         width: 100%;
-        height: 10%;
+        height: 18%;
     }
-
-
     .messages {
         background-color: white;
         display: flex;
         flex-direction: column;
-        height: 90%;
+        height: 82%;
         width: 100%;
         overflow-y: scroll;
         padding: 10px;
@@ -396,7 +394,6 @@
 		background-color: white;
 		
 	}
-
 	.assistant {
 		background-color: lightgray;
 	}

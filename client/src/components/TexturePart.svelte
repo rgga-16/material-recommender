@@ -22,6 +22,12 @@
 
     import {curr_texture_parts, objects_3d, information_panel_global} from '../stores.js';
 
+    export let part_parent_name;
+    export let part_name;
+    export let index;
+    
+    
+
     let image;
     export function updateImage() {
       image.getImage();
@@ -51,14 +57,31 @@
     objects_3d.subscribe(value => {
       all_3d_objects = value;
     });
+
+    let sel_objs_and_parts;
+    selected_objs_and_parts.subscribe(value => {
+      sel_objs_and_parts = value;
+    });
     
-    export let index;
-    export let part_parent_name;
-    export let part_name;
-    export let material_name; 
+    $: material_name = current_texture_parts[part_parent_name][part_name]['mat_name'];
     export let material_url;
     export let material_finish; 
     export let material_color=null; //Color code of the material
+
+    let material;
+    let opacity=[0.5];
+    let roughness=[0.5]
+    let metalness=[0.5];
+    let normalScale=[0];
+    let displacementScale=[0];
+    let isTransparent=false;
+
+    let translationX = 0; 
+    let translationY = 0;
+    let rotation= 0; 
+    let scale = 1;
+    $:scaleX = scale; 
+    $:scaleY =  scale; 
     /**
      * parents = [
      *  (object, part)
@@ -87,25 +110,9 @@
 
     let is_loading_feedback=false;
     
-    let material;
-    let opacity=[0.5];
-    let roughness=[0.5]
-    let metalness=[0.5];
-    let normalScale=[0];
-    let displacementScale=[0];
-    let isTransparent=false;
+    
 
-    let translationX = 0; 
-    let translationY = 0;
-    let rotation= 0; 
-    let scale = 1;
-    $:scaleX = scale; 
-    $:scaleY =  scale; 
-
-    let sel_objs_and_parts;
-    selected_objs_and_parts.subscribe(value => {
-      sel_objs_and_parts = value;
-    });
+    
 
     let palettes=[]; 
     let selected_palette_idx=0;
@@ -446,6 +453,14 @@
     let gen_module;
     onMount(async () => {
       material = sel_objs_and_parts[index].model.children[0].material;
+
+      if(current_texture_parts[part_parent_name][part_name]['mat_finish']) {
+        material_finish = current_texture_parts[part_parent_name][part_name]['mat_finish'];
+      } else {
+        material_finish = "none";
+      }
+
+
       opacity = [material.opacity];
       roughness = [material.roughness]; 
       metalness = [material.metalness];
@@ -497,12 +512,22 @@
       gen_module = get(generate_module);
     });
 
-    function applyFinishSuggestion(finish_suggestion) {
+    function applyFinishSuggestion(finish_name, finish_settings) {
       switchTab('adjust-finish');
-      opacity = [finish_suggestion["opacity"]];
-      roughness = [finish_suggestion["roughness"]];
-      metalness = [finish_suggestion["metalllic"]];
-      updateFinish();
+      opacity = [finish_settings["opacity"]];
+      roughness = [finish_settings["roughness"]];
+      metalness = [finish_settings["metallic"]];
+
+      // Update it in the 3D model.
+      updateOpacity([finish_settings["opacity"]])
+      updateRoughness([finish_settings["roughness"]])
+      updateMetalness([finish_settings["metallic"]])
+
+      changeProperty("opacity", opacity[0],1.0)
+      changeProperty("roughness", roughness[0], 0.5)
+      changeProperty("metalness", metalness[0], 0.5)
+      changeProperty("mat_finish", finish_name, "none")
+
     }
 
     function generate(material_name) {
@@ -552,7 +577,7 @@
               <button on:click|preventDefault={requestMaterialFeedback}> {japanese ? "フィードバックのリクエスト": "Request feedback"}  </button>
               <label>
                 <input type="checkbox" bind:checked={use_design_brief} >
-                {japanese ? "デザイン・ブリーフに基づく" : "Based on design brief"}
+                {japanese ? "デザイン・ブリーフに基づく" : "Design brief"}
               </label>
             </div>
             
@@ -794,7 +819,7 @@
                             <span> {japanese ? "金属的だ：": "Metalness:"}  {suggestion[2]["metallic"]}</span>
                           </div>
                           <span><b> {japanese ? "素材仕上げ" : suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
-                          <button  on:click={() => {applyFinishSuggestion(suggestion[2])}}> {japanese ? "仕上げを施す" : "Apply Finish"}  </button>
+                          <button  on:click={() => {applyFinishSuggestion(suggestion[0], suggestion[2])}}> {japanese ? "仕上げを施す" : "Apply Finish"}  </button>
                         {:else}
                           <span> <b> {japanese ? japanese_formatted_feedback[aspect]['suggestions'][i][0] : suggestion[0]} </b></span>
                           <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
@@ -814,8 +839,8 @@
         {:else if is_loading_feedback}
           <div class="images-placeholder">
             {japanese ? 
-              "フィードバックをリクエストしています。しばらくお待ちください。60〜90秒ほどかかる場合があります。" :
-              "Requesting feedback, please wait. This may take around 60 to 90 seconds."
+              "フィードバックをリクエストしています。しばらくお待ちください。これには少し時間がかかるかもしれません。" :
+              "Requesting feedback, please wait. This may take a while."
             }
             <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
           </div>
