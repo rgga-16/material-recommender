@@ -53,6 +53,11 @@
         information_panel_tab.set(tab);
     }
 
+    export function clearTexturePart() {
+        const textureparts_div = document.getElementById("texture-part-details");
+        textureparts_div.innerHTML='';
+    }
+
     // export function displayTexturePart() {
     //     let textureparts=[];
     //     const textureparts_div = document.getElementById("texture-part-details");
@@ -77,7 +82,6 @@
     //                 index:i,
     //                 part_parent_name: selected_part_parent,
     //                 part_name: selected_part,
-    //                 material_name: mat_name,
     //                 material_url: material_url,
     //                 material_finish: material_finish,
     //                 material_color: material_color,
@@ -108,7 +112,7 @@
 
 
     onMount(async () => {
-        // add_multi_textureparts_panel();
+
     });
 
 </script>
@@ -130,7 +134,6 @@
                         index={i}
                         part_parent_name={sel_obj_part.parent}
                         part_name={sel_obj_part.name}
-                        material_name={current_texture_parts[sel_obj_part.parent][sel_obj_part.name]['mat_name']}
                         material_url={current_texture_parts[sel_obj_part.parent][sel_obj_part.name]['mat_image_texture']}
                         parents={current_texture_parts[sel_obj_part.parent][sel_obj_part.name]['parents']}
                     /> 

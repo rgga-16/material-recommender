@@ -267,7 +267,6 @@
 
     function onPointerClick(event) {
         event.preventDefault();
-
         if(!isMouseOver3DScene(event)) {
             return;
         }
@@ -281,7 +280,6 @@
                 console.log(clicked_object);
                 const index = SELECTEDS.indexOf(clicked_object);
                 if (index === -1) {//If clicked object hasn't been selected yet, select it.
-
                     if(isObjectSelectable(clicked_object)) {
                         if (shiftPressed) { //If shift is held, want to select multiple objects
                             SELECTEDS.push(clicked_object);
@@ -291,8 +289,7 @@
                             SELECTEDS=SELECTEDS;    
                             SELECTED_INFOS=SELECTED_INFOS;
                             selected_objs_and_parts.set(SELECTED_INFOS);
-                            // console.log(get(selected_objs_and_parts));
-                            //information_panel.displayTexturePart();
+                            // //information_panel.clearTexturePart();
                         } else { //If shift is not held, want to select only one object
                             SELECTEDS = [];
                             SELECTED_INFOS = [];
@@ -300,16 +297,13 @@
                             // console.log(clicked_object);
                             // console.log(model3d_infos);
                             const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
-                            
                             // console.log(get(curr_texture_parts));
                             SELECTED_INFOS[0] = model3d_infos[index];
                             // console.log("Has not been selected yet. Selecting it.")
-
                             SELECTEDS=SELECTEDS;    
                             SELECTED_INFOS=SELECTED_INFOS;
                             selected_objs_and_parts.set(SELECTED_INFOS);
-                            // console.log(get(selected_objs_and_parts));
-                            //information_panel.displayTexturePart();
+                            //information_panel.clearTexturePart();
                         }
                     } else {
                         if (SELECTEDS.length > 0) {
@@ -321,29 +315,26 @@
                             selected_objs_and_parts.set(SELECTED_INFOS);
                             removeHighlightsFromUnselecteds();
                         }
-                        // console.log("Nothing's been selected.")
                     }
-
                 } else {//If clicked object has already been selected, deselect it. 
                     SELECTEDS[0].material.emissive.setHex(0x000000);
                     SELECTEDS.splice(index, 1);
                     SELECTED_INFOS.splice(index, 1);
                     // console.log("Has been selected. Deselected.")
-                    
-
                     SELECTEDS=SELECTEDS;    
                     SELECTED_INFOS=SELECTED_INFOS;
                     selected_objs_and_parts.set(SELECTED_INFOS);
-                    //information_panel.displayTexturePart();
+                    information_panel.clearTexturePart();
                     removeHighlightsFromUnselecteds();
                 }
                 SELECTEDS=SELECTEDS;    
                 SELECTED_INFOS=SELECTED_INFOS;
                 selected_objs_and_parts.set(SELECTED_INFOS);
-                //information_panel.displayTexturePart();
+                // //information_panel.clearTexturePart();
             }
         } else {// If the user clicks on an empty space, then we want to deselect the selected object.
             if (SELECTEDS.length > 0) {
+                information_panel.clearTexturePart();
                 for (let i = 0; i < SELECTEDS.length; i++) {
                     SELECTEDS[i].material.emissive.setHex(0x000000);
                 }
@@ -352,10 +343,9 @@
                 selected_objs_and_parts.set(SELECTED_INFOS);
                 removeHighlightsFromUnselecteds();
             }
-            // console.log("Nothing's been selected.")
+            // console.log("Nothing's been selected."
         }
-        // console.log(get(selected_objs_and_parts));
-        // //information_panel.displayTexturePart();
+        // //information_panel.clearTexturePart();
         removeHighlightsFromUnselecteds();
     }
 
@@ -450,11 +440,6 @@
         const rect = renderer.domElement.getBoundingClientRect();
         return (event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom);
     }
-
-    // export async function transfer_texture_nohistory(object_name, part_name) {
-
-    // }
-
 
     // WIP
     export async function transferTexture(object_name, part_name, mat_name, image_path,normal_path,height_path) {
@@ -591,7 +576,10 @@
                         mat.transparent= true;
                         mat.needsUpdate = true;
                         mat.color.setHex(0xffffff);
+                        mat.emissive.setHex(0x000000);
                         mat.emissive.setRGB(0,0,0);
+                        mat.transparent=true;
+                        mat.opacity=1;
                         mat.emissiveIntensity=0;
                     });
                 } else {
@@ -614,6 +602,8 @@
                     material.needsUpdate = true;
                     material.transparent= true;
                     material.color.setHex(0xffffff);
+                    material.opacity=1;
+                    material.emissive.setHex(0x000000);
                     // material.color=null; //The bug is here in this lil crap
                     material.emissive.setRGB(0,0,0);
                     material.emissiveIntensity=0;

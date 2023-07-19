@@ -63,6 +63,7 @@ function dragStart(event) {
 }
 
 export async function apply_texture() {
+    
     transferred_textureimg_url.update(value => {
         value = imagepath;
         return value;

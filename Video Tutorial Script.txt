@@ -1,9 +1,15 @@
 Tutorials
 
+Hello. Welcome to this tutorial series. 
+This series presents an AI co-creative system that aims to help designers texture 3D scenes
+by creating, suggesting, and giving feedback on material textures. 
+This tutorial series will teach you how to use the system's functions. 
+
+
 1) Part 1: Basic Functions (don't show chatgpt) (In Bedroom)
-- Hello! In this tutorial, I will show you how to use the basic controls of the co-creative system. Let's start with the middle panel of the screen (highlight center). 
+- This video will teach you how to use the basic controls of the co-creative system. Let's look at the middle panel of the screen (highlight center). 
 - Here, you can view your 3D scene using the 3D View tab and Rendering view.  
-- *Show Image Rendering view tab*. In the Image Rendering ......
+- *Show Image Rendering view tab*. In the Image Rendering, you can view your 3D scene with more realistic quality and with lighting involved. 
 - *Show 3D view tab*. In the 3D View tab, you can interact with the 3D objects in your scene. This is where you will do most of your editing.
 
 Here is how you can navigate in the 3D view.
@@ -50,7 +56,8 @@ Here is how you can navigate in the 3D view.
 
 2) Part 2: Generator Tab
 - Hello! In this tutorial, I will show you how to use the Material Generator of the co-creative system. It is located on the left panel of the screen (highlight left panel).
-- This uses a text-to-image generator like StableDiffusion or DALL-E, that can create images from text input. Here, this is used to create texture maps from input material names.
+- This module uses a text-to-image generator like StableDiffusion or DALL-E, that can create images from text prompts, and also ChatGPT to assist you in making your prompts. 
+- The Material Generator is used to create texture maps from text prompts of materials.
 - First, let's say we want to make a texture map of oak wood. First, type in the textbox "oak wood". 
 - Next, you can specify the number of texture maps you want to make. It can be from 1 to 20.
 - Then, you click "Generate Textures". The time taken to create the textures depends on the number of textures you specified to make. 

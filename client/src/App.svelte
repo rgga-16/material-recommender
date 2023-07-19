@@ -176,6 +176,7 @@
 	curr_texture_parts.subscribe(value => {
 		console.log(value);
 		current_texture_parts = value;
+		console.log(current_texture_parts);
 	});
 
 	curr_textureparts_path.subscribe(value => {
@@ -349,7 +350,7 @@
 		<div class="actions-panel" class:collapsed={actions_panel_collapsed} style="width: {curr_actions_panel_width}%;">
 			
 			<button class="collapse-button"on:click={() => collapse_actions_panel()} 
-				style={actions_panel_collapsed ? "top: 90%; right: -185%; transform:rotate(270deg);" : "top: 90%; right: -10%; transform:rotate(270deg);"}
+				style={actions_panel_collapsed ? "top: 90%; right: -185%; transform:rotate(270deg);" : "top: 50%; right: -10%; transform:rotate(270deg);"}
 			>
 				{#if actions_panel_collapsed}
 					{japanese ? "展開する" : "Expand"}
