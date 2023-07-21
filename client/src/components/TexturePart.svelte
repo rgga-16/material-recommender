@@ -778,7 +778,7 @@
           <div class="w3-bar w3-grey tabs">
             {#each Object.keys(formatted_feedback) as aspect}
               <button class="w3-bar-item w3-button tab-btn" class:active={activeAspect===aspect} on:click={() => {activeAspect = aspect;}}>
-                {#if in_japanese}
+                {#if japanese}
                   {aspect==="assembly" ? "組み立て" : aspect==="availability" ? "素材の入手性" : aspect==="cost" ? "コスト" : aspect==="durability" ? "素材の耐久性" : aspect==="maintenance" ? "素材のメンテナンス" :  aspect==="sustainability" ? "持続可能性" :  ""}
                 {:else}
                   {aspect}
