@@ -40,8 +40,6 @@ Location: The bedroom is located in a modern urban apartment in a bustling city.
 Please note that the design brief is flexible and can be further refined based on the client's specific requirements and preferences.
 `); //Keeps track of the design brief
 
-
-
 // selected_objs_and_parts = [
 //     { part_name: "part1", 
 //       obj_name: "obj1",
@@ -59,8 +57,6 @@ Please note that the design brief is flexible and can be further refined based o
 // ]
 export const selected_objs_and_parts =writable ([]); //Keeps track of the selected parts and their parent objects in the 3D view
 export const objects_3d = writable([]); //Keeps track of all of the objects in the 3D view
-
-
 export const selected_obj_name = writable(null); //Keeps track of the selected part's object in the 3D view
 export const selected_part_name = writable(null); //Keeps track of the name of the currently selected part in the 3D view
 
@@ -101,11 +97,8 @@ export const displayHeight = writable(0); //Keeps track of the height of the dis
 
 export const isDraggingImage = writable(false); //Keeps track of whether an image is currently being dragged and transferred or not
 export const generated_texture_name = writable(""); //Keeps track of the name of the generated texture
-
-
 export let in_japanese = writable(false); //Keeps track of whether the language is in Japanese or not
 export let use_chatgpt = writable(true); //Keeps track of whether the app uses chatgpt or not
-
 
 /* 
 action_history = [

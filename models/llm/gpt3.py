@@ -46,7 +46,9 @@ temperature=1.0
 # model_name = "gpt-3.5-turbo"
 # max_tokens = 4097
 model_name = "gpt-3.5-turbo-16k"
+# model_name= "gpt-4"
 max_tokens=16383
+# max_tokens = 8096
 encoding = tiktoken.get_encoding("cl100k_base")
 # encoding = tiktoken.encoding_for_model(model_name)
 
@@ -345,20 +347,21 @@ def suggest_color_palettes(prompt, role="user", use_internet=True, design_brief=
     intro_text = ""
 
     # Remove text before and after the Python list
-    start_index = python_list_response.find('[')
+    start_index = python_list_response.find('[{')
     if start_index>0:
         print("Removing text before the Python list.")
         python_list_response = python_list_response[start_index:].strip()
-    end_index = python_list_response.rfind(']')
-    if end_index<len(python_list_response)-1:
+    
+    end_index = python_list_response.rfind('}]')
+    if end_index<len(python_list_response)-2:
         print("Removing text after the Python list.")
-        python_list_response = python_list_response[:end_index+1].strip()
+        python_list_response = python_list_response[:end_index+2].strip()
     python_list_response = python_list_response.strip()
 
     
     try:
         suggestions = ast.literal_eval(python_list_response)
-        intro_text=''
+        # intro_text=''
     except SyntaxError as e:
         intro_text = f"Sorry, please try again. We got the following error: {e}."
         suggestions = []
@@ -421,7 +424,6 @@ def brainstorm_material_queries():
 
 
 materials_feedbacks = []
-
 def provide_material_feedback2(material_name, object_name, part_name, use_internet=False, attached_parts=None, design_brief=None):
     
     # feedback_model = "gpt-3.5-turbo-16k"
