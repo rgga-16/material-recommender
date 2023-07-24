@@ -14,6 +14,7 @@
     import {action_history} from '../stores.js';
     import {addToHistory} from '../main.js';
     import {getImage} from '../main.js';
+    import {degreeToRadians} from '../main.js';
 
     import {isDraggingImage} from '../stores.js';
     import {generated_texture_name} from '../stores.js';
@@ -53,6 +54,10 @@
      * ]
      */
     let model3d_infos = []; //List of all 3D models laoded from current_texture_parts including their parent object
+
+    // curr_texture_parts.update(value => {
+    //     current_texture_parts = value;  
+    // });
 
     export function update_3d_scene() {
         selected_objs_and_parts.set([]);
@@ -97,6 +102,8 @@
                 if ("mat_height_texture" in cloned_texture_parts[selected_parent_object][selected_object_name]) {
                     old_mat_height_texture = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_height_texture"];
                 }
+
+                
                 
                 await transferTexture(selected_parent_object, selected_object_name, dragged_texture_name, dragged_textureimg_url, texturenormal_url, textureheight_url);
                 
@@ -455,7 +462,19 @@
         let height_mat_blob= await getImage(height_path);
         let img_mat_blob = await getImage(image_path);
 
-        model = changeTexture(model,img_mat_blob, normal_mat_blob,height_mat_blob);
+        let color = cloned_texture_parts[object_name][part_name]['color'] ? cloned_texture_parts[object_name][part_name]['color'] : "#FFFFFF"; 
+        let opacity = cloned_texture_parts[object_name][part_name]['opacity'] ? cloned_texture_parts[object_name][part_name]['opacity'] : 1;
+        let roughness = cloned_texture_parts[object_name][part_name]['roughness'] ? cloned_texture_parts[object_name][part_name]['roughness'] : 0.5;
+        let metalness = cloned_texture_parts[object_name][part_name]['metalness'] ? cloned_texture_parts[object_name][part_name]['metalness'] : 0.0;
+        let translationX = cloned_texture_parts[object_name][part_name]['offsetX'] ? cloned_texture_parts[object_name][part_name]['offsetX'] : 0;
+        let translationY = cloned_texture_parts[object_name][part_name]['offsetY'] ? cloned_texture_parts[object_name][part_name]['offsetY'] : 0;
+        let rotation = cloned_texture_parts[object_name][part_name]['rotation'] ? cloned_texture_parts[object_name][part_name]['rotation'] : 0;
+        let scaleX = cloned_texture_parts[object_name][part_name]['scaleX'] ? cloned_texture_parts[object_name][part_name]['scaleX'] : 1;
+        let scaleY = cloned_texture_parts[object_name][part_name]['scaleY'] ? cloned_texture_parts[object_name][part_name]['scaleY'] : 1;
+        let normalScale =[cloned_texture_parts[object_name][part_name]['normalScale']]  ? [cloned_texture_parts[object_name][part_name]['normalScale']] : 0.0;
+
+        model = changeTexture(model,img_mat_blob, normal_mat_blob,height_mat_blob,
+        color,opacity,roughness,metalness,translationX,translationY,rotation,scaleX,scaleY,normalScale);
 
         // This function moves the file location of the texture map to the current directory
         await moveTextureMap(image_path);
@@ -520,7 +539,19 @@
                 if(model.children[0] instanceof THREE.Object3D && !(model.children[0] instanceof THREE.Mesh)) {
                     // console.log("model.children[0] is Object3D. Changing it to a Mesh.");
                     const real_mesh = model.children[0].children[0];
-                    real_mesh.material.color.setHex(0xffffff);
+                    if(current_texture_parts[model3d_infos[i]["parent"]][model3d_infos[i]["name"]]["color"]) {
+                        const color = current_texture_parts[model3d_infos[i]["parent"]][model3d_infos[i]["name"]]["color"];
+                        const hexNumber = parseInt(color.substring(1), 16);
+                        real_mesh.material.color.setHex(hexNumber);
+                        real_mesh.material.color_hex = hexNumber;
+                    } else {
+                        const no_color = "0xffffff";
+                        const hexNumber = parseInt(color.substring(1), 16);
+                        real_mesh.material.color.setHex(hexNumber);
+                        real_mesh.material.color_hex = hexNumber;
+                    }
+                    
+                    
                     model.children[0] = real_mesh;
                 }
 
@@ -537,12 +568,10 @@
         // console.log(model3d_infos);
     }
 
-    function changeTexture(object, url, normal_url, height_url) {
-        
-        // console.log("Image texture URL: " + url);
-        // console.log("Normal texture URL: " + normal_url);
-        // console.log("Height texture URL: " + height_url);
+    function changeTexture(object, url, normal_url, height_url,color, opacity,roughness,metalness,translationX,translationY,rotation,scaleX,scaleY,normalScale) {
 
+        
+        const hexNumber = parseInt(color.substring(1), 16);
         object.traverse((node) => {
             console.log(node);
             if (node.isMesh) {
@@ -573,11 +602,36 @@
 
                         mat.transparent= true;
                         mat.needsUpdate = true;
-                        mat.color.setHex(0xffffff);
+                        mat.color.setHex(hexNumber);
                         mat.emissive.setHex(0x000000);
                         mat.emissive.setRGB(0,0,0);
                         mat.transparent=true;
-                        mat.opacity=1;
+                        mat.opacity=opacity;
+                        mat.roughness=roughness;
+                        mat.metalness=metalness;
+                        mat.map.offset.x=translationX;
+                        mat.map.offset.y=translationY;
+                        mat.normalMap.offset.x=translationX;
+                        mat.normalMap.offset.y=translationY;
+                        mat.displacementMap.offset.x=translationX;
+                        mat.displacementMap.offset.y=translationY;
+
+                        mat.map.rotation=rotation;
+                        mat.normalMap.rotation=rotation;
+                        mat.displacementMap.rotation=rotation;
+
+                        mat.map.scaleX=scaleX;
+                        mat.map.scaleY=scaleY;
+                        mat.normalMap.scaleX=scaleX;
+                        mat.normalMap.scaleY=scaleY;
+                        mat.displacementMap.scaleX=scaleX;
+                        mat.displacementMap.scaleY = scaleY;
+
+                        mat.normalScale = new THREE.Vector2(normalScale, normalScale);
+
+
+
+
                         mat.emissiveIntensity=0;
                     });
                 } else {
@@ -589,22 +643,43 @@
                     texturemap.wrapS = THREE.RepeatWrapping; normalmap.wrapS = THREE.RepeatWrapping; heightmap.wrapS = THREE.RepeatWrapping;
                     texturemap.wrapT = THREE.RepeatWrapping; normalmap.wrapT = THREE.RepeatWrapping; heightmap.wrapT = THREE.RepeatWrapping;
 
-                    material.normalScale = new THREE.Vector2(0.1, 0.1);
-            
-                    console.log("BUMP SCALE: " + material.displacementScale);
-                    material.displacementScale = 0.00;
-
                     material.map = texturemap;
                     material.normalMap = normalmap;
                     material.displacementMap = heightmap;
+
                     material.needsUpdate = true;
                     material.transparent= true;
-                    material.color.setHex(0xffffff);
-                    material.opacity=1;
+
+                    material.color.setHex(hexNumber);
                     material.emissive.setHex(0x000000);
                     // material.color=null; //The bug is here in this lil crap
                     material.emissive.setRGB(0,0,0);
                     material.emissiveIntensity=0;
+
+                    material.opacity=opacity;
+                    material.roughness=roughness;
+                    material.metalness=metalness;
+                    material.map.offset.x=translationX;
+                    material.map.offset.y=translationY;
+                    material.normalMap.offset.x=translationX;
+                    material.normalMap.offset.y=translationY;
+                    material.displacementMap.offset.x=translationX;
+                    material.displacementMap.offset.y=translationY;
+
+                    material.map.rotation=rotation;
+                    material.normalMap.rotation=rotation;
+                    material.displacementMap.rotation=rotation;
+
+                    material.map.scaleX=scaleX;
+                    material.map.scaleY=scaleY;
+                    material.normalMap.scaleX=scaleX;
+                    material.normalMap.scaleY=scaleY;
+                    material.displacementMap.scaleX=scaleX;
+                    material.displacementMap.scaleY = scaleY;
+
+                    material.displacementScale = 0.00;
+
+                    material.normalScale = new THREE.Vector2(normalScale, normalScale);
                 }
                 node.material=material;
                 node=node;

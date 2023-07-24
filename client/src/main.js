@@ -45,7 +45,7 @@ export function isDict(obj) {
 	return typeof obj === 'object' && obj !== null && !Array.isArray(obj);
 }
 
-function degreeToRadians(degrees) {
+export function degreeToRadians(degrees) {
 	return degrees * (Math.PI/180);
 }
 
