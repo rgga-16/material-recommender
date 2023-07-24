@@ -134,7 +134,6 @@
                         index={i}
                         part_parent_name={sel_obj_part.parent}
                         part_name={sel_obj_part.name}
-                        material_url={current_texture_parts[sel_obj_part.parent][sel_obj_part.name]['mat_image_texture']}
                         parents={current_texture_parts[sel_obj_part.parent][sel_obj_part.name]['parents']}
                     /> 
                 {/each}
