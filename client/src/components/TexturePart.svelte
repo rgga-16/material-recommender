@@ -70,8 +70,8 @@
     let parents = current_texture_parts[part_parent_name][part_name]['parents'] ? current_texture_parts[part_parent_name][part_name]['parents'] : []; 
     let opacity=[current_texture_parts[part_parent_name][part_name]['opacity']] ? [current_texture_parts[part_parent_name][part_name]['opacity']] : [1.0];
     let roughness=[current_texture_parts[part_parent_name][part_name]['roughness']] ? [current_texture_parts[part_parent_name][part_name]['roughness']] : [0.5];
-    let metalness=[current_texture_parts[part_parent_name][part_name]['metalness']] ? [current_texture_parts[part_parent_name][part_name]['metalness']] : [0.5];
-    let normalScale=[current_texture_parts[part_parent_name][part_name]['normalScale']]  ? [current_texture_parts[part_parent_name][part_name]['normalScale']] : [1.0];
+    let metalness=[current_texture_parts[part_parent_name][part_name]['metalness']] ? [current_texture_parts[part_parent_name][part_name]['metalness']] : [0.0];
+    let normalScale=[current_texture_parts[part_parent_name][part_name]['normalScale']]  ? [current_texture_parts[part_parent_name][part_name]['normalScale']] : [0.0];
     let translationX = current_texture_parts[part_parent_name][part_name]['offsetX'] ? current_texture_parts[part_parent_name][part_name]['offsetX'] : 0;
     let translationY = current_texture_parts[part_parent_name][part_name]['offsetY'] ? current_texture_parts[part_parent_name][part_name]['offsetY'] : 0;
     let rotation = current_texture_parts[part_parent_name][part_name]['rotation'] ? current_texture_parts[part_parent_name][part_name]['rotation'] : 0;
