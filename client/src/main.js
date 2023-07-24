@@ -143,9 +143,12 @@ export async function undoAction() {
 				value[object][part]["color"] = old_color;
 				return value;
 			});
+
+			const hexNumber = parseInt(old_color.substring(1), 16);
 			//Update the color of the 3D model in the objects_3d store
 			objects_3d.update(objects => {
-				objects[idx].model.children[0].material.color.setHex(old_color);
+				objects[idx].model.children[0].material.color.setHex(hexNumber);
+				objects[idx].model.children[0].material.color_hex = hexNumber;
 				return objects;
 			})
 			// Make the 3D model the selected object, so that we can see the change in the Information Panel
@@ -376,9 +379,12 @@ export async function redoAction() {
 				value[object][part]["color"] = old_color;
 				return value;
 			});
+
+			const hexNumber = parseInt(old_color.substring(1), 16);
 			//Update the color of the 3D model in the objects_3d store
 			objects_3d.update(objects => {
-				objects[idx].model.children[0].material.color.setHex(old_color);
+				objects[idx].model.children[0].material.color.setHex(hexNumber);
+				objects[idx].model.children[0].material.color_hex = hexNumber;
 				return objects;
 			})
 			// Make the 3D model the selected object, so that we can see the change in the Information Panel

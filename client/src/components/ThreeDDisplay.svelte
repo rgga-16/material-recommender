@@ -97,8 +97,6 @@
                 if ("mat_height_texture" in cloned_texture_parts[selected_parent_object][selected_object_name]) {
                     old_mat_height_texture = cloned_texture_parts[selected_parent_object][selected_object_name]["mat_height_texture"];
                 }
-
-                // cloned_texture_parts[selected_parent_object][selected_object_name]["mat_name"] = dragged_texture_name;
                 
                 await transferTexture(selected_parent_object, selected_object_name, dragged_texture_name, dragged_textureimg_url, texturenormal_url, textureheight_url);
                 

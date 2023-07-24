@@ -63,57 +63,50 @@
       sel_objs_and_parts = value;
     });
     
-    $: material_name = current_texture_parts[part_parent_name][part_name]['mat_name'];
-    export let material_url;
-    export let material_finish; 
-    export let material_color=null; //Color code of the material
+    let material_name = current_texture_parts[part_parent_name][part_name]['mat_name'] ? current_texture_parts[part_parent_name][part_name]['mat_name'] : "None";
+    let material_url = current_texture_parts[part_parent_name][part_name]['mat_image_texture'] ? current_texture_parts[part_parent_name][part_name]['mat_image_texture'] : "None";
+    let material_finish = current_texture_parts[part_parent_name][part_name]['mat_finish'] ? current_texture_parts[part_parent_name][part_name]['mat_finish'] : "None";
+    let material_color=current_texture_parts[part_parent_name][part_name]['color'] ? current_texture_parts[part_parent_name][part_name]['color'] : "#FFFFFF"; 
+    let parents = current_texture_parts[part_parent_name][part_name]['parents'] ? current_texture_parts[part_parent_name][part_name]['parents'] : []; 
+    let opacity=[current_texture_parts[part_parent_name][part_name]['opacity']] ? [current_texture_parts[part_parent_name][part_name]['opacity']] : [1.0];
+    let roughness=[current_texture_parts[part_parent_name][part_name]['roughness']] ? [current_texture_parts[part_parent_name][part_name]['roughness']] : [0.5];
+    let metalness=[current_texture_parts[part_parent_name][part_name]['metalness']] ? [current_texture_parts[part_parent_name][part_name]['metalness']] : [0.5];
+    let normalScale=[current_texture_parts[part_parent_name][part_name]['normalScale']]  ? [current_texture_parts[part_parent_name][part_name]['normalScale']] : [1.0];
+    let translationX = current_texture_parts[part_parent_name][part_name]['offsetX'] ? current_texture_parts[part_parent_name][part_name]['offsetX'] : 0;
+    let translationY = current_texture_parts[part_parent_name][part_name]['offsetY'] ? current_texture_parts[part_parent_name][part_name]['offsetY'] : 0;
+    let rotation = current_texture_parts[part_parent_name][part_name]['rotation'] ? current_texture_parts[part_parent_name][part_name]['rotation'] : 0;
+    let scaleX = current_texture_parts[part_parent_name][part_name]['scaleX'] ? current_texture_parts[part_parent_name][part_name]['scaleX'] : 1;
+    let scaleY = current_texture_parts[part_parent_name][part_name]['scaleY'] ? current_texture_parts[part_parent_name][part_name]['scaleY'] : 1;
+    // $:scaleX = scale; 
+    // $:scaleY =  scale; 
 
+    // opacity = [material.opacity];
+    // roughness = [material.roughness]; 
+    // metalness = [material.metalness];
+    // normalScale = [material.normalScale.x];
+    // displacementScale = [material.displacementScale];
+    // isTransparent = material.transparent;
+
+    // translationX = material.map.offset.x;
+    // translationY = material.map.offset.y;
+    // rotation = radianToDegree(material.map.rotation);
+    // scaleX = material.map.repeat.x;
+    // scaleY = material.map.repeat.y;
+    // if(current_texture_parts[part_parent_name][part_name]['opacity']) {
+    //   opacity = [current_texture_parts[part_parent_name][part_name]['opacity']];
+    // }
+    // if(current_texture_parts[part_parent_name][part_name]['metalness']) {
+    //   metalness = [current_texture_parts[part_parent_name][part_name]['metalness']];
+    // }
+    // if(current_texture_parts[part_parent_name][part_name]['roughness']) {
+    //   roughness = [current_texture_parts[part_parent_name][part_name]['roughness']];
+    // }
     let material;
-    let opacity=[0.5];
-    let roughness=[0.5]
-    let metalness=[0.5];
-    let normalScale=[0];
     let displacementScale=[0];
     let isTransparent=false;
-
-    let translationX = 0; 
-    let translationY = 0;
-    let rotation= 0; 
-    let scale = 1;
-    $:scaleX = scale; 
-    $:scaleY =  scale; 
-    /**
-     * parents = [
-     *  (object, part)
-     * 
-     * ]
-     */
-     export let parents = []; //List of parts that this part is attached to.
-
     let use_design_brief = false;
-
-    
-    let material_color_palette = null;
-
-    if (material_color) {
-      material_color_palette = {
-        name: 'Custom', 
-        palette: [
-          material_color,
-          "#FFFFFF",
-          "#FFFFFF",
-          "#FFFFFF",
-          "#FFFFFF",
-        ]
-      };
-    }
-
     let is_loading_feedback=false;
-    
-    
-
-    
-
+    let material_color_palette;
     let palettes=[]; 
     let selected_palette_idx=0;
     saved_color_palettes.subscribe(value => {
@@ -343,10 +336,13 @@
       // console.log(selected_palette_idx);
       console.log(color);
       const hexNumber = parseInt(color.substring(1), 16);
-      // console.log(hexNumber);
+      console.log(hexNumber);
 
-      current_texture_parts[part_parent_name][part_name]['color'] = hexNumber;
-      curr_texture_parts.set(current_texture_parts);
+      // current_texture_parts[part_parent_name][part_name]['color'] = color;
+      // curr_texture_parts.update(value => {
+      //   value[part_parent_name][part_name]['color'] = color;
+      //   return value;
+      // })
 
       selected_objs_and_parts.update(value => {
         value[index].model.children[0].material.color.setHex(hexNumber);
@@ -460,19 +456,27 @@
         material_finish = "none";
       }
 
-
-      opacity = [material.opacity];
-      roughness = [material.roughness]; 
-      metalness = [material.metalness];
+      // opacity = [material.opacity];
+      // roughness = [material.roughness]; 
+      // metalness = [material.metalness];
+      // normalScale = [material.normalScale.x];
       displacementScale = [material.displacementScale];
-      normalScale = [material.normalScale.x];
       isTransparent = material.transparent;
 
-      translationX = material.map.offset.x;
-      translationY = material.map.offset.y;
-      rotation = radianToDegree(material.map.rotation);
-      scaleX = material.map.repeat.x;
-      scaleY = material.map.repeat.y;
+      // translationX = material.map.offset.x;
+      // translationY = material.map.offset.y;
+      // rotation = radianToDegree(material.map.rotation);
+      // scaleX = material.map.repeat.x;
+      // scaleY = material.map.repeat.y;
+      // if(current_texture_parts[part_parent_name][part_name]['opacity']) {
+      //   opacity = [current_texture_parts[part_parent_name][part_name]['opacity']];
+      // }
+      // if(current_texture_parts[part_parent_name][part_name]['metalness']) {
+      //   metalness = [current_texture_parts[part_parent_name][part_name]['metalness']];
+      // }
+      // if(current_texture_parts[part_parent_name][part_name]['roughness']) {
+      //   roughness = [current_texture_parts[part_parent_name][part_name]['roughness']];
+      // }
 
       if(current_texture_parts[part_parent_name][part_name]['feedback']) {
         formatted_feedback = current_texture_parts[part_parent_name][part_name]['feedback']['formatted_feedback'];
@@ -481,17 +485,18 @@
         activeAspect= Object.keys(formatted_feedback)[0];
       }
 
-      if(current_texture_parts[part_parent_name][part_name]['opacity']) {
-        opacity = [current_texture_parts[part_parent_name][part_name]['opacity']];
-      }
-      if(current_texture_parts[part_parent_name][part_name]['mat_metalness']) {
-        metalness = [current_texture_parts[part_parent_name][part_name]['mat_metalness']];
-      }
-      if(current_texture_parts[part_parent_name][part_name]['roughness']) {
-        roughness = [current_texture_parts[part_parent_name][part_name]['roughness']];
-      }
-      if(current_texture_parts[part_parent_name][part_name]['color']) {
-        material_color = current_texture_parts[part_parent_name][part_name]['color'];
+      // if(current_texture_parts[part_parent_name][part_name]['opacity']) {
+      //   opacity = [current_texture_parts[part_parent_name][part_name]['opacity']];
+      // }
+      // if(current_texture_parts[part_parent_name][part_name]['metalness']) {
+      //   metalness = [current_texture_parts[part_parent_name][part_name]['metalness']];
+      // }
+      // if(current_texture_parts[part_parent_name][part_name]['roughness']) {
+      //   roughness = [current_texture_parts[part_parent_name][part_name]['roughness']];
+      // }
+
+
+      if(material_color) {
         material_color_palette = {
           name: 'Custom', 
           palette: [
@@ -506,6 +511,9 @@
         palettes=palettes;
         selected_palette_idx=0;
         selected_swatch_idx=0;
+
+        // const hexNumber = parseInt(color.substring(1), 16);
+
       }
 
       console.log(parents);
@@ -611,22 +619,22 @@
     </div>
     <div class="control">
       <span> {japanese ? "金属的だ：": "Metalness:"} </span>
-      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("metalness", metalness[0], 0.5)}}> 
+      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("metalness", metalness[0], 0.0)}}> 
         <RangeSlider on:change={() => updateMetalness(metalness[0])} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
     <div class="control">
       <span> {japanese ? "法線マップの強度:" : "Normal Scale:"} </span>
-      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("normalScale", normalScale[0], 0.5)}}> 
+      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("normalScale", normalScale[0], 0.0)}}> 
         <RangeSlider on:change={() => updateNormalScale(normalScale[0])} bind:values={normalScale} min={0} max={10} step={0.1} float={true}/> 
       </div>
     </div>
-    <div class="control">
+    <!-- <div class="control">
       <span> {japanese ? "高さマップの強度:" : "Height Scale:"} </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("displacementScale", displacementScale[0], 0.00)}}> 
         <RangeSlider on:change={() => updateDisplacementScale(displacementScale[0])} bind:values={displacementScale} min={0} max={0.5} step={0.01} float={true}/> 
       </div>
-    </div>
+    </div> -->
   </div>
 
   <div class="card container tab-content " class:active={activeTab==='adjust-texture-map'}>
@@ -655,9 +663,9 @@
 
       <div class="card container" style="height: auto;">
         <h6> <b> {japanese ? "スケール": "Scale"}  </b></h6>
-        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scale,0); changeProperty("scaleY",scale,1)}}>
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scaleX,1); changeProperty("scaleY",scaleY,1)}}>
           <span>X & Y: </span>
-          <NumberSpinner on:change={() => {updateTextureMapScale("x",scale);updateTextureMapScale("y",scale)}} bind:value={scale} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={() => {scaleY=scaleX;updateTextureMapScale("x",scaleX);updateTextureMapScale("y",scaleY)}} bind:value={scaleX} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
         </div>
         <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scaleX,1)}}>
           <span>X: </span>
@@ -686,7 +694,7 @@
           {#if selected_palette_idx != undefined && palettes.length > 0}
               {#each palettes[selected_palette_idx]['palette'] as swatch, i }
                   <label class="swatch selectable" style="background-color: {swatch};" class:selected={selected_swatch_idx===i}>
-                    <input type=radio bind:group={selected_swatch_idx} name={swatch} value={i} on:change={() => updateColor()}>
+                    <input type=radio bind:group={selected_swatch_idx} name={swatch} value={i} on:change={() => {updateColor();changeProperty("color",palettes[selected_palette_idx]['palette'][selected_swatch_idx],"#FFFFFF")}}>
                   </label>
               {/each}
           {/if}
@@ -694,27 +702,7 @@
           {#if isOpen}
           <!-- Dropdown list of color palettes -->
             <div class="dropdown-list" style="position: absolute; top: 30px; left: 170px; z-index=1;">
-                <!-- Create a palette for the current material's color. -->
-                {#if material_color_palette}
-                  <label class="control container palette selectable" class:selected={selected_palette_idx===0}>
-                    {#each material_color_palette["palette"] as swatch}
-                      <div class="swatch" style="background-color: {swatch};"></div>
-                    {/each}
-                    <input type=radio bind:group={selected_palette_idx} name={0} value={0}>
-                  </label>
-                  {#each palettes as p,j}
-                    <label class="control container palette selectable" class:selected={selected_palette_idx===j+1}>
-                      {#each p["palette"] as swatch}
-                        <div class="swatch" style="background-color: {swatch};"></div>
-                      {/each}
-                      <input type=radio bind:group={selected_palette_idx} name={j+1} value={j+1}>
-                    </label>
-                  {/each}
-                  <button on:click|preventDefault={() => addNewColorPalete()}> 
-                    {japanese ? "新規追加" : "Add new"} 
-                    <img src="./logos/add-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Add new color palette">
-                  </button>
-                {:else}
+                <!-- Create a palette for the current material's color. -->   
                   {#each palettes as p,j}
                     <label class="control container palette selectable" class:selected={selected_palette_idx===j}>
                       {#each p["palette"] as swatch}
@@ -727,7 +715,6 @@
                     {japanese ? "新規追加" : "Add new"} 
                     <img src="./logos/add-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Add new color palette">
                   </button>
-                {/if}
             </div>
           {/if}
       </div>
@@ -746,9 +733,9 @@
     {:else}
       <input id="current-swatch" type="color"  
         bind:value={palettes[selected_palette_idx]['palette'][selected_swatch_idx]}
-        on:change={() => updateColor()}
-        on:mousedown={() => isMouseDown=true} 
-        on:mouseup = {() => isMouseDown=false}
+        on:change={() => {updateColor(); changeProperty("color", palettes[selected_palette_idx]['palette'][selected_swatch_idx], "#FFFFFF")}}
+        on:mousedown={() => {isMouseDown=true}} 
+        on:mouseup = {() => {isMouseDown=false}}
       >
     {/if}
   </div>
