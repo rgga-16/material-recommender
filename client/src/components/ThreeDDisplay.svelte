@@ -471,7 +471,7 @@
         let rotation = cloned_texture_parts[object_name][part_name]['rotation'] ? cloned_texture_parts[object_name][part_name]['rotation'] : 0;
         let scaleX = cloned_texture_parts[object_name][part_name]['scaleX'] ? cloned_texture_parts[object_name][part_name]['scaleX'] : 1;
         let scaleY = cloned_texture_parts[object_name][part_name]['scaleY'] ? cloned_texture_parts[object_name][part_name]['scaleY'] : 1;
-        let normalScale =[cloned_texture_parts[object_name][part_name]['normalScale']]  ? [cloned_texture_parts[object_name][part_name]['normalScale']] : 0.0;
+        let normalScale =cloned_texture_parts[object_name][part_name]['normalScale']  ? cloned_texture_parts[object_name][part_name]['normalScale'] : 0.0;
 
         model = changeTexture(model,img_mat_blob, normal_mat_blob,height_mat_blob,
         color,opacity,roughness,metalness,translationX,translationY,rotation,scaleX,scaleY,normalScale);
@@ -570,6 +570,16 @@
 
     function changeTexture(object, url, normal_url, height_url,color, opacity,roughness,metalness,translationX,translationY,rotation,scaleX,scaleY,normalScale) {
 
+        console.log("Color: " + color);
+        console.log("Opacity: " + opacity);
+        console.log("Roughness: " + roughness);
+        console.log("Metalness: " + metalness);
+        console.log("Translation X: " + translationX);
+        console.log("Translation Y: " + translationY);
+        console.log("Rotation: " + rotation);
+        console.log("Scale X: " + scaleX);
+        console.log("Scale Y: " + scaleY);
+        console.log("Normal Scale: " + normalScale);
         
         const hexNumber = parseInt(color.substring(1), 16);
         object.traverse((node) => {

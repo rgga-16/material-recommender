@@ -338,19 +338,11 @@
       const hexNumber = parseInt(color.substring(1), 16);
       console.log(hexNumber);
 
-      // current_texture_parts[part_parent_name][part_name]['color'] = color;
-      // curr_texture_parts.update(value => {
-      //   value[part_parent_name][part_name]['color'] = color;
-      //   return value;
-      // })
-
       selected_objs_and_parts.update(value => {
         value[index].model.children[0].material.color.setHex(hexNumber);
         value[index].model.children[0].material.color_hex = hexNumber;
         return value;
       });
-
-      
     }
 
     function suggestSimilarMaterials() {
@@ -669,11 +661,11 @@
         </div>
         <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scaleX,1)}}>
           <span>X: </span>
-          <NumberSpinner on:change={() => updateTextureMapScale("x",scaleX)} bind:value={scaleX} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={() => {updateTextureMapScale("x",scaleX)}} bind:value={scaleX} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
         </div>
         <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleY",scaleY,1)}}>
           <span>Y: </span>
-          <NumberSpinner on:change={() => updateTextureMapScale("y",scaleY)} bind:value={scaleY} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner on:change={() => {updateTextureMapScale("y",scaleY)}} bind:value={scaleY} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
         </div>
       </div>
     </div>
