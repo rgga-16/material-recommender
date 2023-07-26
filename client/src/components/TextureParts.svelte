@@ -1,16 +1,27 @@
 <script>
-    import {in_japanese, selected_objs_and_parts} from '../stores.js';
+    import {in_japanese, selected_objs_and_parts, curr_texture_parts} from '../stores.js';
     import NumberSpinner from "svelte-number-spinner";
     import { Circle } from 'svelte-loading-spinners';
     import RangeSlider from "svelte-range-slider-pips";
     import {onMount} from 'svelte';
+    import {get} from 'svelte/store';
+
+    let sel_objs_and_parts;
+    selected_objs_and_parts.subscribe(value => {
+        sel_objs_and_parts = value;
+    });
+
+    let current_texture_parts;
+    curr_texture_parts.subscribe(value => {
+        current_texture_parts = value;
+    });
     
     export let texturepart_panels; 
 
     let isMouseDown=false;
 
     let opacity = [1.0];
-    let roughness = [0.0];
+    let roughness = [0.5];
     let metalness = [0.0];
     let normalScale = [0.0];
     let displacementScale = [0.0];
@@ -21,7 +32,7 @@
     let scale = 1.0;
     $:scaleX = scale; 
     $:scaleY =  scale; 
-
+    
 
     let japanese;
     in_japanese.subscribe(value => {
@@ -36,52 +47,195 @@
 
     function changeProperties(property, new_value, old_value=0) {
 
-        for(const texturepart_panel of texturepart_panels) {
-            texturepart_panel.changeProperty(property, new_value, old_value);
+        for(let i = 0; i < sel_objs_and_parts.length; i++) {
+            const parent = sel_objs_and_parts[i]["parent"];
+            const name = sel_objs_and_parts[i]["name"];
+
+            if(current_texture_parts[parent][name][property]) {
+                old_value = current_texture_parts[parent][name][property];
+            }
+            curr_texture_parts.update(value => {
+                value[parent][name][property] = new_value;
+                return value;
+            });
+
+            addToHistory("Change " + property, 
+                parent, name, 
+                [property], 
+                [old_value], 
+                [new_value]
+            );
         }
+        // for(const texturepart_panel of texturepart_panels) {
+        //     texturepart_panel.changeProperty(property, new_value, old_value);
+        // }
 
     }
 
-    function updateOpacities() {
-        for(const texturepart_panel of texturepart_panels) {
-            texturepart_panel.updateOpacity(opacity[0]);
+    function updateOpacities(opacity_val) {
+        for(let i =0; i < sel_objs_and_parts.length; i++) {
+            selected_objs_and_parts.update(value => {
+                value[i].model.children[0].material.transparent= true;
+                value[i].model.children[0].material.opacity = opacity_val;
+                return value;
+            });
+        }
+
+        // for(const texturepart_panel of texturepart_panels) {
+        //     texturepart_panel.updateOpacity(opacity[0]);
+        // }
+    }
+
+    function updateRoughnesses(roughness) {
+        console.log(get(selected_objs_and_parts));
+
+        for(let i =0; i < sel_objs_and_parts.length; i++) {
+            selected_objs_and_parts.update(value => {
+                value[i].model.children[0].material.roughness = roughness;
+                return value;
+            });
+        }
+
+        // for(const texturepart_panel of texturepart_panels) {
+        //     texturepart_panel.updateRoughness(roughness[0]);
+        // }
+    }
+
+    function updateMetalnesses(metalness) {
+        for(let i = 0; i < sel_objs_and_parts.length; i++) {
+            selected_objs_and_parts.update(value => {
+                value[i].model.children[0].material.metalness = metalness;
+                return value;
+            });
+        }
+
+        // for(const texturepart_panel of texturepart_panels) {
+        //     texturepart_panel.updateMetalness(metalness[0]);
+        // }
+    }
+
+    function updateNormalScales(normalScale) {
+        for(let index = 0; index < sel_objs_and_parts.length; index++) {
+            selected_objs_and_parts.update(value => {
+                value[index].model.children[0].material.normalScale.x = normalScale;
+                value[index].model.children[0].material.normalScale.y = normalScale;
+                return value;
+            });
+        }
+        // for(const texturepart_panel of texturepart_panels) {
+        //     texturepart_panel.updateNormalScale(normalScale[0]);
+        // }
+    }
+
+    function updateDisplacementScales(displacementScale) {
+        for(let i = 0; i < sel_objs_and_parts.length; i++) {
+            selected_objs_and_parts.update(value => {
+                value[i].model.children[0].material.displacementScale = displacementScale;
+                return value;
+            });
         }
     }
 
-    function updateRoughnesses() {
-        for(const texturepart_panel of texturepart_panels) {
-            texturepart_panel.updateRoughness(roughness[0]);
-        }
-    }
 
-    function updateMetalnesses() {
-        for(const texturepart_panel of texturepart_panels) {
-            texturepart_panel.updateMetalness(metalness[0]);
-        }
-    }
-
-    function updateNormalScales() {
-        for(const texturepart_panel of texturepart_panels) {
-            texturepart_panel.updateNormalScale(normalScale[0]);
-        }
-    }
-
-    function updateDisplacementScales() {
-        for(const texturepart_panel of texturepart_panels) {
-            texturepart_panel.updateDisplacementScale(displacementScale[0]);
-        }
+    function setOffset(map,x_or_y, value) {
+        map.offset[x_or_y] = value;
     }
 
     function updateTextureMapOffsets(x_or_y,translation) {
-        for(const texturepart_panel of texturepart_panels) {
-            texturepart_panel.updateTextureMapOffset(x_or_y, translation);
+
+        for(let index = 0; index < sel_objs_and_parts.length;index++) {
+            selected_objs_and_parts.update(value => {
+                setOffset(value[index].model.children[0].material.map, x_or_y, translation)
+                if (value[index].model.children[0].material.normalMap) {
+                    setOffset(value[index].model.children[0].material.normalMap, x_or_y,translation);
+                }
+                if (value[index].model.children[0].material.aoMap) {
+                    setOffset(value[index].model.children[0].material.aoMap, x_or_y,translation);
+                }
+                if (value[index].model.children[0].material.alphaMap) {
+                    setOffset(value[index].model.children[0].material.alphaMap, x_or_y,translation);
+                }
+                if(value[index].model.children[0].material.emissiveMap) {
+                    setOffset(value[index].model.children[0].material.emissiveMap, x_or_y,translation);
+                }
+                if (value[index].model.children[0].material.lightMap) {
+                    setOffset(value[index].model.children[0].material.lightMap, x_or_y,translation);
+                }
+                if(value[index].model.children[0].material.metalnessMap) {
+                    setOffset(value[index].model.children[0].material.metalnessMap, x_or_y,translation);
+                }
+                if(value[index].model.children[0].material.roughnessMap) {
+                    setOffset(value[index].model.children[0].material.roughnessMap, x_or_y,translation);
+                }
+                if(value[index].model.children[0].material.displacementMap) {
+                    setOffset(value[index].model.children[0].material.displacementMap, x_or_y,translation);
+                }
+                if(value[index].model.children[0].material.bumpMap) {
+                    setOffset(value[index].model.children[0].material.bumpMap, x_or_y,translation);
+                }
+                if(value[index].model.children[0].material.envMap) {
+                    setOffset(value[index].model.children[0].material.envMap, x_or_y,translation);
+                }
+                return value;
+            });
         }
     }
 
+
+    function radianToDegree(radians) {
+      return radians * (180/Math.PI);
+    }
+    function degreeToRadians(degrees) {
+      return degrees * (Math.PI/180);
+    }
+    function setOrientation(map,rot) {
+        map.rotation = degreeToRadians(rot);
+    }
     function updateTextureMapOrientations(rotation) {
-        for(const texturepart_panel of texturepart_panels) {
-            texturepart_panel.updateTextureMapOrientation(rotation);
+
+        for(let index=0; index < sel_objs_and_parts.length; index++) {
+            selected_objs_and_parts.update(value => {
+                setOrientation(value[index].model.children[0].material.map,rotation);
+                if (value[index].model.children[0].material.normalMap) {
+                    setOrientation(value[index].model.children[0].material.normalMap,rotation);
+                }
+                if (value[index].model.children[0].material.aoMap) {
+                    setOrientation(value[index].model.children[0].material.aoMap,rotation);
+                }
+                if (value[index].model.children[0].material.alphaMap) {
+                    setOrientation(value[index].model.children[0].material.alphaMap,rotation);
+                }
+                if(value[index].model.children[0].material.emissiveMap) {
+                    setOrientation(value[index].model.children[0].material.emissiveMap,rotation);
+                }
+                if (value[index].model.children[0].material.lightMap) {
+                    setOrientation(value[index].model.children[0].material.lightMap,rotation);
+                }
+                if(value[index].model.children[0].material.metalnessMap) {
+                    setOrientation(value[index].model.children[0].material.metalnessMap,rotation);
+                }
+                if (value[index].model.children[0].material.bumpMap) {
+                    setOrientation(value[index].model.children[0].material.bumpMap,rotation);
+                }
+                if(value[index].model.children[0].material.displacementMap) {
+                    setOrientation(value[index].model.children[0].material.displacementMap,rotation);
+                }
+                if(value[index].model.children[0].material.envMap) {
+                    setOrientation(value[index].model.children[0].material.envMap,rotation);
+                }
+                if(value[index].model.children[0].material.normalMap) {
+                    setOrientation(value[index].model.children[0].material.normalMap,rotation);
+                }
+                if (value[index].model.children[0].material.roughnessMap) {
+                    setOrientation(value[index].model.children[0].material.roughnessMap,rotation);
+                }
+                return value
+            });
         }
+    }
+
+    function setScale(map, x_or_y, value) {
+        map.repeat[x_or_y] = value;
     }
 
     function updateTextureMapScales(x_or_y, scale) {
@@ -110,7 +264,6 @@
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-finish'} on:click={()=>switchTab('adjust-finish')} id="adjust-finish-btn"> {japanese ? "素材仕上げ" : "Material Finish"} </button>
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-texture-map'} on:click={()=>switchTab('adjust-texture-map')} id="adjust-texture-btn"> {japanese ? "テクスチャマップ": "Texture Map"}</button>
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-color'} on:click={()=>switchTab('adjust-color')} id="adjust-color-btn"> {japanese ? "カラー仕上げ" : "Color Finish"}</button>
-        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='attached-parts'} on:click={()=>switchTab('attached-parts')} id="attached-parts-btn"> {japanese ? "付属部品" : "Attached Parts"}</button>
     </div>
 
     <div class="container column centered padded auto tab-content" class:active={activeTab==='adjust-finish'}>
@@ -124,25 +277,25 @@
         <div class="row centered expand padded">
             <span> {japanese ? "粗さ：" : "Roughness:"} </span>
             <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperties("roughness", roughness[0], 0.5)}}> 
-                <RangeSlider on:change={() => updateRoughnesses(roughness[0])} bind:values={opacity} min={0} max={1} step={0.1} float={true} pips /> 
+                <RangeSlider on:change={() => updateRoughnesses(roughness[0])} bind:values={roughness} min={0} max={1} step={0.1} float={true} pips /> 
             </div>
         </div>
         <div class="row centered expand padded">
             <span> {japanese ? "金属的だ：": "Metalness:"} </span>
             <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperties("metalness", metalness[0], 0.5)}}> 
-                <RangeSlider on:change={() => updateMetalnesses(metalness[0])} bind:values={opacity} min={0} max={1} step={0.1} float={true} pips /> 
+                <RangeSlider on:change={() => updateMetalnesses(metalness[0])} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips /> 
             </div>
         </div>
         <div class="row centered expand padded">
             <span> {japanese ? "法線マップの強度:" : "Normal Scale:"} </span>
             <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperties("normalScale", normalScale[0], 0.5)}}> 
-                <RangeSlider on:change={() => updateNormalScales(normalScale[0])} bind:values={opacity} min={0} max={10} step={0.1} float={true}/> 
+                <RangeSlider on:change={() => updateNormalScales(normalScale[0])} bind:values={normalScale} min={0} max={10} step={0.1} float={true}/> 
             </div>
         </div>
         <div class="row centered expand padded">
             <span> {japanese ? "高さマップの強度:" : "Height Scale:"} </span>
             <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperties("displacementScale", displacementScale[0], 0.00)}}> 
-                <RangeSlider on:change={() => updateDisplacementScales(displacementScale[0])} bind:values={opacity} min={0} max={0.5} step={0.01} float={true}/> 
+                <RangeSlider on:change={() => updateDisplacementScales(displacementScale[0])} bind:values={displacementScale} min={0} max={0.5} step={0.01} float={true}/> 
             </div>
         </div>
     </div>
@@ -168,7 +321,7 @@
                 </div>
     
             </div>
-            <div class="column centered padded auto container">
+            <!-- <div class="column centered padded auto container">
                 <h6> <b> {japanese ? "スケール": "Scale"} </b></h6>
                 <div class="row centered expand padded" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperties("scaleX",scale,1); changeProperties("scaleY",scale,1)}}>
                     <span>X & Y: </span>
@@ -182,15 +335,52 @@
                     <span>Y: </span>
                     <NumberSpinner on:change={() => updateTextureMapScales("y",scaleY)} bind:value={scaleY} min=1 max=40 step=0.01 decimals=1 precision=0.01/>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
 
-    <div class="container column centered padded auto  tab-content" class:active={activeTab==='adjust-color'}>
+    <!-- <div class="container column centered padded auto  tab-content" class:active={activeTab==='adjust-color'}>
         <h5> <b> {japanese ? "カラー仕上げの調整": "Adjust Color Finish"}  </b></h5>
-        
-    </div>
 
+        <div class="control container" id="color-palette-header">
+            <label class="swatch selectable" class:selected={selected_swatch_idx===undefined} style="background-color: {no_color.code};">
+                <img src="./logos/cancel-svgrepo-com.svg" alt="">
+                <input type=radio bind:group={selected_swatch_idx} name={no_color.name} value={undefined}>
+            </label>
+
+            <div class="control" style="position: relative;">
+                {#if selected_palette_idx != undefined && palettes.length > 0}
+                    {#each palettes[selected_palette_idx]['palette'] as swatch, i }
+                        <label class="swatch selectable" style="background-color: {swatch};" class:selected={selected_swatch_idx===i}>
+                            <input type=radio bind:group={selected_swatch_idx} name={swatch} value={i} on:change={() => {updateColor();changeProperties("color",palettes[selected_palette_idx]['palette'][selected_swatch_idx],"#FFFFFF")}}>
+                        </label>
+                    {/each}
+                {/if}
+
+                {#if isOpen}
+                    <div class="dropdown-list" style="position: absolute; top: 30px; left: 170px; z-index=1;">
+                        {#each palettes as p,j}
+                            <label class="control container palette selectable" class:selected={selected_palette_idx===j}>
+                                {#each p["palette"] as swatch}
+                                    <div class="swatch" style="background-color: {swatch};"></div>
+                                {/each}
+                                <input type=radio bind:group={selected_palette_idx} name={j} value={j}>
+                            </label>
+                        {/each}
+                        <button on:click|preventDefault={() => addNewColorPalete()}> 
+                            {japanese ? "新規追加" : "Add new"} 
+                            <img src="./logos/add-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Add new color palette">
+                        </button>
+                    </div>
+                {/if}
+            </div>
+
+            <div style=" width: 25px; height: 25px; align-items: center; justify-content: center; cursor: pointer;" on:click={toggleDropDown}> 
+                <img src="./logos/dropdown-svgrepo-com.svg" alt="Select a palette" style="width: 100%; height: 100%;" />
+            </div>
+        </div>
+    </div> -->
+    
 </div>
 
 

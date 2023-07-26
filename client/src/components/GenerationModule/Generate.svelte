@@ -214,15 +214,36 @@
         selected_prompt_keywords = [];
     }
 
-    function del_manual_keyword(index) {
+    function del_manual_keyword(index, keyword) {
         manual_prompt_keywords.splice(index, 1);
         manual_prompt_keywords=manual_prompt_keywords;
+
+        if (selected_prompt_keywords.includes(keyword)) {
+            let indices = selected_prompt_keywords.map((e,i) => e === keyword ? i : '').filter(String);
+
+            for (let i = 0; i < indices.length; i++) {
+                selected_prompt_keywords.splice(indices[i], 1);
+                selected_prompt_keywords=selected_prompt_keywords;
+            }
+        }
+
     }
 
-    function del_brainstormed_keyword(index) {
+    function del_brainstormed_keyword(index, keyword) {
         brainstormed_prompt_keywords.splice(index, 1);
         brainstormed_prompt_keywords=brainstormed_prompt_keywords;
+
+        if (selected_prompt_keywords.includes(keyword)) {
+            let indices = selected_prompt_keywords.map((e,i) => e === keyword ? i : '').filter(String);
+
+            for (let i = 0; i < indices.length; i++) {
+                selected_prompt_keywords.splice(indices[i], 1);
+                selected_prompt_keywords=selected_prompt_keywords;
+            }
+        }
+
     }
+
     function add_keyword(k) {
         if(k.trim() === '') {
             alert("Please type in a keyword.");
@@ -331,7 +352,7 @@
                                     <label class="tag" class:selected={selected_prompt_keywords.includes(manual_keyword)} >
                                         <input type="checkbox" value={manual_keyword} bind:group={selected_prompt_keywords} />
                                         +"{manual_keyword}"
-                                        <button on:click={()=>del_manual_keyword(i)}>X</button>
+                                        <button on:click={()=>del_manual_keyword(i, manual_keyword)}>X</button>
                                     </label>
                                 {/each}
                             {/if}
@@ -341,7 +362,7 @@
                                     <label class="tag" class:selected={selected_prompt_keywords.includes(keyword)}>
                                         <input type="checkbox" value={keyword} bind:group={selected_prompt_keywords} />
                                         +"{keyword}"
-                                        <button on:click={()=>del_brainstormed_keyword(j)}>X</button>
+                                        <button on:click={()=>del_brainstormed_keyword(j, keyword)}>X</button>
                                     </label>
                                 {/each}
                             {:else if is_loading_keywords}
