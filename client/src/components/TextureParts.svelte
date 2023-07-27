@@ -422,7 +422,7 @@
                                 {#each p["palette"] as swatch}
                                     <div class="swatch" style="background-color: {swatch};"></div>
                                 {/each}
-                                <input type=radio bind:group={selected_palette_idx} name={j} value={j}>
+                                <input type=radio bind:group={selected_palette_idx} name={j} value={j} on:change={() => {selected_swatch_idx=0; updateColors();changeProperties("color",palettes[selected_palette_idx]['palette'][selected_swatch_idx],"#FFFFFF")}}>
                             </label>
                         {/each}
                         <button on:click|preventDefault={() => addNewColorPalete()}> 
