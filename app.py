@@ -38,7 +38,6 @@ def translate():
     result = translator.translate_text(text, source_lang=source_lang, target_lang=target_lang)
 
     if isinstance(result,list):
-        
         print("translation is a list for some reason")
         print()
     return jsonify({"text":result.text})

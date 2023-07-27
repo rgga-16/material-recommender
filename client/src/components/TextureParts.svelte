@@ -1,7 +1,7 @@
 <script>
-    import {in_japanese, selected_objs_and_parts, curr_texture_parts} from '../stores.js';
+    import {in_japanese, selected_objs_and_parts, curr_texture_parts,saved_color_palettes} from '../stores.js';
     import NumberSpinner from "svelte-number-spinner";
-    import { Circle } from 'svelte-loading-spinners';
+
     import RangeSlider from "svelte-range-slider-pips";
     import {onMount} from 'svelte';
     import {get} from 'svelte/store';
@@ -15,6 +15,11 @@
     curr_texture_parts.subscribe(value => {
         current_texture_parts = value;
     });
+
+    let japanese;
+    in_japanese.subscribe(value => {
+        japanese = value;
+    });
     
     export let texturepart_panels; 
 
@@ -25,6 +30,7 @@
     let metalness = [0.0];
     let normalScale = [0.0];
     let displacementScale = [0.0];
+    let material_color="#FFFFFF"; 
 
     let translationX = 0.0; 
     let translationY = 0.0;
@@ -32,12 +38,38 @@
     let scale = 1.0;
     $:scaleX = scale; 
     $:scaleY =  scale; 
+
+    let material_color_palette;
+    let palettes=[]; 
+    saved_color_palettes.subscribe(value => {
+        palettes=value;
+    });
+    let selected_palette_idx=0;
+    let selected_swatch_idx = undefined;
+    const no_color = {name: 'No Color', code: '#FFFFFF'}
+
+    let isOpen=false;
+    function toggleDropDown() {
+        isOpen = !isOpen;
+    }
+
+    function addNewColorPalete() {
+        palettes.push({
+        name: 'New Palette',
+        palette: [
+            "#FFFFFF",
+            "#FFFFFF",
+            "#FFFFFF",
+            "#FFFFFF",
+            "#FFFFFF",
+        ]
+        });
+        palettes=palettes;
+        saved_color_palettes.set(palettes);
+    }
     
 
-    let japanese;
-    in_japanese.subscribe(value => {
-        japanese = value;
-    });
+    
 
 
     let activeTab='adjust-finish';
@@ -66,10 +98,20 @@
                 [new_value]
             );
         }
-        // for(const texturepart_panel of texturepart_panels) {
-        //     texturepart_panel.changeProperty(property, new_value, old_value);
-        // }
 
+    }
+
+    function updateColors() {
+        let color = palettes[selected_palette_idx]['palette'][selected_swatch_idx];
+        const hexNumber = parseInt(color.substring(1), 16);
+
+        for(let i = 0; i < sel_objs_and_parts.length;i++) {
+            selected_objs_and_parts.update(value => {
+                value[i].model.children[0].material.color.setHex(hexNumber);
+                value[i].model.children[0].material.color_hex = hexNumber;
+                return value;
+            });
+        }
     }
 
     function updateOpacities(opacity_val) {
@@ -80,10 +122,6 @@
                 return value;
             });
         }
-
-        // for(const texturepart_panel of texturepart_panels) {
-        //     texturepart_panel.updateOpacity(opacity[0]);
-        // }
     }
 
     function updateRoughnesses(roughness) {
@@ -95,10 +133,6 @@
                 return value;
             });
         }
-
-        // for(const texturepart_panel of texturepart_panels) {
-        //     texturepart_panel.updateRoughness(roughness[0]);
-        // }
     }
 
     function updateMetalnesses(metalness) {
@@ -108,10 +142,6 @@
                 return value;
             });
         }
-
-        // for(const texturepart_panel of texturepart_panels) {
-        //     texturepart_panel.updateMetalness(metalness[0]);
-        // }
     }
 
     function updateNormalScales(normalScale) {
@@ -122,9 +152,6 @@
                 return value;
             });
         }
-        // for(const texturepart_panel of texturepart_panels) {
-        //     texturepart_panel.updateNormalScale(normalScale[0]);
-        // }
     }
 
     function updateDisplacementScales(displacementScale) {
@@ -245,10 +272,41 @@
     }
 
 
+    // function onMouseDown(event) {
+    //     if (event.button === 0) {
+    //         mouseDown = true;
+
+    //     }
+    // }
+
+    // function onMouseUp(event) {
+    //     if(event.button===0) {
+    //         mouseDown = false;
+
+    //     }
+    // }
+
 
     onMount(() => {
-        console.log(texturepart_panels);
-        console.log(texturepart_panels[0]);
+        if(material_color) {
+            material_color_palette = {
+                name: 'Custom', 
+                palette: [
+                    material_color,
+                    "#FFFFFF",
+                    "#FFFFFF",
+                    "#FFFFFF",
+                    "#FFFFFF",
+                ]
+            };
+            palettes.unshift(material_color_palette);
+            palettes=palettes;
+            selected_palette_idx=0;
+            selected_swatch_idx=0;
+        }
+
+        // window.addEventListener('mousedown', onMouseDown);
+        // window.addEventListener('mouseup', onMouseUp);
     });
 </script>
 
@@ -321,7 +379,7 @@
                 </div>
     
             </div>
-            <!-- <div class="column centered padded auto container">
+            <div class="column centered padded auto container">
                 <h6> <b> {japanese ? "スケール": "Scale"} </b></h6>
                 <div class="row centered expand padded" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperties("scaleX",scale,1); changeProperties("scaleY",scale,1)}}>
                     <span>X & Y: </span>
@@ -335,24 +393,24 @@
                     <span>Y: </span>
                     <NumberSpinner on:change={() => updateTextureMapScales("y",scaleY)} bind:value={scaleY} min=1 max=40 step=0.01 decimals=1 precision=0.01/>
                 </div>
-            </div> -->
+            </div>
         </div>
     </div>
 
-    <!-- <div class="container column centered padded auto  tab-content" class:active={activeTab==='adjust-color'}>
+    <div class="container column centered padded auto  tab-content" class:active={activeTab==='adjust-color'}>
         <h5> <b> {japanese ? "カラー仕上げの調整": "Adjust Color Finish"}  </b></h5>
 
-        <div class="control container" id="color-palette-header">
+        <div class="row centered expand padded container" id="color-palette-header">
             <label class="swatch selectable" class:selected={selected_swatch_idx===undefined} style="background-color: {no_color.code};">
                 <img src="./logos/cancel-svgrepo-com.svg" alt="">
                 <input type=radio bind:group={selected_swatch_idx} name={no_color.name} value={undefined}>
             </label>
 
-            <div class="control" style="position: relative;">
+            <div class="row centered expand padded" style="position: relative;">
                 {#if selected_palette_idx != undefined && palettes.length > 0}
                     {#each palettes[selected_palette_idx]['palette'] as swatch, i }
                         <label class="swatch selectable" style="background-color: {swatch};" class:selected={selected_swatch_idx===i}>
-                            <input type=radio bind:group={selected_swatch_idx} name={swatch} value={i} on:change={() => {updateColor();changeProperties("color",palettes[selected_palette_idx]['palette'][selected_swatch_idx],"#FFFFFF")}}>
+                            <input type=radio bind:group={selected_swatch_idx} name={swatch} value={i} on:change={() => {updateColors();changeProperties("color",palettes[selected_palette_idx]['palette'][selected_swatch_idx],"#FFFFFF")}}>
                         </label>
                     {/each}
                 {/if}
@@ -360,7 +418,7 @@
                 {#if isOpen}
                     <div class="dropdown-list" style="position: absolute; top: 30px; left: 170px; z-index=1;">
                         {#each palettes as p,j}
-                            <label class="control container palette selectable" class:selected={selected_palette_idx===j}>
+                            <label class="row centered expand padded container palette selectable" class:selected={selected_palette_idx===j}>
                                 {#each p["palette"] as swatch}
                                     <div class="swatch" style="background-color: {swatch};"></div>
                                 {/each}
@@ -375,11 +433,26 @@
                 {/if}
             </div>
 
-            <div style=" width: 25px; height: 25px; align-items: center; justify-content: center; cursor: pointer;" on:click={toggleDropDown}> 
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <div style=" width: 25px; height: 25px; align-items: center; justify-content: center; cursor: pointer;" on:click={() => toggleDropDown()}> 
                 <img src="./logos/dropdown-svgrepo-com.svg" alt="Select a palette" style="width: 100%; height: 100%;" />
             </div>
         </div>
-    </div> -->
+
+        <!-- Color swatch -->
+        {#if selected_swatch_idx===undefined}
+            <div id="current-swatch">
+            <pre> {japanese ? "色なし": "No color"}  </pre>
+            </div>
+        {:else}
+            <input id="current-swatch" type="color"  
+            bind:value={palettes[selected_palette_idx]['palette'][selected_swatch_idx]}
+            on:change={() => {updateColors(); changeProperties("color", palettes[selected_palette_idx]['palette'][selected_swatch_idx], "#FFFFFF")}}
+            on:mousedown={() => {isMouseDown=true}} 
+            on:mouseup = {() => {isMouseDown=false}}
+            >
+        {/if}
+    </div>
     
 </div>
 
@@ -398,8 +471,6 @@
         width: 100%;
         height: 100%;
     }
-
-    
 
     .row {
         display: flex;
@@ -452,12 +523,71 @@
     }
 
     .tab-content {
-      display: none;
+        display: none;
     }
 
     .tab-content.active {
         display: flex;
         flex-direction: column;
     }
+
+    .dropdown-list {
+        background-color: #fff;
+    }
+
+    input[type="radio"] {
+        opacity: 0;
+        position: fixed;
+        width:0; 
+    }
+
+    #current-swatch {
+        border: 1px solid black; 
+        width: calc(6 * 25px + 2 * 2px);
+        height: calc(6 * 25px + 2 * 2px);
+        padding: 0;
+    }
+
+    .swatch {
+        width: 25px; 
+        height: 25px;
+        border: 1px solid black; 
+        margin-right: 2px;
+    }
+
+    .swatch * {
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .selectable:hover {
+        cursor:pointer;
+    }
+
+    .palette.selectable:hover {
+        background-color: grey;
+    }
+
+    .palette.selectable.selected {
+        background-color: rgb(86, 165, 255);
+    }
+
+    .palette.selectable.selected:hover {
+        background-color: rgb(86, 165, 255);
+    }
+
+    .swatch.selectable:hover {
+        border: 3px solid grey;
+    }
+
+    .swatch.selectable.selected {
+        border: 3px solid blue;
+    } 
+
+    .swatch.selectable.selected:hover {
+        border: 3px solid blue;
+    } 
 
 </style>

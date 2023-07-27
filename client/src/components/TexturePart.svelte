@@ -35,6 +35,26 @@
     
     let isMouseDown=false;
 
+    function onMouseDown(event) {
+        if (event.button === 0) {
+          isMouseDown = true;
+        }
+    }
+
+    function onMouseUp(event) {
+        if(event.button===0) {
+          isMouseDown = false;
+
+          if(property_name && property_new_val && property_old_val) {
+            console.log("Change " + property_name + " from " + property_old_val + " to " + property_new_val);
+            changeProperty(property_name,property_new_val,property_old_val);
+            property_name=undefined;
+            property_new_val=undefined;
+            property_old_val=undefined;
+          }
+        }
+    }
+
     let information_panel;
     information_panel_global.subscribe(value => {
       information_panel = value;
@@ -77,42 +97,20 @@
     let rotation = current_texture_parts[part_parent_name][part_name]['rotation'] ? current_texture_parts[part_parent_name][part_name]['rotation'] : 0;
     let scaleX = current_texture_parts[part_parent_name][part_name]['scaleX'] ? current_texture_parts[part_parent_name][part_name]['scaleX'] : 1;
     let scaleY = current_texture_parts[part_parent_name][part_name]['scaleY'] ? current_texture_parts[part_parent_name][part_name]['scaleY'] : 1;
-    // $:scaleX = scale; 
-    // $:scaleY =  scale; 
-
-    // opacity = [material.opacity];
-    // roughness = [material.roughness]; 
-    // metalness = [material.metalness];
-    // normalScale = [material.normalScale.x];
-    // displacementScale = [material.displacementScale];
-    // isTransparent = material.transparent;
-
-    // translationX = material.map.offset.x;
-    // translationY = material.map.offset.y;
-    // rotation = radianToDegree(material.map.rotation);
-    // scaleX = material.map.repeat.x;
-    // scaleY = material.map.repeat.y;
-    // if(current_texture_parts[part_parent_name][part_name]['opacity']) {
-    //   opacity = [current_texture_parts[part_parent_name][part_name]['opacity']];
-    // }
-    // if(current_texture_parts[part_parent_name][part_name]['metalness']) {
-    //   metalness = [current_texture_parts[part_parent_name][part_name]['metalness']];
-    // }
-    // if(current_texture_parts[part_parent_name][part_name]['roughness']) {
-    //   roughness = [current_texture_parts[part_parent_name][part_name]['roughness']];
-    // }
+    let scale = scaleX === scaleY ? scaleX : 1;
+    
     let material;
     let displacementScale=[0];
     let isTransparent=false;
     let use_design_brief = false;
     let is_loading_feedback=false;
+
     let material_color_palette;
     let palettes=[]; 
-    let selected_palette_idx=0;
     saved_color_palettes.subscribe(value => {
       palettes=value;
     });
-
+    let selected_palette_idx=0;
     let selected_swatch_idx = undefined;
     const no_color = {name: 'No Color', code: '#FFFFFF'}
 
@@ -121,7 +119,17 @@
         isOpen = !isOpen;
     }
 
-    
+    let property_name;
+    let property_new_val;
+    let property_old_val;
+    function set_property_being_changed(name,new_val,old_val) {
+      property_name=name;
+      property_new_val=new_val;
+      property_old_val=old_val;
+    }
+
+    console.log(current_texture_parts);
+
     export function updateNormalScale(normalScale) {
       selected_objs_and_parts.update(value => {
         value[index].model.children[0].material.normalScale.x = normalScale;
@@ -160,6 +168,8 @@
         value[index].model.children[0].material.opacity = opacity_val;
         return value;
       });
+
+      
     }
 
     export function updateMetalness(metalness_val) {
@@ -328,7 +338,6 @@
       });
       palettes=palettes;
       saved_color_palettes.set(palettes);
-      
     }
 
     function updateColor() {
@@ -416,7 +425,6 @@
       current_texture_parts[part_parent_name][part_name]['feedback']['references'] = references;
       curr_texture_parts.set(current_texture_parts);
 
-
       japanese_formatted_feedback={...formatted_feedback}; 
       if(japanese) {
         for (let aspect in japanese_formatted_feedback) {
@@ -442,33 +450,8 @@
     onMount(async () => {
       material = sel_objs_and_parts[index].model.children[0].material;
 
-      if(current_texture_parts[part_parent_name][part_name]['mat_finish']) {
-        material_finish = current_texture_parts[part_parent_name][part_name]['mat_finish'];
-      } else {
-        material_finish = "none";
-      }
-
-      // opacity = [material.opacity];
-      // roughness = [material.roughness]; 
-      // metalness = [material.metalness];
-      // normalScale = [material.normalScale.x];
       displacementScale = [material.displacementScale];
       isTransparent = material.transparent;
-
-      // translationX = material.map.offset.x;
-      // translationY = material.map.offset.y;
-      // rotation = radianToDegree(material.map.rotation);
-      // scaleX = material.map.repeat.x;
-      // scaleY = material.map.repeat.y;
-      // if(current_texture_parts[part_parent_name][part_name]['opacity']) {
-      //   opacity = [current_texture_parts[part_parent_name][part_name]['opacity']];
-      // }
-      // if(current_texture_parts[part_parent_name][part_name]['metalness']) {
-      //   metalness = [current_texture_parts[part_parent_name][part_name]['metalness']];
-      // }
-      // if(current_texture_parts[part_parent_name][part_name]['roughness']) {
-      //   roughness = [current_texture_parts[part_parent_name][part_name]['roughness']];
-      // }
 
       if(current_texture_parts[part_parent_name][part_name]['feedback']) {
         formatted_feedback = current_texture_parts[part_parent_name][part_name]['feedback']['formatted_feedback'];
@@ -476,17 +459,6 @@
         references = current_texture_parts[part_parent_name][part_name]['feedback']['references'];
         activeAspect= Object.keys(formatted_feedback)[0];
       }
-
-      // if(current_texture_parts[part_parent_name][part_name]['opacity']) {
-      //   opacity = [current_texture_parts[part_parent_name][part_name]['opacity']];
-      // }
-      // if(current_texture_parts[part_parent_name][part_name]['metalness']) {
-      //   metalness = [current_texture_parts[part_parent_name][part_name]['metalness']];
-      // }
-      // if(current_texture_parts[part_parent_name][part_name]['roughness']) {
-      //   roughness = [current_texture_parts[part_parent_name][part_name]['roughness']];
-      // }
-
 
       if(material_color) {
         material_color_palette = {
@@ -504,12 +476,10 @@
         selected_palette_idx=0;
         selected_swatch_idx=0;
 
-        // const hexNumber = parseInt(color.substring(1), 16);
-
       }
-
-      console.log(parents);
       gen_module = get(generate_module);
+      window.addEventListener('mousedown', onMouseDown);
+      window.addEventListener('mouseup', onMouseUp);
     });
 
     function applyFinishSuggestion(finish_name, finish_settings) {
@@ -525,7 +495,7 @@
 
       changeProperty("opacity", opacity[0],1.0)
       changeProperty("roughness", roughness[0], 0.5)
-      changeProperty("metalness", metalness[0], 0.5)
+      changeProperty("metalness", metalness[0], 0.0)
       changeProperty("mat_finish", finish_name, "none")
 
     }
@@ -599,14 +569,18 @@
     <h5><b> {japanese ? "素材仕上げの調整" : "Adjust Material Finish"}</b></h5> 
     <div class="control">
       <span> {japanese ? "不透明度：" : "Opacity:"}   </span>
-      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("opacity", opacity[0], 1.0)}}> 
-        <RangeSlider on:change={() => updateOpacity(opacity[0])} bind:values={opacity} min={0} max={1} step={0.1} float={true} pips /> 
+      <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
+        <RangeSlider 
+        on:change={() => {isMouseDown ? set_property_being_changed("opacity",opacity[0],1.0) : () => {}; updateOpacity(opacity[0]); }} 
+        bind:values={opacity} min={0} max={1} step={0.1} float={true} pips /> 
       </div>
     </div>
     <div class="control">
       <span> {japanese ? "粗さ：" : "Roughness:"} </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("roughness", roughness[0], 0.5)}}> 
-        <RangeSlider on:change={() => updateRoughness(roughness[0])} bind:values={roughness} min={0} max={1} step={0.1} float={true} pips/> 
+        <RangeSlider 
+        on:change={() => updateRoughness(roughness[0])} 
+        bind:values={roughness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
     <div class="control">
@@ -655,9 +629,11 @@
 
       <div class="card container" style="height: auto;">
         <h6> <b> {japanese ? "スケール": "Scale"}  </b></h6>
-        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scaleX,1); changeProperty("scaleY",scaleY,1)}}>
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scale,1); changeProperty("scaleY",scale,1)}}>
           <span>X & Y: </span>
-          <NumberSpinner on:change={() => {scaleY=scaleX;updateTextureMapScale("x",scaleX);updateTextureMapScale("y",scaleY)}} bind:value={scaleX} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
+          <!-- Maybe it should set multiple properties in this case. -->
+          <!-- on:change={() => {isMouseDown ? set_property_being_changed("opacity",opacity[0],1.0) : () => {}; updateOpacity(opacity[0]); }}  -->
+          <NumberSpinner on:change={() => {scaleX=scale; scaleY=scale; updateTextureMapScale("x",scale);updateTextureMapScale("y",scale)}} bind:value={scale} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
         </div>
         <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scaleX,1)}}>
           <span>X: </span>
@@ -972,10 +948,6 @@
     .tab-content.active {
       display: flex;
       flex-direction: column;
-      /* height: 100%;
-      width:100%;
-      padding: 5px;
-      gap: 5px; */
     }
 
     .images-placeholder {
