@@ -74,16 +74,16 @@ export const transferred_textureimg_url =writable("");
 export const transferred_texture_name = writable(""); 
 
 export const saved_color_palettes = writable([
-    {
-        name: "Default",
-        palette: [
-            "#FFFFFF",
-            "#FFFFFF",
-            "#FFFFFF",
-            "#FFFFFF",
-            "#FFFFFF",
-        ],
-    }
+    // {
+    //     name: "Default",
+    //     palette: [
+    //         "#FFFFFF",
+    //         "#FFFFFF",
+    //         "#FFFFFF",
+    //         "#FFFFFF",
+    //         "#FFFFFF",
+    //     ],
+    // }
 ]);
 
 export const actions_panel_tab = writable("generate"); //Keeps track of which tab is currently selected in the actions panel
@@ -100,7 +100,7 @@ export const displayHeight = writable(0); //Keeps track of the height of the dis
 export const isDraggingImage = writable(false); //Keeps track of whether an image is currently being dragged and transferred or not
 export const generated_texture_name = writable(""); //Keeps track of the name of the generated texture
 export let in_japanese = writable(false); //Keeps track of whether the language is in Japanese or not
-export let use_chatgpt = writable(false); //Keeps track of whether the app uses chatgpt or not
+export let use_chatgpt = writable(true); //Keeps track of whether the app uses chatgpt or not
 
 /* 
 action_history = [

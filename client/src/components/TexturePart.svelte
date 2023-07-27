@@ -34,26 +34,28 @@
     }
     
     let isMouseDown=false;
+    // let isEnterPressed=false;
 
-    function onMouseDown(event) {
-        if (event.button === 0) {
-          isMouseDown = true;
-        }
-    }
+    // function onMouseDown(event) {
+    //     if (event.button === 0) {
+    //       isMouseDown = true;
+    //     }
+    // }
 
-    function onMouseUp(event) {
-        if(event.button===0) {
-          isMouseDown = false;
-
-          if(property_name && property_new_val && property_old_val) {
-            console.log("Change " + property_name + " from " + property_old_val + " to " + property_new_val);
-            changeProperty(property_name,property_new_val,property_old_val);
-            property_name=undefined;
-            property_new_val=undefined;
-            property_old_val=undefined;
-          }
-        }
-    }
+    // function onMouseUp(event) {
+    //     if(event.button===0) {
+    //       if(properties_to_be_changed.length>0) {
+    //         for(let i=0; i < properties_to_be_changed.length;i++) {
+    //           let property_name = properties_to_be_changed[i]['name'];
+    //           let property_new_val = properties_to_be_changed[i]['new_val'];
+    //           let property_old_val = properties_to_be_changed[i]['old_val'];
+    //           changeProperty(property_name,property_new_val,property_old_val);
+    //         }
+    //         properties_to_be_changed=[];
+    //       }
+    //       isMouseDown = false;
+    //     }
+    // }
 
     let information_panel;
     information_panel_global.subscribe(value => {
@@ -119,14 +121,28 @@
         isOpen = !isOpen;
     }
 
-    let property_name;
-    let property_new_val;
-    let property_old_val;
-    function set_property_being_changed(name,new_val,old_val) {
-      property_name=name;
-      property_new_val=new_val;
-      property_old_val=old_val;
-    }
+    // let properties_to_be_changed = [];
+
+    // function set_properties_being_changed(names,new_vals,old_vals) {
+    //   properties_to_be_changed=[];
+      
+    //   if(!(names.length===new_vals.length &&
+    //       new_vals.length===old_vals.length &&
+    //       old_vals.length===names.length)) {
+    //         alert("Error: Lengths of names, new_vals, and old_vals must be the same.");
+    //         return;
+    //   }
+
+    //   for (let i = 0; i < names.length; i++) {
+    //     properties_to_be_changed.push({
+    //       "name": names[i],
+    //       "new_val": new_vals[i],
+    //       "old_val": old_vals[i]
+    //     });
+    //     properties_to_be_changed=properties_to_be_changed;
+    //   }
+      
+    // }
 
     console.log(current_texture_parts);
 
@@ -471,15 +487,37 @@
             "#FFFFFF",
           ]
         };
+
+        // Workaround to remove duplicates.
+        for(let i=0; i<palettes.length;i++) {
+          if(palettes[i]['name']==="Custom") {
+            palettes.splice(i,1);
+          }
+        }
+        palettes=palettes;
+
         palettes.unshift(material_color_palette);
         palettes=palettes;
         selected_palette_idx=0;
         selected_swatch_idx=0;
-
+        console.log(get(saved_color_palettes));
       }
+      
       gen_module = get(generate_module);
-      window.addEventListener('mousedown', onMouseDown);
-      window.addEventListener('mouseup', onMouseUp);
+      // window.addEventListener('mousedown', onMouseDown);
+      // window.addEventListener('mouseup', onMouseUp);
+
+      // window.addEventListener('keydown', function(event) {
+      //   if (event.key === "Enter") { 
+      //       isEnterPressed = true;
+            
+      //   }
+      // });
+      // window.addEventListener('keyup', function(event) {
+      //   if (event.key === "Shift") {
+      //       isEnterPressed = false;
+      //   }
+      // });
     });
 
     function applyFinishSuggestion(finish_name, finish_settings) {
@@ -569,9 +607,11 @@
     <h5><b> {japanese ? "素材仕上げの調整" : "Adjust Material Finish"}</b></h5> 
     <div class="control">
       <span> {japanese ? "不透明度：" : "Opacity:"}   </span>
-      <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
+      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("opacity", opacity[0], 1.0)}}> 
         <RangeSlider 
-        on:change={() => {isMouseDown ? set_property_being_changed("opacity",opacity[0],1.0) : () => {}; updateOpacity(opacity[0]); }} 
+        on:change={() => {
+          updateOpacity(opacity[0]); 
+        }} 
         bind:values={opacity} min={0} max={1} step={0.1} float={true} pips /> 
       </div>
     </div>
@@ -579,7 +619,9 @@
       <span> {japanese ? "粗さ：" : "Roughness:"} </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("roughness", roughness[0], 0.5)}}> 
         <RangeSlider 
-        on:change={() => updateRoughness(roughness[0])} 
+        on:change={() => {
+          updateRoughness(roughness[0])
+        }} 
         bind:values={roughness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
@@ -629,15 +671,34 @@
 
       <div class="card container" style="height: auto;">
         <h6> <b> {japanese ? "スケール": "Scale"}  </b></h6>
-        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scale,1); changeProperty("scaleY",scale,1)}}>
+
+        <!-- 
+          <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
+            <RangeSlider 
+            on:change={() => {isMouseDown ? set_properties_being_changed(["opacity"],[opacity[0]],[1.0]) : () => {}; updateOpacity(opacity[0]); }} 
+            bind:values={opacity} min={0} max={1} step={0.1} float={true} pips /> 
+          </div>
+        -->
+
+
+        <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scaleX,1); changeProperty("scaleY",scaleY,1)}}>
           <span>X & Y: </span>
           <!-- Maybe it should set multiple properties in this case. -->
-          <!-- on:change={() => {isMouseDown ? set_property_being_changed("opacity",opacity[0],1.0) : () => {}; updateOpacity(opacity[0]); }}  -->
-          <NumberSpinner on:change={() => {scaleX=scale; scaleY=scale; updateTextureMapScale("x",scale);updateTextureMapScale("y",scale)}} bind:value={scale} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner 
+          on:change={() => {
+            scaleX=scale; scaleY=scale; 
+            updateTextureMapScale("x",scale);
+            updateTextureMapScale("y",scale)
+          }} 
+          bind:value={scale} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
         </div>
         <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scaleX,1)}}>
           <span>X: </span>
-          <NumberSpinner on:change={() => {updateTextureMapScale("x",scaleX)}} bind:value={scaleX} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
+          <NumberSpinner 
+          on:change={() => {
+            updateTextureMapScale("x",scaleX);
+          }} 
+          bind:value={scaleX} min=1.0 max=40 step=0.01 decimals=1 precision=0.01/>
         </div>
         <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleY",scaleY,1)}}>
           <span>Y: </span>
@@ -676,7 +737,7 @@
                       {#each p["palette"] as swatch}
                         <div class="swatch" style="background-color: {swatch};"></div>
                       {/each}
-                      <input type=radio bind:group={selected_palette_idx} name={j} value={j}>
+                      <input type=radio bind:group={selected_palette_idx} name={j} value={j} on:change={() => {selected_swatch_idx=0; updateColor();changeProperty("color",palettes[selected_palette_idx]['palette'][selected_swatch_idx],"#FFFFFF")}}>
                     </label>
                   {/each}
                   <button on:click|preventDefault={() => addNewColorPalete()}> 

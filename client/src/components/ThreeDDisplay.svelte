@@ -638,10 +638,6 @@
                         mat.displacementMap.scaleY = scaleY;
 
                         mat.normalScale = new THREE.Vector2(normalScale, normalScale);
-
-
-
-
                         mat.emissiveIntensity=0;
                     });
                 } else {
@@ -696,7 +692,7 @@
             }
         });
         object=object;
-        console.log(object);
+        // console.log(object);
         return object;
     }
 
@@ -705,7 +701,7 @@
             scene.remove(scene.children[0]);
         }
         add_glb_objects();
-        const light = new THREE.AmbientLight(0xffffff, 0.1);
+        const light = new THREE.AmbientLight(0x969696, 0.1);
         scene.add(light);
     }
 
@@ -732,7 +728,6 @@
         window.addEventListener('keydown', function(event) {
             if (event.key === "Shift") { // 16 is the key code for the shift key
                 shiftPressed = true;
-                
             }
         });
             window.addEventListener('keyup', function(event) {
