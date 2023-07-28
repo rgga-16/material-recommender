@@ -26,21 +26,28 @@ texture_generator = DALLE2()
 
 app = Flask(__name__, static_folder="./client/public")
 
-DEEPL_AUTHKEY='2c0ea470-3cef-d714-4176-cde832a9b2f5:fx'
-translator = deepl.Translator(DEEPL_AUTHKEY)
+# DEEPL_AUTHKEY='2c0ea470-3cef-d714-4176-cde832a9b2f5:fx'
+# translator = deepl.Translator(DEEPL_AUTHKEY)
+# @app.route("/translate", methods=['POST'])
+# def translate():
+#     form_data = request.get_json()
+#     text = form_data["text"]
+#     target_lang = form_data["target_lang"]
+#     source_lang = form_data["source_lang"]
+
+#     result = translator.translate_text(text, source_lang=source_lang, target_lang=target_lang)
+
+#     if isinstance(result,list):
+#         print("translation is a list for some reason")
+#         print()
+#     return jsonify({"text":result.text})
+
 @app.route("/translate", methods=['POST'])
-def translate():
+def translate_gpt(): 
     form_data = request.get_json()
     text = form_data["text"]
-    target_lang = form_data["target_lang"]
-    source_lang = form_data["source_lang"]
-
-    result = translator.translate_text(text, source_lang=source_lang, target_lang=target_lang)
-
-    if isinstance(result,list):
-        print("translation is a list for some reason")
-        print()
-    return jsonify({"text":result.text})
+    translated_text = gpt3.translate(text)
+    return jsonify({"text":translated_text})
 
 @app.route("/get_static_dir")
 def get_static_dir():

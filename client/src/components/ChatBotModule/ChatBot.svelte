@@ -59,7 +59,7 @@
 
     async function suggest_materials() {
         if (inputMessage.trim() === '') {
-            alert("Please enter a query.");
+            alert(japanese ? "クエリを入力してください。" : "Please enter a query.");
             return;
         }
         messages.push({
@@ -86,7 +86,7 @@
             }),
         });
         const json = await response.json();
-        is_loading_response=false;
+        
         inputMessage = '';
 
         let intro_text = json["intro_text"];
@@ -105,13 +105,14 @@
             "type": message_type,
             "content": suggested_materials
         });
+        is_loading_response=false;
 
         messages = messages;
     }
 
     async function suggest_color_palettes() {
         if (inputMessage.trim() === '') {
-            alert("Please enter a query.");
+            alert(japanese ? "クエリを入力してください。" : "Please enter a query.");
             return;
         }
 
@@ -132,7 +133,7 @@
             }),
         });
         const json = await response.json();
-        is_loading_response=false;
+        
         inputMessage = '';
 
         let intro_text = json["intro_text"];
@@ -157,6 +158,7 @@
             "content": suggested_color_palettes
         });
         messages = messages;
+        is_loading_response=false;
     }
 
     function saveColorPalette(color_palette) {
@@ -165,7 +167,7 @@
             palette: color_palette["codes"]
         }
         saved_color_palettes.update(lst => lst.concat(dict));
-        alert("Color palette saved!");
+        alert(japanese ? "カラーパレットが保存されました！" :"Color palette saved!");
     }
 
     async function query() {
@@ -208,7 +210,7 @@
         is_loading_response=true;
         const response = await fetch('./init_query');
         const json = await response.json();
-        is_loading_response=false;
+        
 
         let message = json["response"];
         let role = json["role"];
@@ -216,6 +218,7 @@
         if(japanese) {
             message = await translate("EN","JA",message);
         }
+        is_loading_response=false;
         // message = "\""+ message +"\"";
 
         messages.push({
@@ -330,15 +333,15 @@
 
 
 <div class="message-input">
-    <textarea style="width:100%;height:100%;" bind:value="{inputMessage}" on:keydown="{e => e.key === 'Enter' && suggest_materials()}" placeholder="Type your queries for materials or color palettes here.." id="textarea"></textarea>
+    <textarea style="width:100%;height:100%;" bind:value="{inputMessage}" on:keydown="{e => e.key === 'Enter' && suggest_materials()}" placeholder={japanese ? "ここに資料やカラーパレットに関するお問い合わせを入力してください。" : "Type your queries for materials or color palettes here.."} id="textarea"></textarea>
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;align-content:center;">
         <label>
             <input type="checkbox" bind:checked={use_internet} >
-            {japanese ? "ウェブ検索を利用する" : "Web search"}
+            {japanese ? "ウェブ検索" : "Web search"}
         </label>
         <label>
             <input type="checkbox" bind:checked={use_design_brief} >
-            {japanese ? "デザイン・ブリーフに基づく": "Design brief"}
+            {japanese ? "デザイン・ブリーフ": "Design brief"}
         </label>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;align-content:center;">

@@ -431,7 +431,7 @@
 
       activeAspect= await Object.keys(formatted_feedback)[0];
 
-      is_loading_feedback=false;
+      
 
       feedback = unformatted_feedback;
 
@@ -452,7 +452,7 @@
           }
         }
       }
-
+      is_loading_feedback=false;
 
       const end = performance.now();
       console.log("Requesting material feedback took " + (end - start) + " milliseconds.");
@@ -585,7 +585,7 @@
               <button on:click|preventDefault={requestMaterialFeedback}> {japanese ? "フィードバックのリクエスト": "Request feedback"}  </button>
               <label>
                 <input type="checkbox" bind:checked={use_design_brief} >
-                {japanese ? "デザイン・ブリーフに基づく" : "Design brief"}
+                {japanese ? "デザインブリーフ" : "Design brief"}
               </label>
             </div>
             
@@ -594,7 +594,7 @@
   </div>
 
   <div class="w3-bar w3-grey tabs">
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-finish'} on:click={()=>switchTab('adjust-finish')} id="adjust-finish-btn"> {japanese ? "素材仕上げ" : "Material Finish"} </button>
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-finish'} on:click={()=>switchTab('adjust-finish')} id="adjust-finish-btn"> {japanese ? "素材の仕上げ" : "Material Finish"} </button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-texture-map'} on:click={()=>switchTab('adjust-texture-map')} id="adjust-texture-btn"> {japanese ? "テクスチャマップ": "Texture Map"}</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-color'} on:click={()=>switchTab('adjust-color')} id="adjust-color-btn"> {japanese ? "カラー仕上げ" : "Color Finish"}</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='attached-parts'} on:click={()=>switchTab('attached-parts')} id="attached-parts-btn"> {japanese ? "付属部品" : "Attached Parts"}</button>
@@ -606,7 +606,7 @@
   <div class="card container tab-content" class:active={activeTab==='adjust-finish'}>
     <h5><b> {japanese ? "素材仕上げの調整" : "Adjust Material Finish"}</b></h5> 
     <div class="control">
-      <span> {japanese ? "不透明度：" : "Opacity:"}   </span>
+      <span> {japanese ? "透明度：" : "Opacity:"}   </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("opacity", opacity[0], 1.0)}}> 
         <RangeSlider 
         on:change={() => {
@@ -616,7 +616,7 @@
       </div>
     </div>
     <div class="control">
-      <span> {japanese ? "粗さ：" : "Roughness:"} </span>
+      <span> {japanese ? "光沢：" : "Roughness:"} </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("roughness", roughness[0], 0.5)}}> 
         <RangeSlider 
         on:change={() => {
@@ -626,7 +626,7 @@
       </div>
     </div>
     <div class="control">
-      <span> {japanese ? "金属的だ：": "Metalness:"} </span>
+      <span> {japanese ? "金属度：": "Metalness:"} </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("metalness", metalness[0], 0.0)}}> 
         <RangeSlider on:change={() => updateMetalness(metalness[0])} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
@@ -830,9 +830,9 @@
                         {:else if suggestion[1] === "finish" && suggestion.length===3}
                           <span> <b> {japanese ? japanese_formatted_feedback[aspect]['suggestions'][i][0] : suggestion[0]} </b></span>
                           <div class="card container">
-                            <span> {japanese ? "不透明度：" : "Opacity:"} {suggestion[2]["opacity"]}</span>
-                            <span> {japanese ? "粗さ：" : "Roughness:"}  {suggestion[2]["roughness"]}</span>
-                            <span> {japanese ? "金属的だ：": "Metalness:"}  {suggestion[2]["metallic"]}</span>
+                            <span> {japanese ? "透明度：" : "Opacity:"} {suggestion[2]["opacity"]}</span>
+                            <span> {japanese ? "光沢：" : "Roughness:"}  {suggestion[2]["roughness"]}</span>
+                            <span> {japanese ? "金属度：": "Metalness:"}  {suggestion[2]["metallic"]}</span>
                           </div>
                           <span><b> {japanese ? "素材仕上げ" : suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
                           <button  on:click={() => {applyFinishSuggestion(suggestion[0], suggestion[2])}}> {japanese ? "仕上げを施す" : "Apply Finish"}  </button>
