@@ -11,35 +11,35 @@ export const models_setup = writable({});
 export const chatbot_input_message = writable(""); //Keeps track of the input message in the chatbot
 
 export const design_brief = writable(`
-Design Brief for a Family Poolside Patio
+家族向けプールサイド パティオのデザイン ブリーフ
 
-Client Demographics: The clients are a family of four with two young children. They live in a coastal area in the Philippines and love spending time outdoors. They want to create a poolside patio that is both functional and stylish, where the whole family can relax and have fun.
+顧客層: 顧客は 2 人の幼い子供を持つ 4 人家族です。 彼らはフィリピンの沿岸地域に住んでおり、屋外で時間を過ごすのが大好きです。 彼らは、家族全員がリラックスして楽しめる、機能的でスタイリッシュなプールサイド パティオを作りたいと考えています。
 
-Background: The family recently had a pool installed in their backyard and wants to create a poolside patio that complements the pool and provides them with a space to entertain guests and spend time as a family.
+背景: この家族は最近裏庭にプールを設置しましたが、プールを補完し、ゲストを楽しませたり、家族で過ごすためのスペースを提供するプールサイド パティオを作りたいと考えています。
 
-Preferred Design Style: The family prefers a coastal design style with natural textures, light colors, and a relaxed vibe. They want the design to be cohesive with their home's coastal interior design, which features a lot of white and blue hues.
+好みのデザインスタイル：家族は、自然な質感、明るい色、リラックスした雰囲気を備えた海岸沿いのデザインスタイルを好みます。 彼らは、白と青の色合いを多用した海岸沿いの自宅のインテリア デザインとデザインが調和することを望んでいます。
 
-Desired Feel and Ambience: The family wants the poolside patio to have a fun and relaxed feel, with a touch of sophistication. They want the space to be perfect for both daytime and nighttime use, with soft lighting that creates a cozy and inviting atmosphere.
+望ましい雰囲気と雰囲気: 家族は、プールサイドのパティオが楽しくてリラックスした雰囲気でありながら、洗練された雰囲気であることを望んでいます。 彼らは、居心地の良い魅力的な雰囲気を作り出す柔らかい照明を備えた、昼と夜の両方の使用に最適な空間を望んでいます。
 
-Colors, Materials, and Finishes: The family prefers a color scheme that is light and airy, with shades of blue and green to complement the pool. They want the materials and finishes to be durable and low-maintenance, while also being natural.
+色、素材、仕上げ: 家族は、プールを引き立てる青と緑の色合いで、明るく風通しの良い配色を好みます。 彼らは、素材と仕上げが耐久性があり、メンテナンスの手間がかからず、同時に自然であることを望んでいます。
 
-Budget: The budget for the project is moderate.
+予算: プロジェクトの予算は中程度です。
 
-Furniture:
-Four patio lounge chairs
-Two patio sidetables
-Two outdoor umbrellas
-An outdoor sofa
-Two outdoor sofa chairs
-A coffee table
-An outdoor pool
-Outdoor flooring
-An outdoor dining table
-Five outdoor dining chairs
+家具：
+パティオラウンジチェア8脚
+パティオサイドテーブル 4 台
+アウトドアパラソル4本
+屋外用ソファ
+屋外ソファチェア 2 脚
+コーヒーテーブル
+屋外プール
+屋外床材
+屋外のダイニングテーブル
+屋外用ダイニングチェア 6脚
 
-Planned Uses: The poolside patio will be used for entertaining guests, lounging by the pool, and dining al fresco. The lounge chairs and umbrellas will be used for sunbathing and relaxing by the pool, while the outdoor sofa and chairs will be used for lounging and socializing. The dining table and chairs will be used for outdoor dining, and the coffee table will be used for drinks and snacks.
+計画された用途: プールサイドのパティオは、ゲストのおもてなし、プールサイドでのくつろぎ、屋外での食事に使用されます。 ラウンジチェアとパラソルは、日光浴やプールサイドでのリラックスに使用され、屋外のソファと椅子はくつろぎや社交に使用されます。 ダイニングテーブルと椅子は屋外での食事に使用され、コーヒーテーブルはドリンクや軽食に使用されます。
 
-Location: The poolside patio will be located in a coastal area in the Philippines. The environment will be tropical, with a lot of greenery and a warm climate. The design will take inspiration from the coastal surroundings, with natural textures and colors that blend in with the environment.
+場所: プールサイド パティオはフィリピンの沿岸地域に位置します。 環境は緑が多く、気候が温暖な熱帯になります。 デザインは海岸環境からインスピレーションを得ており、環境に溶け込む自然な質感と色を採用しています。
 `); //Keeps track of the design brief
 
 // selected_objs_and_parts = [
@@ -99,7 +99,7 @@ export const displayHeight = writable(0); //Keeps track of the height of the dis
 
 export const isDraggingImage = writable(false); //Keeps track of whether an image is currently being dragged and transferred or not
 export const generated_texture_name = writable(""); //Keeps track of the name of the generated texture
-export let in_japanese = writable(false); //Keeps track of whether the language is in Japanese or not
+export let in_japanese = writable(true); //Keeps track of whether the language is in Japanese or not
 export let use_chatgpt = writable(true); //Keeps track of whether the app uses chatgpt or not
 
 /* 

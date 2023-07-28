@@ -1,8 +1,13 @@
 <script>
     export let text;
-    import {curr_texture_parts} from '../stores.js';
+    import {curr_texture_parts, in_japanese} from '../stores.js';
     import {get} from 'svelte/store';
     import {onMount} from 'svelte';
+
+    let japanese;
+    in_japanese.subscribe(value => {
+        japanese = value;
+    });
 
     let temp_val="";
 
@@ -30,10 +35,10 @@
 <div class="container">
     <input type="text" readonly={!is_editing ? "readonly" : ""} bind:value={temp_val} >
     {#if is_editing}
-        <button on:click={cancel}> Cancel </button> 
-        <button on:click={save}> Save </button>
+        <button on:click={cancel}> {japanese ? "キャンセル" : "Cancel"}</button> 
+        <button on:click={save}> {japanese ? "保存する"  : "Save"}</button>
     {:else}
-        <button on:click={edit}> Edit </button>
+        <button on:click={edit}> {japanese ? "編集" : "Edit"}</button>
     {/if}
     <!-- <button on:click={edit}> {is_editing ? "Save" : "Edit"} </button> -->
 </div>

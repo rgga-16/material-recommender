@@ -141,6 +141,28 @@ def internet_search(query,role="user",n_results=10):
         '''
     return prompt, results 
 
+def translate(text,role="user"):
+
+    system_prompt = '''
+        Act as a translator between Japanese and English. 
+        Whenever you are given a text, please translate it to the opposite language. 
+        Make sure you use polite and formal language, and make sure the terms you will use is relevant to the context presented in the text.
+    '''
+    history = [{"role":"system", "content":system_prompt}]
+    history.append({"role":role, "content":text})
+    
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=history,
+            temperature=0.1
+        )
+        response_msg = response["choices"][0]["message"]["content"]
+    except Exception as e:
+        response_msg = f"Translation Error"
+
+    return response_msg
+
 def query(prompt,role="user", temp=temperature):
     global message_history
     message_history.append({"role":role, "content":prompt})
@@ -285,6 +307,8 @@ def suggest_materials_2(prompt,role="user", use_internet=True, design_brief=None
         intro_text=''
     except SyntaxError as e:
         intro_text = f"Sorry, please try again. We got the following error: {e}."
+        global message_history
+        message_history=message_history[:-2]
         suggestions = {}
     return intro_text, suggestions
 
@@ -351,6 +375,7 @@ def suggest_color_palettes(prompt, role="user", use_internet=True, design_brief=
     # intro_text = initial_response.split('\n')[0].strip()
 
     python_list_response = query(refined_prompt,role).strip()
+    orig_python_list_response = copy.deepcopy(python_list_response)
     intro_text = ""
 
     # Remove text before and after the Python list
@@ -371,6 +396,8 @@ def suggest_color_palettes(prompt, role="user", use_internet=True, design_brief=
         # intro_text=''
     except SyntaxError as e:
         intro_text = f"Sorry, please try again. We got the following error: {e}."
+        global message_history
+        message_history=message_history[:-2]
         suggestions = []
     
     return intro_text, suggestions

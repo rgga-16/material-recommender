@@ -12,6 +12,7 @@
 	import {curr_texture_parts} from '../stores.js';
 	import {curr_textureparts_path} from '../stores.js';
     import {action_history} from '../stores.js';
+    import {in_japanese} from '../stores.js';
     import {addToHistory} from '../main.js';
     import {getImage} from '../main.js';
     import {degreeToRadians} from '../main.js';
@@ -38,10 +39,15 @@
 
     export let current_texture_parts;
 
+    let japanese;
+    in_japanese.subscribe(value => {
+        japanese = value;
+    });
+
     let width;
     let height; 
-    const widthOffset = 25;
-    const heightOffset = 95;
+    const widthOffset = 35;
+    const heightOffset = 105;
 
     /**
      * model3d_infos = [
@@ -138,7 +144,13 @@
             transferred_texture_url.set(null);
             transferred_textureimg_url.set(null);
             isDraggingImage.set(false);
-            alert("No selected object. Please select an object first.");
+
+            if(japanese) {
+                alert("選択されたオブジェクトがありません。先にオブジェクトを選択してください。")
+            } else {
+                alert("No selected object. Please select an object first.");
+            }
+            
         }
     }
 

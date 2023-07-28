@@ -306,7 +306,11 @@
 		console.log("THE THREED DISPLAY SHOULD BE UPDATED")
 		console.log(get(threed_display_global))
 		if(get(threed_display_global)==null || get(threed_display_global)==undefined) {
-			alert("3D viewer is not loaded! please refresh the page.")
+			if(japanese) {
+				alert("3Dビューアが読み込まれていません!ページを更新してください。");
+			} else {
+				alert("3D viewer is not loaded! please refresh the page.");
+			}
 		}
 
 	});
@@ -533,7 +537,7 @@
 		<div id="design-brief-popup" class:show={show_design_brief} >
 			<div id="design-brief-header" style="width:100%; height:auto; display:flex; flex-direction: row; background:lightgrey; justify-content:space-between;padding: 5px;">
 				<h3>
-					{japanese ? "デザイン・ブリーフ": "Design Brief"}
+					{japanese ? "デザインブリーフ": "Design Brief"}
 				</h3>
 				<button  on:click|preventDefault={() => hideDesignBrief()}  >
 					<img src="./logos/exit-svgrepo-com.svg" alt="" style="width: 30px; height: 30px;" />

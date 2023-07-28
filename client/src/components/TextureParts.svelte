@@ -314,12 +314,16 @@
 
     <div class="row centered padded"> 
         
-        <b>Control Multiple Parts</b> 
+        {#if japanese} 
+            <h4>複数のオブジェクトを制御する</h4>
+        {:else}
+            <h4>Control Multiple Objects</h4>
+        {/if}
 
     </div>
 
     <div class="w3-bar w3-grey tabs">
-        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-finish'} on:click={()=>switchTab('adjust-finish')} id="adjust-finish-btn"> {japanese ? "素材仕上げ" : "Material Finish"} </button>
+        <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-finish'} on:click={()=>switchTab('adjust-finish')} id="adjust-finish-btn"> {japanese ? "素材の仕上げ" : "Material Finish"} </button>
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-texture-map'} on:click={()=>switchTab('adjust-texture-map')} id="adjust-texture-btn"> {japanese ? "テクスチャマップ": "Texture Map"}</button>
         <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-color'} on:click={()=>switchTab('adjust-color')} id="adjust-color-btn"> {japanese ? "カラー仕上げ" : "Color Finish"}</button>
     </div>
@@ -327,19 +331,19 @@
     <div class="container column centered padded auto tab-content" class:active={activeTab==='adjust-finish'}>
         <h5><b> {japanese ? "素材仕上げの調整" : "Adjust Material Finish"}</b></h5> 
         <div class="row centered expand padded">
-            <span> {japanese ? "不透明度：" : "Opacity:"}   </span>
+            <span> {japanese ? "透明度：" : "Opacity:"}   </span>
             <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperties("opacity", opacity[0], 1.0)}}> 
                 <RangeSlider on:change={() => updateOpacities(opacity[0])} bind:values={opacity} min={0} max={1} step={0.1} float={true} pips /> 
             </div>
         </div>
         <div class="row centered expand padded">
-            <span> {japanese ? "粗さ：" : "Roughness:"} </span>
+            <span> {japanese ? "光沢：" : "Roughness:"} </span>
             <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperties("roughness", roughness[0], 0.5)}}> 
                 <RangeSlider on:change={() => updateRoughnesses(roughness[0])} bind:values={roughness} min={0} max={1} step={0.1} float={true} pips /> 
             </div>
         </div>
         <div class="row centered expand padded">
-            <span> {japanese ? "金属的だ：": "Metalness:"} </span>
+            <span> {japanese ? "金属度：": "Metalness:"} </span>
             <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperties("metalness", metalness[0], 0.5)}}> 
                 <RangeSlider on:change={() => updateMetalnesses(metalness[0])} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips /> 
             </div>
@@ -379,7 +383,7 @@
                 </div>
     
             </div>
-            <div class="column centered padded auto container">
+            <!-- <div class="column centered padded auto container">
                 <h6> <b> {japanese ? "スケール": "Scale"} </b></h6>
                 <div class="row centered expand padded" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperties("scaleX",scale,1); changeProperties("scaleY",scale,1)}}>
                     <span>X & Y: </span>
@@ -393,7 +397,7 @@
                     <span>Y: </span>
                     <NumberSpinner on:change={() => updateTextureMapScales("y",scaleY)} bind:value={scaleY} min=1 max=40 step=0.01 decimals=1 precision=0.01/>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
 

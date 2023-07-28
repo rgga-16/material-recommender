@@ -246,7 +246,7 @@
 
     function add_keyword(k) {
         if(k.trim() === '') {
-            alert("Please type in a keyword.");
+            alert(japanese ? "キーワードを入力してください。" :"Please type in a keyword.");
             return;
         }
         manual_prompt_keywords.push(k);
@@ -261,7 +261,7 @@
 
     async function brainstorm_prompt_keywords() {
         if (input_material.trim() === '') {
-            alert("Please type in a material.");
+            alert(japanese ? "素材を入力してください。" : "Please type in a material.");
             return;
         }
         brainstormed_prompt_keywords=[];
@@ -275,7 +275,7 @@
             }),
         });
         const json = await response.json();
-        is_loading_keywords=false;
+        
         brainstormed_prompt_keywords = json["brainstormed_prompt_keywords"];
 
         if (japanese) {
@@ -284,6 +284,7 @@
                 brainstormed_prompt_keywords[i] = await translate("EN","JA",k);
             }
         }
+        is_loading_keywords=false;
     }
 </script>
 

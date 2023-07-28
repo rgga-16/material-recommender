@@ -123,7 +123,7 @@
     </div>
 
     <div class="tab-content" class:active={activeTab==='details'} id="details">
-        <h3> {japanese ? "オブジェクトの詳細" : "Object Details" }  </h3>
+        <h3> {japanese ? "オブジェクト詳細" : "Object Details" }  </h3>
         {#if sel_objs_and_parts.length > 0}
             <div id="texture-part-details"> 
                 {#if sel_objs_and_parts.length > 1}
