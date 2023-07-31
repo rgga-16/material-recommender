@@ -127,7 +127,7 @@
         {#if sel_objs_and_parts.length > 0}
             <div id="texture-part-details"> 
                 {#if sel_objs_and_parts.length > 1}
-                    <TextureParts bind:texturepart_panels={textureparts} />
+                    <TextureParts />
                 {/if}
                 {#each sel_objs_and_parts as sel_obj_part, i}
                     <TexturePart bind:this={textureparts[i]} 
