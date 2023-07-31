@@ -1,5 +1,6 @@
 <script>
     import {in_japanese, selected_objs_and_parts, curr_texture_parts,saved_color_palettes} from '../stores.js';
+    import {addToHistory} from '../main.js';
     import NumberSpinner from "svelte-number-spinner";
 
     import RangeSlider from "svelte-range-slider-pips";
