@@ -20,8 +20,6 @@
     in_japanese.subscribe(value => {
         japanese = value;
     });
-    
-    export let texturepart_panels; 
 
     let isMouseDown=false;
 
@@ -266,8 +264,42 @@
     }
 
     function updateTextureMapScales(x_or_y, scale) {
-        for(const texturepart_panel of texturepart_panels) {
-            texturepart_panel.updateTextureMapScale(x_or_y, scale);
+
+        for(let index = 0; index < sel_objs_and_parts.length; index++) {
+            selected_objs_and_parts.update(value => {
+                setScale(value[index].model.children[0].material.map, x_or_y, scale);
+                if (value[index].model.children[0].material.normalMap) {
+                    setScale(value[index].model.children[0].material.normalMap, x_or_y, scale);
+                }
+                if (value[index].model.children[0].material.aoMap) {
+                    setScale(value[index].model.children[0].material.aoMap, x_or_y, scale);
+                }
+                if (value[index].model.children[0].material.alphaMap) {
+                    setScale(value[index].model.children[0].material.alphaMap, x_or_y, scale);
+                }
+                if(value[index].model.children[0].material.emissiveMap) {
+                    setScale(value[index].model.children[0].material.emissiveMap, x_or_y, scale);
+                }
+                if (value[index].model.children[0].material.lightMap) {
+                    setScale(value[index].model.children[0].material.lightMap, x_or_y, scale);
+                }
+                if(value[index].model.children[0].material.metalnessMap) {
+                    setScale(value[index].model.children[0].material.metalnessMap, x_or_y, scale);
+                }
+                if(value[index].model.children[0].material.roughnessMap) {
+                    setScale(value[index].model.children[0].material.roughnessMap, x_or_y, scale);
+                }
+                if(value[index].model.children[0].material.displacementMap) {
+                    setScale(value[index].model.children[0].material.displacementMap, x_or_y, scale);
+                }
+                if(value[index].model.children[0].material.bumpMap) {
+                    setScale(value[index].model.children[0].material.bumpMap, x_or_y, scale);
+                }
+                if(value[index].model.children[0].material.envMap) {
+                    setScale(value[index].model.children[0].material.envMap, x_or_y, scale);
+                }
+                return value;
+            });
         }
     }
 
@@ -383,7 +415,7 @@
                 </div>
     
             </div>
-            <!-- <div class="column centered padded auto container">
+            <div class="column centered padded auto container">
                 <h6> <b> {japanese ? "スケール": "Scale"} </b></h6>
                 <div class="row centered expand padded" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperties("scaleX",scale,1); changeProperties("scaleY",scale,1)}}>
                     <span>X & Y: </span>
@@ -397,7 +429,7 @@
                     <span>Y: </span>
                     <NumberSpinner on:change={() => updateTextureMapScales("y",scaleY)} bind:value={scaleY} min=1 max=40 step=0.01 decimals=1 precision=0.01/>
                 </div>
-            </div> -->
+            </div>
         </div>
     </div>
 
