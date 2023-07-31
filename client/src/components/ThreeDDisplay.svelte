@@ -730,6 +730,9 @@
         scene.background = new THREE.Color(0x000000); // Set the background to black
 
         camera = new THREE.PerspectiveCamera( 70, width/height, 0.1, 10000 );
+        camera.position.z = 5;
+
+        camera.updateProjectionMatrix();
         
         raycaster = new THREE.Raycaster();
 
@@ -758,17 +761,28 @@
         scene.environment = pmremGenerator.fromScene( environment ).texture;
 
         controls = new OrbitControls( camera, renderer.domElement );
+
+        controls.zoomSpeed= 1.5;
+        controls.panSpeed= 1.5;
+        controls.minDistance = 0.1;
+        controls.maxDistance = 10;
+        
+
         controls.mouseButtons = {
             LEFT: null,
             MIDDLE: THREE.MOUSE.PAN,
             RIGHT: THREE.MOUSE.ROTATE
         }
 
-        controls.minDistance = 0.1;
-        controls.maxDistance = 10;
+        controls.addEventListener('change', function() {
+            controls.zoomSpeed=1.5;
+            controls.panSpeed=1.5;
+        })
+
+        
         controls.target.set( 0, 0.35, 0 );
         controls.update();
-        camera.position.z = 5;
+        
     }
 
     
