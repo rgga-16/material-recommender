@@ -231,6 +231,8 @@
 
     let mouseDown=false;
     let shiftPressed=false;
+    let doubleClicked = false;
+    let ctrlPressed = false;
 
     export function removeHighlights() {
         if(HIGHLIGHTED) {
@@ -307,6 +309,41 @@
                             SELECTED_INFOS=SELECTED_INFOS;
                             selected_objs_and_parts.set(SELECTED_INFOS);
                             // //information_panel.clearTexturePart();
+                        } else if(ctrlPressed) { 
+                            //If ctrl is held, this will select all of the objects that are the same as the clicked object.
+                            //for example, clicking on a "backrest" will select all other objects that have "backrest" in the name.
+                            SELECTEDS.push(clicked_object);
+                            const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
+                            SELECTED_INFOS.push(model3d_infos[index]);
+
+                            let clicked_object_name = clicked_object.model_name;
+                            clicked_object_name = clicked_object_name.replace(/\d+/g, '');
+                            console.log(clicked_object_name);
+                            
+                            let clicked_object_parent = clicked_object.model_parent;
+                            clicked_object_parent = clicked_object_parent.replace(/\d+/g, '');
+                            console.log(clicked_object_parent);
+
+                            console.log("seat cushion".includes(clicked_object_name));
+
+                            for (let i = 0; i < model3d_infos.length; i++) {
+                                let object_name = model3d_infos[i].name;
+                                object_name = object_name.replace(/\d+/g, '');
+                                let parent_name = model3d_infos[i].parent;
+                                parent_name = parent_name.replace(/\d+/g, '');
+
+                                if (object_name.includes(clicked_object_name) && parent_name.includes(clicked_object_parent)) {
+                                    if (!SELECTEDS.includes(model3d_infos[i].model.children[0])) {
+                                        SELECTEDS.push(model3d_infos[i].model.children[0]);
+                                        SELECTED_INFOS.push(model3d_infos[i]);
+                                        SELECTEDS=SELECTEDS;    
+                                        SELECTED_INFOS=SELECTED_INFOS;
+                                    }
+                                }
+                            }
+                            selected_objs_and_parts.set(SELECTED_INFOS);
+
+
                         } else { //If shift is not held, want to select only one object
                             SELECTEDS = [];
                             SELECTED_INFOS = [];
@@ -334,15 +371,46 @@
                         }
                     }
                 } else {//If clicked object has already been selected, deselect it. 
-                    SELECTEDS[0].material.emissive.setHex(0x000000);
-                    SELECTEDS.splice(index, 1);
-                    SELECTED_INFOS.splice(index, 1);
-                    // console.log("Has been selected. Deselected.")
-                    SELECTEDS=SELECTEDS;    
-                    SELECTED_INFOS=SELECTED_INFOS;
-                    selected_objs_and_parts.set(SELECTED_INFOS);
-                    information_panel.clearTexturePart();
-                    removeHighlightsFromUnselecteds();
+
+                    if(ctrlPressed) {
+                        let clicked_object_name = clicked_object.model_name;
+                        clicked_object_name = clicked_object_name.replace(/\d+/g, '');
+                        console.log(clicked_object_name);
+                        
+                        let clicked_object_parent = clicked_object.model_parent;
+                        clicked_object_parent = clicked_object_parent.replace(/\d+/g, '');
+                        console.log(clicked_object_parent);
+
+                        console.log("seat cushion".includes(clicked_object_name));
+
+                        for (let i = 0; i < model3d_infos.length; i++) {
+                            let object_name = model3d_infos[i].name;
+                            object_name = object_name.replace(/\d+/g, '');
+                            let parent_name = model3d_infos[i].parent;
+                            parent_name = parent_name.replace(/\d+/g, '');
+
+                            if (object_name.includes(clicked_object_name) && parent_name.includes(clicked_object_parent)) {
+                                if (!SELECTEDS.includes(model3d_infos[i].model.children[0])) {
+                                    SELECTEDS.push(model3d_infos[i].model.children[0]);
+                                    SELECTED_INFOS.push(model3d_infos[i]);
+                                    SELECTEDS=SELECTEDS;    
+                                    SELECTED_INFOS=SELECTED_INFOS;
+                                }
+                            }
+                        }
+                        selected_objs_and_parts.set(SELECTED_INFOS);
+
+                    } else {
+                        SELECTEDS[0].material.emissive.setHex(0x000000);
+                        SELECTEDS.splice(index, 1);
+                        SELECTED_INFOS.splice(index, 1);
+                        // console.log("Has been selected. Deselected.")
+                        SELECTEDS=SELECTEDS;    
+                        SELECTED_INFOS=SELECTED_INFOS;
+                        selected_objs_and_parts.set(SELECTED_INFOS);
+                        information_panel.clearTexturePart();
+                        removeHighlightsFromUnselecteds();
+                    }   
                 }
                 SELECTEDS=SELECTEDS;    
                 SELECTED_INFOS=SELECTED_INFOS;
@@ -731,6 +799,8 @@
 
         camera = new THREE.PerspectiveCamera( 70, width/height, 0.1, 10000 );
         camera.position.z = 5;
+        camera.position.x=0;
+        camera.position.y=5;
 
         camera.updateProjectionMatrix();
         
@@ -745,11 +815,22 @@
                 shiftPressed = true;
             }
         });
-            window.addEventListener('keyup', function(event) {
-            if (event.key === "Shift") { // 16 is the key code for the shift key
+        window.addEventListener('keyup', function(event) {
+            if (event.key === "Shift" && shiftPressed) { // 16 is the key code for the shift key
                 shiftPressed = false;
             }
         });
+        window.addEventListener('keydown', function(event) {
+            if (event.ctrlKey) { // 16 is the key code for the shift key
+                ctrlPressed=true;
+            }
+        });
+        window.addEventListener('keyup', function(event) {
+            if(!event.ctrlKey && ctrlPressed) {
+                ctrlPressed=false;
+            }
+        })
+
         renderer.domElement.addEventListener('click', onPointerClick);
 
         setup_scene();
@@ -761,11 +842,16 @@
         scene.environment = pmremGenerator.fromScene( environment ).texture;
 
         controls = new OrbitControls( camera, renderer.domElement );
+        controls.enableZoom=true;
+        controls.minDistance=0.0000000001;
+        controls.maxDistance=10000;
 
-        controls.zoomSpeed= 1.5;
-        controls.panSpeed= 1.5;
-        controls.minDistance = 0.1;
-        controls.maxDistance = 10;
+        let zoomSpeed=3;
+        let panSpeed=3;
+        controls.zoomSpeed= zoomSpeed;
+        controls.panSpeed= panSpeed;
+        // controls.minDistance = 0.1;
+        // controls.maxDistance = 10;
         
 
         controls.mouseButtons = {
@@ -775,8 +861,8 @@
         }
 
         controls.addEventListener('change', function() {
-            controls.zoomSpeed=1.5;
-            controls.panSpeed=1.5;
+            controls.zoomSpeed=zoomSpeed*2;
+            controls.panSpeed=panSpeed*2;
         })
 
         
