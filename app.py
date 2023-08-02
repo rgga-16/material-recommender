@@ -46,7 +46,9 @@ app = Flask(__name__, static_folder="./client/public")
 def translate_gpt(): 
     form_data = request.get_json()
     text = form_data["text"]
-    translated_text = gpt3.translate(text)
+    target_lang = form_data["target_lang"]
+    source_lang = form_data["source_lang"]
+    translated_text = gpt3.translate(text,target_lang,source_lang)
     return jsonify({"text":translated_text})
 
 @app.route("/get_static_dir")

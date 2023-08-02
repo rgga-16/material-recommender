@@ -141,15 +141,17 @@ def internet_search(query,role="user",n_results=10):
         '''
     return prompt, results 
 
-def translate(text,role="user"):
+def translate(text,target_lang, source_lang,role="user"):
 
     system_prompt = '''
         Act as a translator between Japanese and English. 
         Whenever you are given a text, please translate it to the opposite language. 
         Make sure you use polite and formal language, and make sure the terms you will use is relevant to the context presented in the text.
     '''
+    # prompt=text
+    prompt = f"Translate the following from {source_lang} to {target_lang}: {text}"
     history = [{"role":"system", "content":system_prompt}]
-    history.append({"role":role, "content":text})
+    history.append({"role":role, "content":prompt})
     
     try:
         response = openai.ChatCompletion.create(
