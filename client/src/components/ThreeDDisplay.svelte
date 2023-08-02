@@ -231,8 +231,8 @@
 
     let mouseDown=false;
     let shiftPressed=false;
-    let doubleClicked = false;
     let ctrlPressed = false;
+    let altPressed = false;
 
     export function removeHighlights() {
         if(HIGHLIGHTED) {
@@ -309,8 +309,8 @@
                             SELECTED_INFOS=SELECTED_INFOS;
                             selected_objs_and_parts.set(SELECTED_INFOS);
                             // //information_panel.clearTexturePart();
-                        } else if(ctrlPressed) { 
-                            //If ctrl is held, this will select all of the objects that are the same as the clicked object.
+                        } else if(altPressed) { 
+                            //If alt is held, this will select all of the objects that are the same as the clicked object.
                             //for example, clicking on a "backrest" will select all other objects that have "backrest" in the name.
                             SELECTEDS.push(clicked_object);
                             const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
@@ -324,15 +324,13 @@
                             clicked_object_parent = clicked_object_parent.replace(/\d+/g, '');
                             console.log(clicked_object_parent);
 
-                            console.log("seat cushion".includes(clicked_object_name));
-
                             for (let i = 0; i < model3d_infos.length; i++) {
                                 let object_name = model3d_infos[i].name;
                                 object_name = object_name.replace(/\d+/g, '');
                                 let parent_name = model3d_infos[i].parent;
                                 parent_name = parent_name.replace(/\d+/g, '');
 
-                                if (object_name.includes(clicked_object_name) && parent_name.includes(clicked_object_parent)) {
+                                if (object_name === clicked_object_name && parent_name === clicked_object_parent) {
                                     if (!SELECTEDS.includes(model3d_infos[i].model.children[0])) {
                                         SELECTEDS.push(model3d_infos[i].model.children[0]);
                                         SELECTED_INFOS.push(model3d_infos[i]);
@@ -342,6 +340,31 @@
                                 }
                             }
                             selected_objs_and_parts.set(SELECTED_INFOS);
+                        
+                        } else if (ctrlPressed) {
+                            // If ctrl is pressed, we select the entire all components of the object.
+                            // For example, if I hold ctrl and click on a bedframe, we also select the other components of the bed.
+                            SELECTEDS.push(clicked_object);
+                            const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
+                            SELECTED_INFOS.push(model3d_infos[index]);
+                            
+                            let clicked_object_parent = clicked_object.model_parent;
+                            console.log(clicked_object_parent);
+
+                            for (let i = 0; i < model3d_infos.length; i++) {
+                                let parent_name = model3d_infos[i].parent;
+
+                                if (parent_name === clicked_object_parent) {
+                                    if (!SELECTEDS.includes(model3d_infos[i].model.children[0])) {
+                                        SELECTEDS.push(model3d_infos[i].model.children[0]);
+                                        SELECTED_INFOS.push(model3d_infos[i]);
+                                        SELECTEDS=SELECTEDS;    
+                                        SELECTED_INFOS=SELECTED_INFOS;
+                                    }
+                                }
+                            }
+                            selected_objs_and_parts.set(SELECTED_INFOS);
+
 
 
                         } else { //If shift is not held, want to select only one object
@@ -372,7 +395,9 @@
                     }
                 } else {//If clicked object has already been selected, deselect it. 
 
-                    if(ctrlPressed) {
+                    if(altPressed) {
+                    //If alt is held, this will select all of the objects that are the same as the clicked object.
+                    //for example, clicking on a "backrest" will select all other objects that have "backrest" in the name.
                         let clicked_object_name = clicked_object.model_name;
                         clicked_object_name = clicked_object_name.replace(/\d+/g, '');
                         console.log(clicked_object_name);
@@ -400,6 +425,22 @@
                         }
                         selected_objs_and_parts.set(SELECTED_INFOS);
 
+                    } else if (ctrlPressed) {
+                        let clicked_object_parent = clicked_object.model_parent;
+                        console.log(clicked_object_parent);
+
+                        for (let i = 0; i < model3d_infos.length; i++) {
+                            let parent_name = model3d_infos[i].parent;
+                            if (parent_name === clicked_object_parent) {
+                                if (!SELECTEDS.includes(model3d_infos[i].model.children[0])) {
+                                    SELECTEDS.push(model3d_infos[i].model.children[0]);
+                                    SELECTED_INFOS.push(model3d_infos[i]);
+                                    SELECTEDS=SELECTEDS;    
+                                    SELECTED_INFOS=SELECTED_INFOS;
+                                }
+                            }
+                        }
+                        selected_objs_and_parts.set(SELECTED_INFOS);
                     } else {
                         SELECTEDS[0].material.emissive.setHex(0x000000);
                         SELECTEDS.splice(index, 1);
@@ -408,7 +449,7 @@
                         SELECTEDS=SELECTEDS;    
                         SELECTED_INFOS=SELECTED_INFOS;
                         selected_objs_and_parts.set(SELECTED_INFOS);
-                        information_panel.clearTexturePart();
+                        // information_panel.clearTexturePart();
                         removeHighlightsFromUnselecteds();
                     }   
                 }
@@ -797,10 +838,8 @@
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000); // Set the background to black
 
-        camera = new THREE.PerspectiveCamera( 70, width/height, 0.1, 10000 );
+        camera = new THREE.PerspectiveCamera( 70, width/height, 0.1, 1000 );
         camera.position.z = 5;
-        camera.position.x=0;
-        camera.position.y=5;
 
         camera.updateProjectionMatrix();
         
@@ -829,7 +868,17 @@
             if(!event.ctrlKey && ctrlPressed) {
                 ctrlPressed=false;
             }
-        })
+        });
+        window.addEventListener('keydown', function(event) {
+            if(event.altKey) {
+                altPressed=true;
+            }
+        });
+        window.addEventListener('keyup', function(event) {
+            if(!event.altKey && altPressed) {
+                altPressed=false;
+            }
+        });
 
         renderer.domElement.addEventListener('click', onPointerClick);
 
@@ -846,8 +895,8 @@
         controls.minDistance=0.0000000001;
         controls.maxDistance=10000;
 
-        let zoomSpeed=3;
-        let panSpeed=3;
+        let zoomSpeed=1.5;
+        let panSpeed=1.5;
         controls.zoomSpeed= zoomSpeed;
         controls.panSpeed= panSpeed;
         // controls.minDistance = 0.1;
@@ -861,8 +910,8 @@
         }
 
         controls.addEventListener('change', function() {
-            controls.zoomSpeed=zoomSpeed*2;
-            controls.panSpeed=panSpeed*2;
+            controls.zoomSpeed=zoomSpeed;
+            controls.panSpeed=panSpeed;
         })
 
         
