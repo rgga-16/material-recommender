@@ -11,47 +11,35 @@ export const models_setup = writable({});
 export const chatbot_input_message = writable(""); //Keeps track of the input message in the chatbot
 
 export const design_brief = writable(`
-通常の家庭用バスルームのデザイン概要
+Design Brief for a Family Poolside Patio
 
+Client Demographics: The clients are a family of four with two young children. They live in a coastal area in the Philippines and love spending time outdoors. They want to create a poolside patio that is both functional and stylish, where the whole family can relax and have fun.
 
-クライアントプロフィール
-クライアントは、アメリカ・シアトルの郊外に住む中年の夫婦です。彼らは共に働くプロフェッショナルで、家のデザインにおいて機能性とシンプルさを重視しています。2人の十代の子供がおり、頻繁にゲストを招くため、バスルームは様々なユーザーに対応できる必要があります。
+Background: The family recently had a pool installed in their backyard and wants to create a poolside patio that complements the pool and provides them with a space to entertain guests and spend time as a family.
 
-プロジェクトの背景 
-この家族は最近新しい家を購入し、既存のバスルームを自分たちのニーズと美的嗜好に合うように改装することを考えています。現在のバスルームは機能的ではありますが、彼らが求める暖かさと招き入れる感じが欠けています。家族は、実用的で、メンテナンスが容易で、時代を超えた魅力を持つデザインを求めています。
+Preferred Design Style: The family prefers a coastal design style with natural textures, light colors, and a relaxed vibe. They want the design to be cohesive with their home's coastal interior design, which features a lot of white and blue hues.
 
-デザインスタイル
-バスルームのデザインスタイルはモダンミニマリズムが好ましいです。このスタイルは、クリーンなライン、シンプルな色合い、 clutterのない特徴があります。デザインは機能性と使いやすさに焦点を当て、過度に装飾的または複雑な要素を避けるべきです。
+Desired Feel and Ambience: The family wants the poolside patio to have a fun and relaxed feel, with a touch of sophistication. They want the space to be perfect for both daytime and nighttime use, with soft lighting that creates a cozy and inviting atmosphere.
 
-雰囲気
-バスルームの雰囲気は、落ち着いた、穏やかなものが望ましいです。この空間は、日常生活の忙しさからの隠れ家のように感じられるべきで、家族がリラックスし、リフレッシュできる場所であるべきです。自然光、柔らかい色、シンプルで整理された空間の使用が、この雰囲気を作り出すのに役立ちます。
+Colors, Materials, and Finishes: The family prefers a color scheme that is light and airy, with shades of blue and green to complement the pool. They want the materials and finishes to be durable and low-maintenance, while also being natural.
 
-予算
-このプロジェクトの予算は適度です。家族は品質の高い材料と設備に投資する意思がありますが、コスト効率と価値に対する考慮が重要です。
+Budget: The budget for the project is moderate.
 
-家具とアクセサリー
-バスルームには以下のアイテムが含まれます：
+Furniture:
+Four patio lounge chairs
+Two patio sidetables
+Two outdoor umbrellas
+An outdoor sofa
+Two outdoor sofa chairs
+A coffee table
+An outdoor pool
+Outdoor flooring
+An outdoor dining table
+Five outdoor dining chairs
 
-バスルームの床
-壁の換気口
-タオルホルダー（大きなタオルと小さなタオルを保持）
-壁のライトスイッチ
-壁のソケット
-シンク
-トイレ
-バスタブ
-バスタブの蛇口
-シャワーカーテン
-シャワーカーテンロッド
-トイレットペーパーホルダー（トイレットペーパーロールを保持）
-バスルームマット
-鏡（フレーム付き）
+Planned Uses: The poolside patio will be used for entertaining guests, lounging by the pool, and dining al fresco. The lounge chairs and umbrellas will be used for sunbathing and relaxing by the pool, while the outdoor sofa and chairs will be used for lounging and socializing. The dining table and chairs will be used for outdoor dining, and the coffee table will be used for drinks and snacks.
 
-計画された使用法 
-このバスルームは、入浴、歯磨き、トイレの使用などの日常的な衛生習慣のために使用されます。また、リラクゼーションの場としても機能し、バスタブは浸かってリラックスするために使用されます。洗面台エリアは、髭剃りや化粧をするなどの身だしなみの活動のために使用されます。バスルームはゲストを収容する必要もあり、清掃とメンテナンスが容易であるべきです。
-
-場所
-バスルームは、アメリカ・シアトルの郊外の家の2階に位置しています。家は静かな近所にあり、モダンと伝統的な家が混在しています。バスルームには窓が1つあり、自然光と換気を提供します。シアトルの気候は温暖で、冬は穏やかで湿気があり、夏は暖かく乾燥しています。これは、バスルームの材料と仕上げを選ぶ際に考慮すべき事項です。
+Location: The poolside patio will be located in a coastal area in the Philippines. The environment will be tropical, with a lot of greenery and a warm climate. The design will take inspiration from the coastal surroundings, with natural textures and colors that blend in with the environment.
 `); //Keeps track of the design brief
 
 // selected_objs_and_parts = [
@@ -111,7 +99,7 @@ export const displayHeight = writable(0); //Keeps track of the height of the dis
 
 export const isDraggingImage = writable(false); //Keeps track of whether an image is currently being dragged and transferred or not
 export const generated_texture_name = writable(""); //Keeps track of the name of the generated texture
-export let in_japanese = writable(true); //Keeps track of whether the language is in Japanese or not
+export let in_japanese = writable(false); //Keeps track of whether the language is in Japanese or not
 export let use_chatgpt = writable(false); //Keeps track of whether the app uses chatgpt or not
 
 /* 
