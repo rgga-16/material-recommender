@@ -302,7 +302,7 @@
                 placeholder={japanese ? "素材を入力してください..." : "Type in a material..."} required/>
                 <div class="column">
                     <span> {japanese ? "テクスチャマップの数：": "No. of texture maps:"}  </span>
-                    <NumberSpinner bind:value={n_textures} min={1} max={20} step=1/>
+                    <NumberSpinner bind:value={n_textures} min={1} max={10} step=1/>
                 </div>
             </div>
 

@@ -504,20 +504,6 @@
       }
       
       gen_module = get(generate_module);
-      // window.addEventListener('mousedown', onMouseDown);
-      // window.addEventListener('mouseup', onMouseUp);
-
-      // window.addEventListener('keydown', function(event) {
-      //   if (event.key === "Enter") { 
-      //       isEnterPressed = true;
-            
-      //   }
-      // });
-      // window.addEventListener('keyup', function(event) {
-      //   if (event.key === "Shift") {
-      //       isEnterPressed = false;
-      //   }
-      // });
     });
 
     function applyFinishSuggestion(finish_name, finish_settings) {
@@ -527,15 +513,14 @@
       metalness = [finish_settings["metallic"]];
 
       // Update it in the 3D model.
-      updateOpacity([finish_settings["opacity"]])
-      updateRoughness([finish_settings["roughness"]])
-      updateMetalness([finish_settings["metallic"]])
+      updateOpacity([finish_settings["opacity"]]);
+      updateRoughness([finish_settings["roughness"]]);
+      updateMetalness([finish_settings["metallic"]]);
 
-      changeProperty("opacity", opacity[0],1.0)
-      changeProperty("roughness", roughness[0], 0.5)
-      changeProperty("metalness", metalness[0], 0.0)
-      changeProperty("mat_finish", finish_name, "none")
-
+      changeProperty("opacity", opacity[0],1.0);
+      changeProperty("roughness", roughness[0], 0.5);
+      changeProperty("metalness", metalness[0], 0.0);
+      changeProperty("mat_finish", finish_name, "none");
     }
 
     function generate(material_name) {
@@ -546,7 +531,7 @@
     let none = "none";
 </script>
 
-<div class="card container">
+<div class="card container" >
   <div class="control"> 
     {#if part_parent_name===part_name} 
     <b>{part_name}</b> 
@@ -593,11 +578,24 @@
         {/if}
   </div>
 
-  <div class="w3-bar w3-grey tabs">
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-finish'} on:click={()=>switchTab('adjust-finish')} id="adjust-finish-btn"> {japanese ? "素材の仕上げ" : "Material Finish"} </button>
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-texture-map'} on:click={()=>switchTab('adjust-texture-map')} id="adjust-texture-btn"> {japanese ? "テクスチャマップ": "Texture Map"}</button>
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-color'} on:click={()=>switchTab('adjust-color')} id="adjust-color-btn"> {japanese ? "カラー仕上げ" : "Color Finish"}</button>
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='attached-parts'} on:click={()=>switchTab('attached-parts')} id="attached-parts-btn"> {japanese ? "付属部品" : "Attached Parts"}</button>
+  <div class="w3-bar w3-grey tabs" style="width:100%;">
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-finish'} on:click={()=>switchTab('adjust-finish')} id="adjust-finish-btn"> 
+      {japanese ? "素材の仕上げ" : "Material Finish"} 
+    </button>
+
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-texture-map'} on:click={()=>switchTab('adjust-texture-map')} id="adjust-texture-btn"> 
+      {japanese ? "テクスチャマップ": "Texture Map"}
+    </button>
+
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-color'} on:click={()=>switchTab('adjust-color')} id="adjust-color-btn"> 
+      <img src="./logos/palette-library-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="Adjust Color">
+      {japanese ? "カラー仕上げ" : "Color Finish"}
+    </button>
+
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='attached-parts'} on:click={()=>switchTab('attached-parts')} id="attached-parts-btn"> 
+      {japanese ? "付属部品" : "Attached Parts"}
+    </button>
+
     {#if get(use_chatgpt)}
       <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='view-feedback'} on:click={()=>switchTab('view-feedback')} id="view-feedback-btn"> {japanese ? "フィードバックを見る" : "View Feedback"} </button>
     {/if}
@@ -606,6 +604,7 @@
   <div class="card container tab-content" class:active={activeTab==='adjust-finish'}>
     <h5><b> {japanese ? "素材仕上げの調整" : "Adjust Material Finish"}</b></h5> 
     <div class="control">
+      <img src="./logos/opacity-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="opacity">
       <span> {japanese ? "透明度：" : "Opacity:"}   </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("opacity", opacity[0], 1.0)}}> 
         <RangeSlider 
@@ -616,6 +615,7 @@
       </div>
     </div>
     <div class="control">
+      <img src="./logos/shine-2-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="roughness">
       <span> {japanese ? "光沢：" : "Roughness:"} </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("roughness", roughness[0], 0.5)}}> 
         <RangeSlider 
@@ -626,12 +626,14 @@
       </div>
     </div>
     <div class="control">
+      <img src="./logos/metalness.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="metalness">
       <span> {japanese ? "金属度：": "Metalness:"} </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("metalness", metalness[0], 0.0)}}> 
         <RangeSlider on:change={() => updateMetalness(metalness[0])} bind:values={metalness} min={0} max={1} step={0.1} float={true} pips/> 
       </div>
     </div>
     <div class="control">
+      <img src="./logos/palette-library-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="normal scale">
       <span> {japanese ? "法線マップの強度:" : "Normal Scale:"} </span>
       <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("normalScale", normalScale[0], 0.0)}}> 
         <RangeSlider on:change={() => updateNormalScale(normalScale[0])} bind:values={normalScale} min={0} max={10} step={0.1} float={true}/> 
@@ -650,7 +652,10 @@
     <div class="control">
 
       <div class="card container" style="height: auto;">
-        <h6> <b> {japanese ? "平行移動": "Translation"} </b></h6>
+        <div class="control"> 
+          <img src="./logos/move-alt-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="translate">
+          <h6> <b> {japanese ? "平行移動": "Translation"} </b></h6>
+        </div>  
         <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("offsetX", translationX, 0.0)}}>
           <span>X:</span>
           <NumberSpinner on:change={() => updateTextureMapOffset("x",translationX)} bind:value={translationX} min=0.0 max=20 step=0.01 decimals=1 precision=0.01/>
@@ -662,7 +667,10 @@
       </div>
 
       <div class="card container" style="height: auto;">
-        <h6> <b> {japanese ? "回転": "Rotation"} </b></h6>
+        <div class="control"> 
+          <img src="./logos/rotate-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="rotate">
+          <h6> <b> {japanese ? "回転": "Rotation"} </b></h6>
+        </div>
         <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("rotation",rotation,0)}}>
           <span>Z: </span>
           <NumberSpinner on:change={() =>  updateTextureMapOrientation(rotation)} bind:value={rotation} min=0 max=360 step=0.1 decimals=1 precision=0.1/>°
@@ -670,17 +678,10 @@
       </div>
 
       <div class="card container" style="height: auto;">
-        <h6> <b> {japanese ? "スケール": "Scale"}  </b></h6>
-
-        <!-- 
-          <div style="width:100%; align-items:inherit; justify-content:inherit;"> 
-            <RangeSlider 
-            on:change={() => {isMouseDown ? set_properties_being_changed(["opacity"],[opacity[0]],[1.0]) : () => {}; updateOpacity(opacity[0]); }} 
-            bind:values={opacity} min={0} max={1} step={0.1} float={true} pips /> 
-          </div>
-        -->
-
-
+        <div class="control"> 
+          <img src="./logos/scale-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="scale">
+          <h6> <b> {japanese ? "スケール": "Scale"}  </b></h6>
+        </div>
         <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scaleX,1); changeProperty("scaleY",scaleY,1)}}>
           <span>X & Y: </span>
           <!-- Maybe it should set multiple properties in this case. -->
