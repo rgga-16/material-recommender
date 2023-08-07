@@ -149,7 +149,11 @@ def translate(text,target_lang, source_lang,role="user"):
         Make sure you use polite and formal language, and make sure the terms you will use is relevant to the context presented in the text.
     '''
     # prompt=text
-    prompt = f"Translate the following from {source_lang} to {target_lang}: {text}"
+    prompt = f'''
+        Translate the following text below from {source_lang} to {target_lang}. If it is already in {target_lang}, then do not translate it and keep the original text. Do not say anything else apart from the translated text.
+
+        {text}
+    '''
     history = [{"role":"system", "content":system_prompt}]
     history.append({"role":role, "content":prompt})
     
