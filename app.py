@@ -742,7 +742,7 @@ if __name__ == "__main__":
         "regular_bathroom"
     ]
 
-    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[1]) #Dir where the 3D scene (information, models, textures, renderings) is stored
+    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[4]) #Dir where the 3D scene (information, models, textures, renderings) is stored
     RENDER_DIR = os.path.join(DATA_DIR,"renderings")
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 
