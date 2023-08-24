@@ -771,7 +771,7 @@ if __name__ == "__main__":
     
     print(f"Latest rendering ID: {LATEST_RENDER_ID}")
 
-    app.run(debug=True,port=2099)
+    app.run(debug=False,port=2099)
 
 
 
