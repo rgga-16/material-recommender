@@ -33,6 +33,8 @@
     .image-grid {
         width:100%;
         margin:0 auto;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .image{
