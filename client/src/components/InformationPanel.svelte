@@ -58,62 +58,62 @@
         textureparts_div.innerHTML='';
     }
 
-    // export function displayTexturePart() {
-    //     let textureparts=[];
-    //     const textureparts_div = document.getElementById("texture-part-details");
-    //     textureparts_div.innerHTML='';
-    //     // console.log(current_texture_parts);
-    //     for(let i=0; i < sel_objs_and_parts.length; i++) {
-    //         let selected_part_parent = sel_objs_and_parts[i].parent; 
-    //         let selected_part = sel_objs_and_parts[i].name;
+    export function displayTexturePart() {
+        let textureparts=[];
+        const textureparts_div = document.getElementById("texture-part-details");
+        textureparts_div.innerHTML='';
+
+        // // Add a multiple object control panel first if there are more than 1 object selected.
+        // if(textureparts.length > 1) {
+        //     let textureparts_panel = new TextureParts({
+        //         target: textureparts_div,
+        //         props: {
+        //             texturepart_panels: textureparts
+        //         }
+        //     });
+        //     textureparts.unshift(textureparts_panel);
+        //     textureparts=textureparts;
+        // }
+
+        // For each object selected, add its control panel.
+        for(let i=0; i < sel_objs_and_parts.length; i++) {
+            let selected_part_parent = sel_objs_and_parts[i].parent; 
+            let selected_part = sel_objs_and_parts[i].name;
             
-    //         let mat_name = current_texture_parts[selected_part_parent][selected_part]["mat_name"];
-    //         let material_url = current_texture_parts[selected_part_parent][selected_part]["mat_image_texture"];
-    //         let material_finish = current_texture_parts[selected_part_parent][selected_part]["mat_finish"];
-    //         let parents = current_texture_parts[selected_part_parent][selected_part]["parents"];
+            // let mat_name = current_texture_parts[selected_part_parent][selected_part]["mat_name"];
+            // let material_url = current_texture_parts[selected_part_parent][selected_part]["mat_image_texture"];
+            // let material_finish = current_texture_parts[selected_part_parent][selected_part]["mat_finish"];
+            let parents = current_texture_parts[selected_part_parent][selected_part]["parents"];
 
-    //         let material_color = null;
-    //         if(current_texture_parts.hasOwnProperty('color')) {
-    //             material_color = current_texture_parts[selected_part_parent][selected_part]["color"];
-    //         }
-    //         let texturepart = new TexturePart({
-    //             target: textureparts_div,
-    //             props: {
-    //                 index:i,
-    //                 part_parent_name: selected_part_parent,
-    //                 part_name: selected_part,
-    //                 material_url: material_url,
-    //                 material_finish: material_finish,
-    //                 material_color: material_color,
-    //                 parents:parents
-    //             }
-    //         });
-    //         textureparts.push(texturepart);
-    //         textureparts=textureparts;
-    //     }
+            // let material_color = null;
+            // if(current_texture_parts.hasOwnProperty('color')) {
+            //     material_color = current_texture_parts[selected_part_parent][selected_part]["color"];
+            // }
+            let texturepart = new TexturePart({
+                target: textureparts_div,
+                props: {
+                    index:i,
+                    part_parent_name: selected_part_parent,
+                    part_name: selected_part,
+                    // material_url: material_url,
+                    // material_finish: material_finish,
+                    // material_color: material_color,
+                    // parents:parents
+                }
+            });
+            textureparts.push(texturepart);
+            // textureparts=textureparts;
+        }
 
-    //     if(textureparts.length > 1) {
-    //         let textureparts_panel = new TextureParts({
-    //             target: textureparts_div,
-    //             props: {
-    //                 texturepart_panels: textureparts
-    //             }
-    //         });
-    //         textureparts.unshift(textureparts_panel);
-    //         textureparts=textureparts;
-    //     }
+        
 
-    // }
+    }
 
     
     curr_texture_parts.subscribe(value => {
 		current_texture_parts = value;
 	});
 
-
-    onMount(async () => {
-
-    });
 
 </script>
 
@@ -125,7 +125,8 @@
     <div class="tab-content" class:active={activeTab==='details'} id="details">
         <h3> {japanese ? "オブジェクト詳細" : "Object Details" }  </h3>
         {#if sel_objs_and_parts.length > 0}
-            <div id="texture-part-details" style="width:100%;"> 
+            <div id="texture-part-details" style="width:100%;"> </div>
+            <!-- <div id="texture-part-details" style="width:100%;"> 
                 {#if sel_objs_and_parts.length > 1}
                     <TextureParts />
                 {/if}
@@ -137,7 +138,7 @@
                         parents={current_texture_parts[sel_obj_part.parent][sel_obj_part.name]['parents']}
                     /> 
                 {/each}
-            </div>
+            </div> -->
         {:else }
             <div class="images-placeholder">
                 {japanese ? "オブジェクトが選択されていません。3Dビューでオブジェクトを選択してください。": "No object selected. Please select an object in the 3D View."} 

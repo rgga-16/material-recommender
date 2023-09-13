@@ -308,7 +308,7 @@
                             SELECTEDS=SELECTEDS;    
                             SELECTED_INFOS=SELECTED_INFOS;
                             selected_objs_and_parts.set(SELECTED_INFOS);
-                            // //information_panel.clearTexturePart();
+                            //information_panel.clearTexturePart();
                         } else if(altPressed) { 
                             //If alt is held, this will select all of the objects that are the same as the clicked object.
                             //for example, clicking on a "backrest" will select all other objects that have "backrest" in the name.
@@ -364,9 +364,6 @@
                                 }
                             }
                             selected_objs_and_parts.set(SELECTED_INFOS);
-
-
-
                         } else { //If shift is not held, want to select only one object
                             SELECTEDS = [];
                             SELECTED_INFOS = [];
@@ -380,8 +377,12 @@
                             SELECTEDS=SELECTEDS;    
                             SELECTED_INFOS=SELECTED_INFOS;
                             selected_objs_and_parts.set(SELECTED_INFOS);
+                            information_panel.displayTexturePart();
                             //information_panel.clearTexturePart();
                         }
+
+                        // information_panel.clearTexturePart();
+                        information_panel.displayTexturePart();
                     } else {
                         if (SELECTEDS.length > 0) {
                             for (let i = 0; i < SELECTEDS.length; i++) {
@@ -394,7 +395,6 @@
                         }
                     }
                 } else {//If clicked object has already been selected, deselect it. 
-
                     if(altPressed) {
                     //If alt is held, this will select all of the objects that are the same as the clicked object.
                     //for example, clicking on a "backrest" will select all other objects that have "backrest" in the name.
@@ -404,9 +404,6 @@
                         
                         let clicked_object_parent = clicked_object.model_parent;
                         clicked_object_parent = clicked_object_parent.replace(/\d+/g, '');
-                        console.log(clicked_object_parent);
-
-                        console.log("seat cushion".includes(clicked_object_name));
 
                         for (let i = 0; i < model3d_infos.length; i++) {
                             let object_name = model3d_infos[i].name;
@@ -471,7 +468,7 @@
             }
             // console.log("Nothing's been selected."
         }
-        // //information_panel.clearTexturePart();
+        information_panel.clearTexturePart();
         removeHighlightsFromUnselecteds();
     }
 
