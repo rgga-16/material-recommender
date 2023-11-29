@@ -353,10 +353,8 @@ def generate_similar_textures():
         texture_filename = f"{texture_str}_similar_{i+1}.png"
         texture_filename = texture_filename.replace(" ","_")
         savepath = os.path.join(SERVER_IMDIR,texture_filename)
-
-        normal_path, height_path = generate_normal_and_heightmap(savepath)
-
         similar_textures[i].save(savepath)
+        normal_path, height_path = generate_normal_and_heightmap(savepath)
         texture_loadpaths.append({
             'rendering': None,
             'texture': savepath
@@ -742,7 +740,7 @@ if __name__ == "__main__":
         "regular_bathroom"
     ]
 
-    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[4]) #Dir where the 3D scene (information, models, textures, renderings) is stored
+    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[3]) #Dir where the 3D scene (information, models, textures, renderings) is stored
     RENDER_DIR = os.path.join(DATA_DIR,"renderings")
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 
