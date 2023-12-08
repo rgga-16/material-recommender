@@ -353,7 +353,7 @@
 		<!-- Left Section -->
 		<div class="actions-panel" class:collapsed={actions_panel_collapsed} style="width: {curr_actions_panel_width}%;">
 			
-			<button class="collapse-button"on:click={() => collapse_actions_panel()} 
+			<!-- <button class="collapse-button"on:click={() => collapse_actions_panel()} 
 				style={actions_panel_collapsed ? "top: 90%; right: -185%; transform:rotate(270deg);" : "top: 50%; right: -10%; transform:rotate(270deg);"}
 			>
 				{#if actions_panel_collapsed}
@@ -363,7 +363,7 @@
 					{japanese ? "折りたたむ": "Collapse"} 
 					<img src="./logos/dropup-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 				{/if}
-			</button>
+			</button> -->
 			<ActionsPanel onCallUpdateCurrentRendering={updateCurrentRendering}/> 
 		</div>
 
@@ -465,7 +465,7 @@
 
 			<!-- Display of saved renderings -->
 			<div class="saved-renderings" style="height: {curr_saved_renderings_height}%;">
-				<button class="collapse-button"on:click={() => collapse_saved_renderings()} style="top: 0%; right: 50%;">
+				<!-- <button class="collapse-button"on:click={() => collapse_saved_renderings()} style="top: 0%; right: 50%;">
 					{#if saved_renderings_collapsed}
 						{japanese ? "展開する" : "Expand"}
 						<img src="./logos/dropup-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
@@ -473,7 +473,7 @@
 						{japanese ? "折りたたむ": "Collapse"}
 						<img src="./logos/dropdown-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 					{/if}
-				</button>
+				</button> -->
 				{#await saved_renderings_promise}
 					<pre> Loading saved renderings. Please wait. </pre>
 				{:then data} 
@@ -515,7 +515,7 @@
 
 		<div class="information-panel" style="width: {curr_information_panel_width}%;">
 			
-			<button class="collapse-button"on:click={() => collapse_information_panel()} 
+			<!-- <button class="collapse-button"on:click={() => collapse_information_panel()} 
 				style={information_panel_collapsed ? "top: 50%; left: -7%; transform:rotate(270deg);" : "top: 50%; left: -7%; transform:rotate(270deg);" }
 			>
 				{#if information_panel_collapsed}
@@ -525,7 +525,7 @@
 					{japanese ? "折りたたむ": "Collapse"}
 					<img src="./logos/dropdown-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 				{/if}
-			</button>
+			</button> -->
 			{#await promise}
 				<pre> Loading rendering information. Please wait. </pre>
 			{:then data} 
