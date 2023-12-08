@@ -45,9 +45,13 @@ message_history = []
 temperature=1.0
 # model_name = "gpt-3.5-turbo"
 # max_tokens = 4097
-model_name = "gpt-3.5-turbo-16k"
+# model_name = "gpt-3.5-turbo-16k"
+
 # model_name= "gpt-4"
-max_tokens=16383
+# max_tokens=16383
+
+model_name = "gpt-4-1106-preview"
+max_tokens=100000
 # max_tokens = 8096
 encoding = tiktoken.get_encoding("cl100k_base")
 # encoding = tiktoken.encoding_for_model(model_name)
@@ -92,9 +96,13 @@ def check_and_trim_message_history():
     global max_tokens
     global model_name 
 
-    if num_tokens_from_messages(message_history, model=model_name) > max_tokens:
+    model_name_ = model_name
+    if(model_name=="gpt-4-1106-preview"):
+        model_name_="gpt-4"
+
+    if num_tokens_from_messages(message_history, model=model_name_) > max_tokens:
         print("Current number of tokens in message history exceeds the maximum number of tokens allowed. Trimming message history.")
-        while num_tokens_from_messages(message_history, model=model_name) > max_tokens - offset:
+        while num_tokens_from_messages(message_history, model=model_name_) > max_tokens - offset:
             del message_history[1] # Delete the 2nd message in the history. The first message is always the system prompt, which should not be deleted.
             
 
@@ -504,6 +512,7 @@ def provide_material_feedback2(material_name, object_name, part_name, use_intern
             internet_search_query = f'{aspect} of a {object_name} {part_name} made out of {material_name}'
             _, results = internet_search(internet_search_query,role="user",n_results=5)
             materials_internet_sources += f"**{aspect}**:"
+
             for r in results:
                 materials_internet_sources += f'''\n
                 NUMBER:{src_idx}
@@ -564,7 +573,7 @@ def provide_material_feedback2(material_name, object_name, part_name, use_intern
     '''
 
     material_feedback_prompt = material_feedback_prompt_head + materials_parts + material_feedback_task + materials_internet_sources + design_brief_context + material_feedback_format
-
+    print(material_feedback_prompt)
     global init_history
     init_history_clone = copy.deepcopy(init_history)
     init_history_clone.append({"role":"user", "content":material_feedback_prompt})
