@@ -408,7 +408,7 @@
         </div>
 
         <div class="row">
-            <div class="w3-bar w3-grey tabs column" style="width:50px;height:500px;" >
+            <!-- <div class="w3-bar w3-grey tabs column" style="width:50px;height:500px;" >
                 <button class="w3-bar-item w3-button tab-btn" class:active={activeTab==='generated'} on:click={() => switchTab('generated')} id="generated-tabs">
                     Generated
                 </button>
@@ -418,7 +418,7 @@
                 <button class="w3-bar-item w3-button tab-btn" class:active={activeTab==='saved'} on:click={() => switchTab('saved')} id="generated-tabs">
                     Saved
                 </button>
-            </div>
+            </div> -->
 
             <div class="column">
                 {#if generated_textures.length > 0}
