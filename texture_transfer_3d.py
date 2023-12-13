@@ -56,19 +56,19 @@ class DALLE2():
         images = []
 
         for _ in range(n):
-            try: 
-                response = openai.Image.create(
-                    prompt=texture_str,
-                    n=1,
-                    size=f"{256}x{256}",
-                    response_format="b64_json"
-                )
-                image_b64 = response['data'][0]['b64_json']
-            except openai.error.OpenAIError as e:
-                print(e.http_status)
-                print(e.error)
-                blank_img = Image.new('RGB',(256,256),color='black')
-                image_b64 = image.im_2_b64(blank_img)  
+            # try: 
+            response = openai.Image.create(
+                prompt=texture_str,
+                n=1,
+                size=f"{256}x{256}",
+                response_format="b64_json"
+            )
+            image_b64 = response['data'][0]['b64_json']
+            # except openai.error.OpenAIError as e:
+            #     print(e.http_status)
+            #     print(e.error)
+            #     blank_img = Image.new('RGB',(256,256),color='black')
+            #     image_b64 = image.im_2_b64(blank_img)  
             im = image.b64_2_img(image_b64).convert('RGB')
             images.append(im)
             images_b64.append(image_b64)
