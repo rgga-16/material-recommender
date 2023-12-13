@@ -1,7 +1,9 @@
 
 import ast,os
-import openai
-openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+ #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
 
 system_prompt = '''
     I want you to act as an interior and furniture design expert with expert knowledge of materials. Your role is to:
@@ -17,11 +19,9 @@ def query(prompt,role="user"):
     global message_history
     message_history.append({"role":role, "content":prompt})
 
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=message_history,
-        temperature=0.1
-    )
+    response = client.chat.completions.create(model="gpt-3.5-turbo",
+    messages=message_history,
+    temperature=0.1)
 
     response_msg = response["choices"][0]["message"]["content"]
     message_history.append({"role":response["choices"][0]["message"]["role"], "content":response_msg})

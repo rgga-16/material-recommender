@@ -1,7 +1,7 @@
 import openai, os, base64, requests 
 from openai import OpenAI
 import json
-openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
+ #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
 
 
 # Function to encode the image
