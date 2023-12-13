@@ -4,7 +4,10 @@ torch.cuda.empty_cache()
 from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 import time, os
 import openai
-openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+ #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
 from utils import image
 from PIL import Image 
 
@@ -26,15 +29,13 @@ def text2texture_similar(texture_str, img_path,n=4, gen_imsize=256):
     images = []
     for _ in range(n):
         try: 
-            response = openai.Image.create_variation(
-                image=open(img_path, 'rb'), #BUG: TypeError: Object of type BufferedReader is not JSON serializable
-                n=1,
-                # size=f"{gen_imsize}x{gen_imsize}",
-                size=f"{256}x{256}",
-                response_format="b64_json"
-            )
+            response = client.images.generate(image=open(img_path, 'rb'), #BUG: TypeError: Object of type BufferedReader is not JSON serializable
+            n=1,
+            # size=f"{gen_imsize}x{gen_imsize}",
+            size=f"{256}x{256}",
+            response_format="b64_json")
             image_b64 = response['data'][0]['b64_json']
-        except openai.error.OpenAIError as e:
+        except openai.OpenAIError as e:
             print(e.http_status)
             print(e.error)
             blank_img = Image.new('RGB',(256,256),color='black')
@@ -57,12 +58,10 @@ class DALLE2():
 
         for _ in range(n):
             # try: 
-            response = openai.Image.create(
-                prompt=texture_str,
-                n=1,
-                size=f"{256}x{256}",
-                response_format="b64_json"
-            )
+            response = client.images.generate(prompt=texture_str,
+            n=1,
+            size=f"{256}x{256}",
+            response_format="b64_json")
             image_b64 = response['data'][0]['b64_json']
             # except openai.error.OpenAIError as e:
             #     print(e.http_status)

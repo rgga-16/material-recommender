@@ -1,6 +1,6 @@
 import openai, os
 import json
-openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
+ #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
 
 
 # Example dummy function hard coded to return the same weather

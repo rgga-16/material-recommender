@@ -23,7 +23,9 @@ from langchain.tools import BraveSearch
 from langchain.agents import initialize_agent
 import gradio as gr
 
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 
 from dotenv import load_dotenv
@@ -31,7 +33,6 @@ load_dotenv()
 
 OPENAI_API_KEY =os.getenv("OPENAI_API_KEY")
 BRAVE_API_KEY = os.getenv("BRAVE_API_KEY")
-openai.api_key=OPENAI_API_KEY
 
 def suggest_color_palettes(input_text):
     input_text+= "Suggest color palettes."
@@ -67,11 +68,9 @@ def suggest_color_palettes(input_text):
     
     messages=[{"role":"user", "content":prompt}]
 
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages,
-        temperature=0.0
-    )
+    response = client.chat.completions.create(model="gpt-3.5-turbo",
+    messages=messages,
+    temperature=0.0)
 
     response_msg = response["choices"][0]["message"]["content"]
     intro_text = response_msg.split("\n")[0].strip()
@@ -85,11 +84,9 @@ def suggest_color_palettes(input_text):
     '''
 
     messages.append({"role":"user", "content":python_dict_prompt})
-    dict_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages,
-        temperature=0.0 
-    )
+    dict_response = client.chat.completions.create(model="gpt-3.5-turbo",
+    messages=messages,
+    temperature=0.0)
     dict_response_msg = dict_response["choices"][0]["message"]["content"]
 
     final_message = f'''
@@ -133,11 +130,9 @@ def suggest_materials(input_text):
 
     messages=[{"role":"user", "content":prompt}]
 
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages,
-        temperature=0.0
-    )
+    response = client.chat.completions.create(model="gpt-3.5-turbo",
+    messages=messages,
+    temperature=0.0)
 
     response_msg = response["choices"][0]["message"]["content"]
     intro_text = response_msg.split("\n")[0].strip()
@@ -149,11 +144,9 @@ def suggest_materials(input_text):
     Do not say anything else apart from the dictionary.
     '''
     messages.append({"role":"user", "content":python_dict_prompt})
-    dict_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages,
-        temperature=0.0 
-    )
+    dict_response = client.chat.completions.create(model="gpt-3.5-turbo",
+    messages=messages,
+    temperature=0.0)
     dict_response_msg = dict_response["choices"][0]["message"]["content"]
 
     final_message = f'''

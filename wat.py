@@ -1,7 +1,7 @@
 
 import os, copy
 import openai, tiktoken
-openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
+ #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
 import re , ast, json
 import yake 
 from datetime import datetime
