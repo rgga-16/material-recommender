@@ -54,6 +54,8 @@ def main():
     json_response = response.json()
     content = json_response['choices'][0]['message']['content']
 
+    # Prompt generated: oak wood, fine grain, natural finish, furniture-grade, contemporary design, texture map, seamless, 4k
+
 
     return 
 
