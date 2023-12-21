@@ -34,7 +34,7 @@ def text2texture_similar(texture_str, img_path,n=4, gen_imsize=256):
             # size=f"{gen_imsize}x{gen_imsize}",
             size=f"{256}x{256}",
             response_format="b64_json")
-            image_b64 = response['data'][0]['b64_json']
+            image_b64 = response.data[0].b64_json
         except openai.OpenAIError as e:
             print(e.http_status)
             print(e.error)
@@ -62,7 +62,7 @@ class DALLE2():
             n=1,
             size=f"{256}x{256}",
             response_format="b64_json")
-            image_b64 = response['data'][0]['b64_json'] #BUG: TypeError: 'ImagesResponse' object is not subscriptable
+            image_b64 = response.data[0].b64_json #BUG: TypeError: 'ImagesResponse' object is not subscriptable
             # except openai.error.OpenAIError as e:
             #     print(e.http_status)
             #     print(e.error)
