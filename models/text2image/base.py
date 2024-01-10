@@ -1,4 +1,0 @@
-
-
-class Text2ImageModel():
-    
