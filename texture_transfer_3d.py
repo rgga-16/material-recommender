@@ -58,10 +58,15 @@ class DALLE2():
 
         for _ in range(n):
             # try: 
-            response = client.images.generate(prompt=texture_str,
-            n=1,
-            size=f"{256}x{256}",
-            response_format="b64_json")
+            response = client.images.generate(
+                model="dall-e-3",
+                style='natural',
+                prompt=texture_str,
+                n=1,
+                size=f"{1024}x{1024}",
+                quality="standard",
+                response_format="b64_json"
+            )
             image_b64 = response.data[0].b64_json #BUG: TypeError: 'ImagesResponse' object is not subscriptable
             # except openai.error.OpenAIError as e:
             #     print(e.http_status)

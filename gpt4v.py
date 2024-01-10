@@ -3,6 +3,7 @@ from openai import OpenAI
 import json
  #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
 
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Function to encode the image
 def encode_image(image_path):
