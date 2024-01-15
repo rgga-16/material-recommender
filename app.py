@@ -215,7 +215,8 @@ def feedback_materials():
                 texture_prompt = f"{name}, texture map, seamless, 4k"
                 image, filenames = generate_textures(texture_prompt,n=1, imsize=256,generator=texture_generator); 
                 image=image[0]; filename=filenames[0]
-                filename = filename.replace(" ","_"); filenames[0] = filename
+                filename = filename.replace(" ","_"); filename = filename.replace("/","_")
+                filenames[0] = filename
                 savepath = os.path.join(SERVER_IMDIR,"feedbacked",filename)
                 image.save(savepath)
                 normal_path, height_path = generate_normal_and_heightmap(savepath)
@@ -268,7 +269,8 @@ def suggest_materials():
         texture_prompt = f"{sm}, texture map, seamless, 4k"
         images, filenames = generate_textures(texture_prompt,n=1, imsize=256); 
         image=images[0]; filename=filenames[0]
-        filename = filename.replace(" ","_"); filenames[0] = filename
+        filename = filename.replace(" ","_"); filename = filename.replace("/","_")
+        filenames[0] = filename
         savepath = os.path.join(SERVER_IMDIR,"suggested",filename)
         image.save(savepath)
 
@@ -742,7 +744,7 @@ if __name__ == "__main__":
         "regular_bathroom"
     ]
 
-    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[4]) #Dir where the 3D scene (information, models, textures, renderings) is stored
+    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[3]) #Dir where the 3D scene (information, models, textures, renderings) is stored
     RENDER_DIR = os.path.join(DATA_DIR,"renderings")
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 

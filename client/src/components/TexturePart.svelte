@@ -84,6 +84,15 @@
     selected_objs_and_parts.subscribe(value => {
       sel_objs_and_parts = value;
     });
+
+    let feedback =undefined;
+    let formatted_feedback = undefined;
+    let japanese_formatted_feedback = undefined;
+
+
+    let intro_text=undefined;
+    let references=undefined; 
+    let activeAspect;
     
     let material_name = current_texture_parts[part_parent_name][part_name]['mat_name'] ? current_texture_parts[part_parent_name][part_name]['mat_name'] : "None";
     let material_url = current_texture_parts[part_parent_name][part_name]['mat_image_texture'] ? current_texture_parts[part_parent_name][part_name]['mat_image_texture'] : "None";
@@ -100,6 +109,13 @@
     let scaleX = current_texture_parts[part_parent_name][part_name]['scaleX'] ? current_texture_parts[part_parent_name][part_name]['scaleX'] : 1;
     let scaleY = current_texture_parts[part_parent_name][part_name]['scaleY'] ? current_texture_parts[part_parent_name][part_name]['scaleY'] : 1;
     let scale = scaleX === scaleY ? scaleX : 1;
+
+    if(current_texture_parts[part_parent_name][part_name]['feedback']) {
+      formatted_feedback = current_texture_parts[part_parent_name][part_name]['feedback']['formatted_feedback'];
+      intro_text = current_texture_parts[part_parent_name][part_name]['feedback']['intro_text'];
+      references = current_texture_parts[part_parent_name][part_name]['feedback']['references'];
+      activeAspect= Object.keys(formatted_feedback)[0];
+    }
     
     let material;
     let displacementScale=[0];
@@ -382,14 +398,7 @@
       }
     }
 
-    let feedback =undefined;
-    let formatted_feedback = undefined;
-    let japanese_formatted_feedback = undefined;
-
-
-    let intro_text=undefined;
-    let references=undefined; 
-    let activeAspect;
+    
     async function requestMaterialFeedback() {
       const start = performance.now();
       feedback=undefined;
@@ -430,9 +439,6 @@
       references = await data['references'];
 
       activeAspect= await Object.keys(formatted_feedback)[0];
-
-      
-
       feedback = unformatted_feedback;
 
       current_texture_parts[part_parent_name][part_name]['feedback'] = {};
@@ -790,7 +796,7 @@
   {#if get(use_chatgpt)}
     <div class="card container tab-content" class:active={activeTab==='view-feedback'} style="flex-wrap:wrap;">
       <h5> <b> {japanese ?  "フィードバック" : "Feedback"}</b></h5>
-        {#if formatted_feedback && japanese_formatted_feedback}
+        {#if formatted_feedback || japanese_formatted_feedback}
           <SvelteMarkdown source={intro_text} />
           <div class="w3-bar w3-grey tabs">
             {#each Object.keys(formatted_feedback) as aspect}
