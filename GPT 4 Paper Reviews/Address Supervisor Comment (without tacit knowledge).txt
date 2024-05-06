@@ -1,0 +1,445 @@
+System Prompt:
+Act as a distinguished researcher in Human Computer Interaction specializing in developing novel and innovative intelligent systems. You have many award-winning papers submitted to top-tier conferences and high-impact journals.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ME:
+The following content below is a paper I wrote and plan to submit to a conference.
+=================================
+Title
+PractiMat: A Co-Creative System for Practical Material Texturing in Interior
+Design using Generative AI
+
+Abstract
+Material selection is an essential task in interior design. However, it can also be challenging as designers consider many factors when choosing materials, such as their aesthetics, maintenance, cost, and sourcing. To approach this problem, we propose PractiMat, a generative AI co-creative system that uses DALLE-2 and ChatGPT to assist designers in choosing suitable materials when texturing
+3D scenes by generating, suggesting, and providing feedback on materials. We evaluate the usability of PractiMat through two user studies: (1) a within-subjects user study that evaluates the system with and without the suggestion and feedback functionalities, and
+(2) a user study with design professionals and students. The first study’s findings show that participants found PractiMat easier to use and could explore more material options better with the suggestion chatbot and feedback module included. In the second study, the designers found PractiMat to help explore materials and suggest context-aware options. However, it was challenging due to difficulty inputting text, visual imprecision issues when suggesting texture maps, and perceived limitations and trust issues with the feedback module. Based on our findings, we then discuss possible areas for further study when using generative AI to make context-aware suggestions and provide feedback on interior design materials.
+
+1. Introduction
+The interior design process can be tedious and repetitive. One task that affects this process is material selection, which involves choosing surface materials, colors, and finishes for the interior space. Material selection is an essential yet challenging task in the interior design process as it requires considering multiple factors like aesthetics, durability, and sustainability, among others. Designers may also need to explore alternative materials if their preferred choice is unavailable due to sourcing and cost constraints, which can take time. Moreover, if not resolved during the early stages
+of the design process, choosing unsuitable materials can be consequential, leading to actions such as making frequent repairs or even taking down the entire space, which ultimately increases costs [34]. In the early stages of the design process, where a 3D model of the interior space is being created, designers can use texture maps to represent materials in the design visually. When searching and selecting texture maps, they typically rely on material libraries in their 3D software; however, material libraries can have limited options and may require downloading more maps if designers want to expand their libraries. To explore more alternatives, designers may search the internet for texture maps or even create their own. However, not all websites offer freely available texture maps; creating them, on the other hand, can be time-consuming. Thus, exploring texture map alternatives outside material libraries in 3D software can be arduous and lengthy.
+
+Meanwhile, generative artificial intelligence has been rapidly evolving over the past several years, with generative models being able to quickly synthesize human-like textual responses [6, 33], 3D shapes [19, 43], and images [36, 37, 39] including texture maps [7] by simply typing in text prompts. More specifically, with textures, other generative models can texturize 3D models using input images [16, 35, 46] or text [8, 10, 18, 31, 38]. Overall, prior works on generative AI models can quickly create texture maps and texture 3D shapes and scenes, enabling users to easily explore the possibilities of materials. However, to our knowledge, this study aims to address a gap in texture transfer by ensuring that the materials are also practical to use in the 3D scene for later stages in the design process. This is based on various factors in material selection, like durability, sourcing, and cost. In the design domain, other studies have developed co-creative tools that leverage generative AI to assist designers in various tasks in the design process, such as ideation[14, 49], 3D modeling [27, 53], and layout optimization [20, 44]. Specifically, support tools like 3DALL-E [27] and Jigsaw [25] use multiple generative AI models together to generate image references to create 3D models on top of and generate outputs across multiple modalities such as text, images, and 3D shapes, respectively. In line with these tools, this study investigates the potential of using multiple generative AI models to help designers create texture maps and select material textures practical for their interior designs, which has not yet been fully explored to the best of our knowledge.
+
+In this paper, we seek to approach material and texture map selection in interior design by integrating generative AI models into a co-creative system that creates texture maps, suggests materials, and provides feedback on currently used materials for a given 3D scene. With this in mind, this research aims to answer the following main research question:
+
+• Main RQ: Can we use generative AI to assist interior designers in exploring and selecting materials that are practical for their designs?
+
+We first conducted a formative interview study with ten designers to better understand in what aspects designers select materials for their projects, texture maps for their 3D scenes, and their challenges in selecting them. We found that designers choose materials based on practical aspects such as durability, sourcing, and budget, as well as subjective aspects, including aesthetics, current trends, and customer preferences. Moreover, designers choose texture maps based on texture characteristics like wood graining, patterns, and design styles and trends. Lastly, we identified four key challenges in selecting materials and texture maps:
+
+(1) Designers tend to prioritize aesthetics over practicality when selecting materials.
+(2) Designers are not fully aware of possible alternate materials and have access to limited texture map options.
+(3) Clients may not have clear preferences for materials and colors, resulting in designers needing to explore and present more options.
+(4) Designers struggle with realizing their designs due to sourcing issues with their selected materials.
+
+Based on our findings from the formative study, we developed PractiMat, a generative AI co-creative system prototype that uses prompt engineering to assist designers in creating material texture maps and selecting suitable materials for a given 3D scene by generating texture maps, suggesting materials, and giving material-based feedback on objects. Specifically, PractiMat uses DALLE-2 [36], a text-to-image generative model, and ChatGPT [33], a large language model fine-tuned on conversational dialogue to create human-like text. With the two generative models, the system is comprised of three main modules: (1) the Material Generator, a module built on DALL-E 2, that is used to generate texture maps by inputting material names and keywords, (2) the Suggestion Chatbot, a conversational chatbot that uses DALLE-2 and ChatGPT to suggest material textures and color palettes based on user queries, and (3) the Feedback Module, a module built on DALL-E 2 and ChatGPT that offers textual feedback and alternatives based on practical aspects like durability, sourcing, and sustainability. PractiMat also includes features such as a renderer and settings to adjust the materials’ scale, rotation, roughness, and opacity.
+
+We assessed the PractiMat’s effectiveness in material selection through two user studies. In the first study, we invited 15 students with no prior experience in design to test the system with and without the suggestion chatbot and feedback module. In the second user study, we invited 12 design professionals and students to test the system’s entire functionality. After the second study, we conducted an expert validation with two design professionals. They rated the suitability of the suggestions made by the system on aspects such as durability, sourcing, and cost using the Likert scale. In both experiments, participants are tasked to select materials for an assigned 3D scene based on its provided design brief. We measured the participant’s task load with the NASA Task Load Index (NASA-TLX)[13], the system’s creativity support with the Creativity Support Index (CSI) [11], and system usability with the System Usability Scale (SUS) [5].
+Moreover, we conducted semi-structured interviews with participants to gather insights on PractiMat’s benefits and challenges.
+
+Overall, we present the following contributions:
+• A formative study with professional designers and students on their considerations in selecting materials and texture maps, and their challenges in selection.
+• A co-creative system prototype that uses generative AI to generate, suggest, and provide feedback on materials.
+• A within-subjects user study comparing PractiMat with and without the chatbot and feedback module in selecting materials.
+• A user study assessing PractiMat with professional designers and students in selecting materials through an expert validation.
+
+2. Related Work
+2.1. Material Selection and its Challenges in Interior Design
+This subsection reviews the literature that discusses the considerations and challenges designers face when choosing
+materials. When choosing materials, designers first consider if the material and its properties satisfy several functional
+criteria such as durability, maintenance, comfort, safety, versatility [1, 34, 46], sourcing [1], sustainability [45], and
+cost [41]. On the other hand, they also consider the material’s visual aesthetic (e.g. color, texture, pattern), as it affects the interior design’s concept and the customer’s visual perception of it [1, 46]. Moreover, they consider if the material harmonizes with other interior space aspects such as lighting, layout, other materials, and desired ambiance [18, 46]. Lastly, designers consider whether they can leverage the material structural properties to create expressive and
+innovative designs [18, 41, 42].
+
+Designers also have several challenges in material selection. First, choosing a material that satisfies multiple criteria,
+such as having a low environmental impact, being low-maintenance, durable, and comfortable, is challenging [1, 2, 12, 16].
+Furthermore, even if such a candidate is found, sourcing can be difficult, so designers must also consider choosing
+regionally produced materials [17, 35]. Specifically with durability and maintenance, Peretyatko [28] stresses the
+importance of using materials that can endure the room conditions and do not rapidly deteriorate in appearance over
+time to reduce the frequency of repairs. Designers also face other challenges when choosing sustainable materials. One
+challenge is that designers often have limited knowledge about the environmental impact of certain materials, according
+to Bettaieb et al. [3]. Additionally, it is difficult to determine their environmental impact since it is also based on factors
+such as the material’s extraction, manufacturing, packaging, and installation, as noted by Thompson and Johansen
+[35]. According to two studies by Mate [22, 23], another challenge is that designers often struggle with trust issues
+when dealing with their suppliers. In one interview study, Mate found that 40% of designers expressed skepticism about
+the sustainability and quality of the materials claimed by their suppliers [23]. In another study, which administered a
+questionnaire to interior designers, only 20% of the respondents felt confident in their suppliers’ providing accurate
+information about the environmental impact of their materials [22]. Lastly, designers face a challenge with client
+preferences, as 40% of the respondents said that their clients prohibited using eco-materials in offices, according to
+Mate’s interview study [23]. In this paper, the co-creative system aims to help designers in material selection by
+providing informative material suggestions based on their queries and material-based feedback on aspects such as
+sourcing, maintenance, and sustainability through the use of DALL-E 2 and ChatGPT.
+
+2.2. Generative AI in Texture Transfer
+In the field of generative AI, previous works have focused on texture transfer, which is the task of generating and
+applying textures to 3D models. Early approaches involved transferring textures from object images to 3D models by
+extracting texture patches from images [4, 36]. Yang et al. proposed a material-aware fabrication method, which shapes
+the 3D model’s geometry based on the material being applied [39]. With the emergence of deep learning, most recent
+works have utilized neural networks to transfer textures from images onto 3D models semantically. For example, Hu et
+al. proposed an approach that extracts colors and textures from images, establishes a part-to-part correspondence, and
+applies visually similar materials onto the 3D model semantically [11]. Similarly, PhotoScene semantically transfers
+materials and scene lighting from images of interior rooms to 3D rooms [40], while the work of Perroni-Scharf et
+al. creates variants of an input 3D interior scene by changing its materials with perceptually similar ones [29]. Lin
+et al. trained a convolutional neural network to predict the type of material applied to parts of furniture models.
+They demonstrated applying this CNN in semantic texturing and material-aware physical simulation of furniture and
+furniture part retrieval tasks that assess the mechanical durability and manufacturing based on material properties
+[20]. Text-to-image models such as StableDiffusion [33] and DALLE-2 [30] have also been accessible, leading to the
+integration of tools like DreamTextures [6] into 3D modeling software to generate texture maps and apply them to 3D models quickly. Furthermore, Text-to-3D generative models like OpenAI’s Shap-E have enabled the creation of textured
+meshes from text prompts [7, 9, 13, 14, 32, 37]. TEXTure [32] and Text2Tex [7] allow the creation and transfer of textures
+to 3D models by using text inputs. TEXTure, moreover, can edit existing textures, while Text2Tex can generate textures
+from complex styles in text prompts like "baroque" and "cyberpunk". Our system, utilizing DALLE-2, also transfers
+material textures onto 3D models using input text. However, it differs from previous work because it specifically caters
+to aiding suitable material selection in interior design, providing material textual suggestions and material-based textual
+feedback to users through ChatGPT, not just creating texture maps.
+
+2.3. Human-AI Co-creative Tools in Interior Design
+In the interior design domain, previous research has developed support tools to assist designers in designing interior
+designs. Merrell et al. [24] created an interactive system to help with furniture layout. The system uses a density function
+that considers interior design guidelines and the placement of furniture objects as subspace constraints to suggest
+layouts of 3D furniture in a room. Similarly, Dreamrooms [38] is a tool that optimizes furniture placement in a virtual
+reality environment using a generative process. With the advent of deep generative models like StableDiffusion, many
+previous works have leveraged these as tools to create images and 3D models in interior design. For example, in images,
+Chen et al. [8] developed a new loss function and trained StableDiffusion on a dataset of interior design images; the
+result is a diverse set of high-quality interior design images based on style and space functions. On the other hand, He et
+al. [10] modified StableDiffusion using LoRA [? ] and ControlNet [? ] to create a model that designers can use to create
+and edit images of interior design ideas, schematic drafts, and layout plans that can be used in their respective stages of
+the interior design workflow. Zhang et al. [43] developed an interactive system that utilizes reinforcement learning to
+recommend interior design images based on the user’s textual feedback. For 3D models, Karan et al. [15] developed an
+intelligent agent that reconstructs the 3D environment of interior space images and uses a Markov decision process
+to suggest optimal design decisions until the user is satisfied. On the other hand, RoomDesigner [47] is a generative
+model that creates 3D indoor scenes of furniture and performs tasks like completing the indoor scene with furniture
+and swapping objects with visually compatible ones. Works like 3DALL-E [21] and Jigsaw [19] are co-creative systems
+that utilize multiple generative AI models together; 3DALL-E [21] is a plug-in that utilizes GPT-3 [5] and DALL-E [31]
+to generate image references, which designers can model on in 3D modeling software, while Jigsaw [19] is a visual
+programming interface for generative AI models that designers can use to create images of interior designs from text
+and realize them into 3D. Similar to co-creative tools like 3DALL-E and Jigsaw, our work also focuses on building a tool
+that leverages several generative AI models, namely DALL-E 2 and ChatGPT. Unlike them, our tool specifically focuses
+on assisting interior designers in choosing materials and texture maps for their 3D scenes by providing AI-generated
+material textures, textual suggestions, and material-based feedback.
+
+3. FORMATIVE INTERVIEW STUDY AND CO-DESIGN WITH PROFESSIONAL DESIGNERS
+We first conducted a formative interview study with ten designers to understand better the aspects designers consider
+when selecting materials for their projects during the design process and texture maps for their 3D models, as well
+as the challenges they face when selecting them. We then worked on developing PractiMat and conducted co-design
+sessions with four of the ten professionals to test early iterations of the system and gather feedback. Both activities
+were aimed at helping us design and develop PractiMat for material selection in interior design.
+
+3.1. Participant Recruitment
+Through convenience sampling, we recruited nine professional designers and one design student (P1-P10, five male
+and five female, with work experience of 1 - 31 years). The design student and eight professional designers work in
+industrial design, while one professional works in interior design. The designers have worked on various products,
+such as furniture, booth exhibits, and appliances. All but one participant has not used AI tools (e.g., generative design,
+large language models, text-to-image generators) in their workflow; one participant mentioned that she had used
+generative design before. Before the interview, all participants answered a pre-interview questionnaire for demographic
+information and signed an informed consent form.
+
+3.2. Interview Procedure
+The interviews were conducted individually and online through Zoom, each lasting 1 to 2 hours. We first asked the
+participants to describe design stages and deliverables (i.e., sketches and 3D renderings) in the design process. Then, for
+each deliverable, we ask about the aspects used to evaluate it; if materials are mentioned, we probe further about how
+they are assessed. Lastly, we ask about the designers’ difficulties when assessing materials during the design process.
+After conducting all interviews, the first author performed a thematic analysis of the interview transcripts to summarize
+how the participants selected materials and texture maps and the challenges in selection.
+
+3.3. Co-design Session Procedure
+We conducted co-design sessions with 4 of the interviewed professionals individually and online through Zoom while
+developing PractiMat to have them test their functions and gather feedback. We explained and demonstrated the
+system’s functions during the session and had them try it. Then, we gathered their feedback on improving the system’s
+functions and other inputs that they thought would help when using the system to create and choose material textures
+in interior design. After the co-design sessions, the first author performed a thematic analysis of how they select texture
+maps and their challenges.
+
+3.4. Aspects in Selecting Materials
+3.4.1 Durability and Safety. Designers select materials that are long-lasting for their design, as well as ensure that it is
+safe to use. For example, when designing a kitchen space, P9 avoids “materials that absorb stains easily”. In another
+instance, when showing a bathroom design with glossy tile flooring to her contractors, they would suggest non-slippery
+tiles instead.
+
+3.4.2 Sourcing. Designers ensure that the materials can be sourced locally as much as possible in order to reduce costs.
+For example, P4 shares that her design team uses locally available materials “to lessen the carbon footprint compared to
+importing and to support the local community [of suppliers].” If the desired material is unavailable from nearby sources,
+P8 says that their manufacturers “make do with what’s available in the area.”
+
+3.4.3 Aesthetics and Trends. Designers select materials, as well as colors, based on the aesthetics of the design. For instance, when designing the refrigerator’s shelves, P5 uses transparent materials like glass “if we want it to look more elegant.” Moreover, designers choose materials and colors based on current trends. For example, both P3’s marketing division and P8 research color trends and use those colors for their designs.
+
+"We conduct trends briefings. Then we explain to [the clients] that this is the color trend and what is happening in the market. If you want to come up with this new design, then we have to adapt this color." - P8
+
+3.4.4 Customer Preferences. Designers ensure that their selected materials and colors are based on the preferences of
+their customers or target market. When choosing colors for a baby stroller, for instance, P7 used earth tones since they
+found that people into adventure used the stroller more based on a survey they conducted. When choosing materials for a refrigerator, P5 uses chrome as it is “very popular. It gives a more elegant impression and is for the high-end market” and uses plastic instead for the low-end market “because they have this old perception that they could get a shock [from chrome].”
+
+3.4.5 Budget. Designers choose materials that fit within their project budget. When working with contractors, P9 says that if they find a requested material finishing too expensive, they “look for an alternative for a cheaper and more affordable alternative to that similar laminate finish.” With a customer preference for stainless steel, P5 says that they were advised to use a pre-coated metal that is “only steel, but laminated with plastic with stainless steel finish,” as it is a more cost-effective option than pure stainless steel.
+
+3.5. Aspects in Selecting Texture Maps
+3.5.1 Design Style, Trends, and Market Preferences. When choosing texture maps and colors, designers consider interior
+design style and current trends. According to P5, the minimalist Scandinavian style is associated with finely-grained
+woods. For colors, on the other hand, designers look into trends like Pantone or survey their target market.
+
+3.5.2 Texture Map Characteristics. Designers also select texture maps if they have details that they are looking for,
+such as tint or etching. In the case of searching for wood texture maps, designers also look for the kind of grain and
+weave patterns.
+
+3.6. Challenges in Selecting Materials and Texture Maps
+Based on the interviews and co-design sessions conducted, we identify the following challenges the participants have in material and texture map selection:
+
+3.6.1 Prioritizing Aesthetics over Practicality. The participating designers mentioned that they tend to choose visually
+pleasing materials yet sometimes forget to consider their practicality in the design, which is also important. As P9
+says, “As designers, we tend to think so much on the aesthetic part that sometimes we forget there is a more durable or
+better material for this design.” This was the case, especially for students, where P6 anecdotes his classmate’s work was
+critiqued for using a softwood that “wasn’t optimal for an outdoor setting, so it can’t be used for the purpose they wanted
+to use it for in the furniture”, and further says that “the professors wanted us to think of it being manufacturable, rather
+than just something to look at.”
+
+3.6.2 Limited Awareness of Material and Texture Map Options. Designers do not always have immediate knowledge of the possible materials they can use for their projects and also have limited texture map options when 3D modeling. For example, during the co-design session with P10, she commented she would use the co-creative system potentially for “brainstorming because I don’t really know all of the materials on hand, so I’d like to know or at least get some help on
+possible or available options.” When choosing textures in material libraries, P7 mentions that “designers usually opt for
+software with a wider range of materials.”
+
+3.6.3 Ambiguity in Client Preferences. When working with clients, designers have difficulty knowing what they
+want, especially with their preference for materials and colors. P5 says, “Even though you presented your best design
+recommendation, clients are still looking for something different.” As a result, designers have to explore different material
+and color options and present alternative designs, which can be a repetitive and tedious process.
+
+"Sometimes we must consider that who we’re presenting to are not creatives. So they say, “I don’t like it”. [So we respond] “So what do you don’t like about it? What kind of change? Is there something off with the color, texture, or fabric that we used? Could you recommend something else?”. Sometimes, we don’t know what they want. So we just keep on creating stuff until something gets approved." - P1
+
+3.6.4 Sourcing Issues. Designers also have difficulty realizing their design since ensuring that their selected materials can be locally sourced is an issue encountered later in the design process. P10, for instance, says that she encounters “supply issues like this material is no longer available. We want to get this material instead because they can’t source [the other material] in the area anymore.
+
+3.7 Design Goals
+Based on the factors designers consider in selecting materials and texture maps, as well as the challenges they face in
+selecting them, we formulate the following design goals for our system:
+(1) Support input of details that match designer intent when creating texture maps. When using a text-toimage model to create texture maps, users should be able to specify additional details on their desired look of the texture map, such as color, patterns, and grain.
+(2) Provide various materials and color options based on practical aspects, subjective aspects, and the context of the design The system should provide an avenue for users to ask for possible material and color options based on practical factors like budget and sustainability, and subjective factors like target demographic and interior design themes. Moreover, the system should provide options by considering the interior scene and its design specification as context.
+(3) Provide context-aware feedback and offer alternatives on current materials of objects in the scene. The system should be able to provide practical feedback on currently used materials in the scene with the objects they’re applied on and the scene’s design specification as context. Furthermore, the system should suggest alternatives like materials and finishes to improve practical aspects.
+
+4.  PRACTIMAT
+PractiMat is a prototype used to change and modify the material textures of objects in a given 3D scene. For this research, we use furniture as they can have various materials. Like 3D modeling software like Sketchup and Blender, users can navigate the 3D scene, render, view a selected object’s material details like its name and texture map, and
+save 3D scenes. Furthermore, the user can modify material properties such as opacity, texture map scale, and color. The user can also access a panel containing a design brief containing project details of the 3D scene being designed, such as its target market, location, and desired ambiance. The system uses generative AI, mainly DALLE-2 and ChatGPT, along with prompt engineering to (1) generate texture maps, (2) suggest materials and color palettes, and (3) provide feedback on materials and offer alternatives. In this section, we describe the system’s three generative AI modules: the material generator, the suggestion chatbot, and the feedback module.
+
+4.1 Generative AI Modules
+4.1.1 Material Generator. The material generator uses DALLE-2 and ChatGPT to create texture maps from an input material. Figure 2 shows an overview of the module. To use it, the designer types the material and chooses the number of texture maps they want to generate. After pressing the Generate Textures button, the material name is next inserted into the following prompt, “<material_name> texture map, seamless, 4k”, and inputted into the material generator to create texture maps. The designer can then apply a texture map to an object in the 3D scene by selecting it and clicking
+Apply Texture . If the designer wants to generate variations of a texture map, they can select it and then click on Generate Similar Textures . This uses DALLE-2 to generate texture maps similar to the selected texture. Additionally, the designer can add keywords to the prompt to create a texture map with a certain look. For example, if they want to create a wood texture map with a horizontal grain, they can add “horizontal grain” as a keyword. The designer can also leverage ChatGPT to automatically generate keywords for them by clicking on the Brainstorm Keywords button.
+This sends the following prompt to ChatGPT:
+
+I am using DALL-E to create an image of a <material_name> texture map by typing in a textual description. Brainstorm example keywords I can append to the textual description to make a detailed and more accurate image of a <material_name> texture map.
+
+4.1.2 Suggestion Chatbot. The suggestion chatbot uses ChatGPT and DALLE-2 to suggest materials and color palettes to the designer based on their queries, as shown in Figure 3. If the designer requests the chatbot to suggest materials, it returns their names, details on why they were suggested, and their image texture maps generated by DALLE-2. If the designer wants to generate more texture maps of a suggested material, they can click on “Generate More!”, redirecting them to the material generator. On the other hand, if the designer requests the chatbot to suggest colors, it returns color
+palettes containing color hex codes and the reason why the color palette was suggested. The designer can save these color palettes and use them later when applying color to an object’s material. When requesting to suggest materials or
+colors, the designer can check two boxes: Web Search and Design Brief. The Web Search checkbox enables the chatbot to search and use sources relevant to the user’s query. The user can select this option if they are searching for materials and colors that are up to current trends since ChatGPT has a knowledge cutoff. The Design Brief checkbox lets the chatbot consider the design brief when suggesting materials and color palettes by inserting it into the inquiry prompt. The user can use this option if they want the chatbot to request materials or colors in context with the design brief.
+
+4.1.3 Feedback Module. The feedback module uses GPT-4 to assess an object’s material on the following practical aspects: durability, maintenance, sustainability, assembly, cost, and sourcing. For each aspect, the module provides written feedback, a list of web sources cited, and suggestions that can help address it; these can be alternative materials, finishes, attachments, or other suggestions. To use the feedback module, the user first clicks on an object in the 3D scene and then clicks on the Request Feedback button. Next, for each aspect, the module performs a web search using the following search query: “<aspect> of a <object_name> made out of <material_name>”, and retrieves a set of search results, which is then appended to a prompt sent to GPT-4. The feedback module then displays the written feedback for each aspect of the selected object’s material. Below the feedback are the suggestions for improving that aspect and the web sources used. Similar to the suggestion chatbot, if alternative materials were suggested, DALLE-2 would be used to generate their corresponding texture maps that can be applied to the 3D object. On the other hand, if finishes are suggested, they are displayed as suggested values for the material’s opacity, roughness, and metalness, which can be applied. An overview of the feedback module is shown in
+
+4.2 Technical Implementation
+We implemented PractiMat as a web application. We used Svelte and Three.JS for the front end and Flask and Python for the back end. We used the OpenAI API to access DALLE-2 and ChatGPT. To be able to render the 3D scene, we used Blender through its Python API. The 3D objects are manually loaded and placed into the scene.
+
+5. EVALUATION
+We conducted two user studies focusing on the effectiveness of the system’s suggestion chatbot and feedback module in helping the designer select practical materials. The user studies aim to answer the following sub-research questions:
+
+• Sub-RQ1: Can PractiMat help designers select practical materials for their interior design?
+• Sub-RQ2: Can PractiMat improve user experience in searching and selecting practical materials for their interior design?
+
+To answer Sub-RQ2, we conducted a within-subjects study comparing the usability of PractiMat with and without the suggestion chatbot and feedback module. To answer Sub-RQ1, we first recruited professional designers and students to evaluate the system’s effectiveness in helping select practical materials for a given interior design. Following this, we then conducted an expert validation by having two professional designers rate the suitability of the materials and colors suggested by the system during the experimental sessions with the professionals and students.
+
+5.1 User Study #1: Chatbot and Feedback vs No Chatbot and Feedback
+We first conducted a within-subjects user study to compare the effectiveness of PractiMat with and without the suggestion chatbot and feedback module in assisting users in choosing materials. The participants are tasked to choose materials for two untextured 3D spaces, an outdoor patio, and a bathroom, according to their design briefs that are also provided. We chose these scenes because they require more practical material selection compared to other scenes like a bedroom. There were two conditions: the treatment condition and the control condition. The treatment condition
+was the system with the suggestion chatbot and feedback module included, and the control condition was the system without them both; however, for the control condition, participants could use Google Search and ChatGPT for their inquiries. The material generator was accessible in both conditions. We assessed task load and creativity support for each condition using the NASA Task Load Index (NASA-TLX) and Creativity Support Index (CSI), respectively. We also evaluated the system’s overall usability using the System Usability Scale (SUS) questionnaire. We also gathered qualitative data by conducting semi-structured interviews with the participants on their experiences using the system under both conditions to select practical materials.
+
+5.1.1 Participants. We used convenience sampling to recruit 15 computer science students from a local university in Japan. Eleven students are undergraduates, two are master’s, and two are doctoral students. Thirteen participants are Japanese, while two are from China and Sri Lanka. Four of the participants have prior experience in 3D modeling, ranging from one month to one year of experience. None of the participants have prior experience in interior or furniture design.
+
+5.1.2 Study Procedure. The study was conducted in person. Participants were randomly assigned the order of conditions and 3D scenes using the Latin Square Design method. Before the experiment, the participants were given a brief introduction and read and signed an informed consent form. Next, they watched video tutorials on using the system and were given time to explore using it freely. After a break, the participants were given 30 minutes to texture the first 3D scene based on its design brief under the first condition. After the task, regardless of whether they were finished, the
+participants answered the NASA-TLX and CSI questionnaires specific to the first condition. After another break, they were given 30 minutes to texture the other 3D scene under the other condition followed by answering the NASA-TLX and CSI questionnaires. Then, they answered the SUS questionnaire. Lastly, we conducted a semi-structured interview to learn about the participants’ experiences using the system, including beneficial and challenging aspects. At the end of the experiment, each participant received compensation of 3000 Japanese Yen. Each session took about 3 hours.
+
+5.2 User Study #2: Exploratory Study with Professional Designers and Students
+We next conducted another user study to assess the system’s effectiveness in choosing materials when used by professional designers and design students. In this user study, all participants were tasked to use the system to apply materials to an untextured outdoor patio. Like the first user study, we used the NASA-TLX, CSI, and SUS metrics to
+evaluate the system quantitatively, and we also conducted semi-structured interviews to gain insights and feedback from the designers while using the system. Lastly, we recorded the suggested materials and colors given by the system during the sessions and had two professional designers validate their suitability via a questionnaire.
+
+5.2.1 Participants. We conducted a convenience sampling to recruit seven professional designers and five design students for the study. We contacted a government design agency and a university student organization in the Philippines to recruit professional designers and design students. All five students are undergraduate students in interior design. Of the seven professionals, four specialize in interior design, while one is an architect, one is an industrial designer, and one is a furniture designer.
+
+5.2.2 Study Procedure. The study was conducted in person or remotely via Zoom, depending on the participants’ preferences. For the remote setup, the researcher took control of the system while the participant instructed the researcher. Like the first user study, the participants were introduced briefly and signed an informed consent form. Next, they watched the video tutorials on using the system and were given time to explore using it to texture a bedroom. After a break, the participants were given 30 minutes to texture the patio based on the provided design brief. After the task, they were instructed to complete the NASA-TLX, CSI, and SUS questionnaires. Then, we conducted the semi-structured interviews with the participants. Each session took about 2 hours, and the participants were each rewarded 2000 Japanese Yen, which was converted to Philippine Pesos.
+
+5.2.3 Expert Validation. We recruited two professional designers via convenience sampling to rate the materials and colors suggested by PractiMat during the experimental sessions with the professional designers and students. One professional has three years of work experience as an interior designer (denoted as Expert 1), while the other has ten years of work experience as an architect (denoted as Expert 2). Both professionals were also shown the 3D scene and design brief as context and basis for rating the suggestions. They rated the suggestions using a 5-point Likert Scale
+on the following aspects: aesthetics, durability, cost, sourcing, sustainability, and use and safety. The designers were compensated with 1000 Japanese Yen each.
+
+6 RESULTS
+6.1 User Study #1: Chatbot and Feedback vs No Chatbot and Feedback
+
+6.1.1 Taskload and System Usability. The average NASA-TLX scores of the participants in the control and treatment conditions are in Table 1, where participants scored lower in the treatment condition overall and across all categories. The rating distribution across all NASA-TLX categories for both the control and treatment conditions is shown in Figure 5. Most participants (≥ 11/15) in the control condition found material selection mentally and temporally demanding, frustrating, and effort-intensive (≥ 65/100). Nine found the system to be frustrating (≥ 65). Six participants rated the system’s performance as at least good (≥ 65). In the treatment condition, slightly fewer participants (9/15) found their task mentally demanding, while only seven found it to be effort-intensive. Only a few participants found their task temporally demanding (5/15) and frustrating (2/15). System performance remained mostly unchanged compared to the control condition. When assessing the system’s usability, the participants gave an average rating of 74.17 out of 100.
+
+6.1.2 Creativity Support. The average CSI scores, the average weighted factor scores, and average factor counts from each category for both conditions are shown in table 2. The participants scored higher overall and in all categories in the treatment condition than in the control condition. For both conditions, it is shown that Exploration had the
+highest average factor count, followed by Expressiveness. This means that participants valued exploration the most when selecting materials. The distribution of CSI ratings across all categories for both control and treatment conditions are shown in Figure 6.
+In the control condition, 13/15 participants enjoyed using the system (≥ 15/20), and nine could easily explore different outputs (≥ 15). However, ten participants were at most somewhat not immersed (≤ 8), and eight felt at most neutral (≤ 11) when assessing if the results were worth the effort. Eight participants rated high in expressiveness (≥ 15). In the
+treatment condition, thirteen participants enjoyed using the system and could explore different outputs easily (≥ 15). Twelve rated high in expressiveness (≥ 15), and more participants (12) at least somewhat agreed that their results were worth the effort. However, immersion remained mostly unchanged, with ten participants somewhat not immersed (≤ 8).
+
+6.1.3 Qualitative Feedback. During the interview, we asked the participants about their experience using the system, particularly the suggestion chatbot and feedback module. Almost all participants used the chatbot throughout the experiment; however, only one requested and used the feedback from the feedback module. Most did not use it because it was slow, participants had time constraints, lacked interest or understanding, or were satisfied with the current materials. Only P13 found it beneficial saying, “Because I was able to refer to the material’s feedback, and I was able to
+think of different materials.” We then asked the participants how they benefited from using the generative AI modules and the challenges they faced. Regarding the benefits, almost all participants found the suggestion chatbot easy to use when searching for
+materials, especially since they are inexperienced in design. P5 says, “it saves me time from searching for materials by myself.” Moreover, the chatbot was able to make specific suggestions despite giving vague queries. P6 says, “Even if I asked abstract questions, it gave me specific content. It was easy for me to express the image in my head.” Another benefit of the suggestion chatbot for most participants was that it provided information about each suggestion, which helped them choose materials since they had no prior design knowledge. For example, when choosing materials for a bathtub, P10 says, “I didn’t know what was good for the bathtub, but the chatbot helped me find what’s good.” Additionally, around half of the participants found the design brief-reading function in the chatbot helpful, as it can suggest materials and colors that are already related to the design brief, which they had to comply with when doing their task. For instance, when asking for colors, P8 says, “It was quite useful. It gave me the color of the [design brief] conditions I had to read carefully”.
+On the other hand, the participants encountered some challenges and drawbacks when using the system. First, when using the chatbot, participants occasionally received suggestions that either didn’t answer their query or were unrelated to the design brief. For instance, when asking for pool floor materials, P1 says, “I received many brown wood materials but wanted white and blue.” On the other hand, some participants received texture maps that did not visually match the suggested material’s name and description. P5 says “I think it’s suitable, but the generated material images are sometimes
+not suitable.” As a result, they had to be more specific or explicitly mention the design brief when rewriting their queries. Another drawback was that the generator and chatbot were slow. Consequently, some participants couldn’t fully texture
+their assigned 3D scenes in time. Some also encountered interaction issues like difficulty zooming in and technical issues like improper texture placement on the object. P12 says, “I wanted to choose a tile-like floor, but the texture was only drawn on one side.”
+During the interview, we then asked about comparing their experiences using the system under the control and treatment conditions. Almost all participants preferred the treatment condition. Compared to using Google and the vanilla ChatGPT, the chatbot was more convenient to search for materials. For P5, it was more convenient because “it displays images at the same time, while ChatGPT doesn’t”. P9 commented about the chatbot being context-aware in comparison to ChatGPT, saying, "This chatbox is better because it considers the document that explains the client’s design brief. So, this one directly goes through the design brief and then gives the materials."
+
+6.2 User Study #2: Exploratory Study with Design Professionals and Students
+6.2.1 Expert Validation. The distribution of ratings of the two professional designers for each aspect is shown in Figure 7. Expert 1 rated 70% of PractiMat’s material and color suggestions as at least somewhat suitable in terms of aesthetics, 76% in terms of durability, 65% in terms of cost, 98% in terms of sourcing, 74% in terms of sustainability, and 91% in terms of use and safety. On the other hand, Expert 2 rated 52% of PractiMat’s material and color suggestions as at least somewhat suitable in terms of aesthetics, 61% in terms of durability, 52% in terms of cost, 59% in terms of sourcing, 59% in terms of sustainability, and 57% in terms of use and safety. Moreover, we assessed inter-rater reliability using weighted Cohen’s Kappa [12], and their values for each aspect are
+shown in Table 3. We used linear weightings to calculate the values. Using Landis and Koch’s standards for strength of agreement [22], there is a slight level of agreement between the experts in rating PractiMat’s suggestions on aesthetics, durability, and use and safety. However, there is a poor agreement when rating on cost, sourcing, and sustainability.
+
+6.2.2 Taskload and System Usability. The design professionals and students obtained an average NASA-TLX score of 47.78. In mental demand, temporal demand, performance, effort, and frustration, they scored an average of 51.67, 45.83, 42.92, 47.5, and 46.67, respectively. Figure 8 shows the distribution of the NASA-TLX category ratings. 6 out of the 12 participants found the task mentally demanding (≥ 65/100), while at most, four found the task temporally demanding, effort-intensive, and frustrating (≥ 65). Only three rated high in system performance (≥ 65). For system usability, the design professionals and students gave an average rating of 67.5 out of 100.
+
+6.2.3 Creativity Support. The average weighted factor scores, average factor counts from each category, and the average CSI score of the design professionals and students are in Table 4. The participants averaged a CSI score of 72.69. Participants rated Exploration as the most important factor based on the average factor counts. The rating distribution for each CSI category is shown in Figure 9. 9/12 participants enjoyed using the system (≥ 15/20), and 10 agreed they could explore different outputs (≥ 15). Ten participants at least somewhat agreed that the system allowed them to express their creativity (≥ 12), and eight at least somewhat agreed that the results were worth the effort (≥ 12). Seven participants felt at least somewhat immersed when using the system (≥ 12), while four were neutral.
+
+7 QUALITATIVE FEEDBACK FROM DESIGN PROFESSIONALS AND STUDENTS
+After performing a thematic analysis on the interview transcripts with the design professionals and students, we derived a set of themes related to the benefits of the system’s generative AI modules and the challenges in using them.
+
+7.1.1 Ease of Exploring and Searching Materials. First, the modules helped designers explore and search materials using the generator and chatbot. Not having to worry about searching textures on the internet, P2 comments, “Instead of downloading preset materials, I could generate my own.” The chatbot was convenient for them to search for materials based on their queries. When querying based on cost, P12 appreciates that “you could prompt for high-end or moderate materials for a moderate budget, which sometimes takes us time to research manually.” P6 found the web search option in the chatbot helpful because “it is easy to navigate materials and look for trends without using Google.” Lastly, the chatbot’s suggestions also helped invoke ideating other materials. For example, P9 says, “The material I’m looking for may not be there, but it gives me an idea of what other materials I can use”.
+
+7.1.2 Providing Accurate and Context-Aware Information. Most designers perceived the chatbot’s suggestions to be accurate and contextual to the design brief assigned to them. For instance, P11 says, “I think it produced accurate color palette suggestions in relation to the [brief’s] design style.” Moreover, they were convenient as some designers mentioned that the brief could be too long to read. For example, P4 says, “In terms of using it with ChatGPT, I guess it filtered out the information that wasn’t needed.” The explanations that came with the suggested materials were also informative and convenient. P2 says that it can help with designing for places where he is “not pretty familiar with many of their materials and their climate.”
+
+7.1.3 Support for Reminding and Reviewing on Materials. Some designers also find that the chatbot can remind designers about the design brief, with P3 saying, “We tend to forget about the design brief and design problem provided by the client. So, this design brief [checkbox] is very helpful.” P12 finds the chatbot refreshing as it can help review designers’ material choices according to the brief. Moreover, she says, “This is crucial for designers as we may understand the brief, but selecting the wrong materials can lead us away from the actual brief, which we want to avoid.”
+
+7.2 Challenges in Using the System’s Generative AI Modules
+7.2.1 Lack of Visual Representation. The first challenge half of the designers faced when using the material generator and chatbot was their lack of material, visual representation as input and output. With regards to input, since the material generator uses text as input to create the texture maps, the designers had difficulty writing the optimal prompt to get their desired texture maps. For instance, when adding keywords to the prompt, P5 says that “I guess being a visual person, I’m not used to looking for adjectives to explain what I’m looking for exactly.”. When generating the output material, some designers also struggled to visualize how it would look on objects they intended to apply it to. P1 was not satisfied with her final materials and colors because “they’re supposed to harmonize in color and texture. However, since I couldn’t visualize, it was very difficult. So, the results were quite a mix of many things that don’t work well together.” Overall, prompting in text-to-image generators was challenging for the designers as they needed to brainstorm the right keywords to get the material texture map they had in mind. To address this problem, P2 suggested “One way it could be improved is to upload a certain reference image and then sort of generate images based on that.” Furthermore, generating only images of texture maps was insufficient, as they preferred to see them already applied to their target 3D objects to see if they were applied seamlessly and harmonized with the other objects in the scene.
+
+7.2.2 Perceived Limitations and Trust Issues with the AI Feedback. None of the professionals and students used the feedback module when using the system in their tasks during the experiment. Most participants did not use it due to the experiment’s time constraints and immersion in the system’s other components. Others did not use it for three main reasons: lack of credibility, lack of perceived benefit, and preference for human feedback. Participants who cited a lack of credibility were unsure if it knew interior design standards. Also, with the chatbot, P12 suggests “if the search can be more fine-tuned to reliable sources like academic journals related to interior design, 
+ which are more credible than web articles.” Participants who did not perceive the value of the feedback were already content with their output or did not understand how it could help. For instance, P2 was unsure if the feedback was “going to look at the material holistically or if it would look at it as just the material itself.” Lastly, other designers preferred human feedback as according to P10, “Usually, you get feedback from the clients..” P8 says it “feels more alive if it comes from an actual person”.
+
+7.2.3 Issues with Precision and Speed of the Chatbot and Generator. Most designers also found that the system was slow in providing suggestions and generating materials. As a result, some of the designers could not finish on time. Another issue was that the chatbot did not always give accurate suggestions, as their texture maps did not visually
+match the suggested material. For example, when P9 requested the chatbot to suggest materials for the umbrella, she said that “there was like an actual picture of the umbrella, not the texture and material itself, so that’s just the part that I didn’t like.” The suggested material’s texture map may not have matched, because the suggested material’s name was used as a prompt for the generator, which may still be vague. For example, if the suggested material were "Pine," the generated image could sometimes be an image of a pine tree rather than the texture map of pine wood.
+
+7.2.4 Lack of Essential Features. Since the system was implemented as a web application, most designers had difficulty using it due to the lack of other features usually present in 3D modeling and rendering software. These features include
+a materials library, moving and adjusting 3D objects, a 3D warehouse, and adjusting lighting. The materials library was important as it helped designers quickly visualize if a material was suitable for the 3D object. While generating textures, P8 comments that they can also act as placeholders to “counter-process to what we know is a long process of looking for textures.” Moving and adjusting 3D objects was also important for designers as they assessed the interior’s layout and 3D geometry; however, it was not included since the system was solely focused on changing textures. For P1, adjusting the 3D object’s geometry was crucial to making it compatible with the intended material. When choosing the patio lounge chair, she says, “[its shape is] already limiting me with the type of material I’ll be using for this design.” A 3D warehouse was necessary since the designers wanted to add more furnishings, and mentioned that the chatbot would be helpful if it could also suggest them. Lastly, adjusting the lighting in the 3D scene was essential since it played a significant role in the material’s look. Most designers also mentioned that the chatbot would be helpful if it could suggest lighting setups. For example, P3 suggests, “We can ask what specific lighting we can use to illuminate that
+space. We can ask what specific light fixture that we can use.”.
+
+8 DISCUSSION
+8.1 Providing Context-Aware Suggestions
+The designers in the second study appreciated how the chatbot’s color and material suggestions were in the context of the design brief. They found it helpful and convenient, especially since they mentioned that the design brief can be long
+and they may forget specific details from them. Based on expert validation results, however, there was only a slight to poor agreement between the experts on the suggestions’ suitability despite them giving somewhat high ratings on over
+half of the suggestions. This may be due to the difference in work experience and domain since one is an interior designer with only three years of experience while the other is an architect with ten. Another reason may be the lack of clear
+criteria on the suitability of the suggested materials and colors, especially in terms of sourcing, cost, and sustainability which have poor levels of inter-rater agreement. For example, in cost and sourcing, the design brief provided for the participants only mentioned that the materials for the patio design should satisfy a “moderate budget” and that it will be located in “a coastal area in the Philippines”. However, such criteria are still vague as design projects often give a specific number for the budget, and also not only mention province and town but also rely on the capabilities of their
+partnered suppliers when it comes to sourcing materials. Moreover, the processes of material sourcing include material extraction, manufacture, transportation, and packaging which all affect the material’s sustainability [41]. Environmental regulations may also vary depending on the location of the materials and project. One area of improvement can be to create a more comprehensive set of criteria for suggesting materials on these aspects. This can involve integrating a database of materials often used by the designers’ organization which includes information on their partnered suppliers such as material cost per unit, supplier location, environmental regulations, and material processing methods. By integrating such information into the system, designers may be better equipped with more specific and contextually relevant material suggestions that can help make better decisions.
+Another concern from the participating designers was they found that the texture maps suggested along with the materials did not visually match with them, and were not appropriate to use for the 3D object they wanted to apply. They did not harmonize with other current materials and colors in the scene. Since the system uses ChatGPT to suggest materials, it can only capture textual context (e.g., the design brief and user queries). However, it does not capture visual context, including the current looks of the materials, colors, 3D objects, and the overall scene. Overall, the system chatbot’s suggestion of suitable materials and colors helped the designers to a general extent as they took the design brief into context but lacked specificity to the 3D scene’s visual design. With the development of multi-modal generative AI such as LLAVA [] or GPT-4 Vision [32], we are interested in leveraging these models and learning up to what extent
+they can perform in suggesting materials and colors by considering the scene’s image as visual context. With generative AI chatbots becoming embedded co-pilots [? ? ], we recommend developers consider also inputting the current visual state of the artifact being designed for users to receive more contextually accurate suggestions when developing AI co-pilots for visual design software such as Adobe Photoshop or Blender.
+
+8.2 AI in Giving Feedback
+In both user studies, almost none of the participants requested feedback on their materials from the system due to reasons such as being immersed in the system and time constraints. Moreover, some designers did not request feedback because they were unsure if it was credible or aware of design standards. Additionally, they were already satisfied with their selected materials and felt it unusual to ask for feedback from an AI since it is often obtained from clients. As mentioned by designer P12, when using large language models to give feedback, one recommendation is to use reliable
+sources such as textbooks or academic works on which to base the feedback. On the other hand, since designers usually obtain feedback from other stakeholders like clients, AI can act instead as a mediator by capturing their feedback (e.g., using a speech-to-text model if it is spoken) and organizing it so the designer can easily read it.
+
+8.3 Limitations and Future Work
+The system cannot add and adjust 3D models and lighting in the interior scene during run time, which the designers found limiting. A better approach to implementing the system would have been to implement it instead as a 3D software plugin for creating and suggesting material texture maps so designers can still adjust the 3D models and lighting using the software’s functionalities. Moreover, as 3D modeling and setting up optimal lighting can be arduous, another area of future work can be to investigate using generative AI to suggest 3D models and lighting for the interior scene,
+apart from just texture maps. This could be done by exploring 3D generative models such as Shap-E [19] to create 3D furnishings and multi-modal models like GPT-4 Vision [32] to make lighting suggestions based on input images of the interior scene.
+Another limitation of the system was that since the material generator uses DALLE-2, it only inputs text to create texture maps and inputs texture maps to only create similar ones. As a result, we found that some designers had difficulty creating the texture maps they wanted because they did not know the best prompt or keywords to use in their
+prompt to get the texture map with the specific characteristics (e.g., graining, patterns, tint) they were looking for. Being visually oriented people, they preferred to input texture map images instead as references and explore their variants.
+While DALLE-2 does support image-to-image generation, it only creates texture map variants that are generally similar to the input texture map, but it cannot create variants of differing characteristics. One area for future work would be to
+use generative image models that support multi-modal input like ControlNet [50] that can create different variants by inputting a reference texture map image and text specifying its desired characteristics. We believe that by using
+these kinds of image generators, designers can easily reach their desired material by using image references. Moreover, instead of simply outputting texture maps, future work will also include outputting previews of the targetted 3D model
+with the texture map already applied for easier visualization. In both user studies, most participants could not assign materials to all objects in the 3D scenes on time due to time constraints and the system’s slowness in generating suggestions and texture maps. Moreover, there were some instances where the system crashed during the user study sessions, and the participants had to restart again. In the future, using
+generative models that can be run locally on the computer can help address the system’s slowness, and increasing the experiment duration can address its time constraints. For the second study, another limitation was that all of the
+participating designers were from the Philippines, which may not represent the broader design community. Lastly, most of the sessions in the second study with the designers were conducted online in Zoom, where the researcher took control of the system while the designer instructed them on what to do, which may have impacted the results.
+
+9 CONCLUSION
+We proposed PractiMat, which consists of a text-to-image generator for creating texture maps, a chatbot for suggesting materials and colors, and a module for providing feedback on materials, intending to assist interior designers in exploring and choosing suitable materials for their 3D interior spaces based on a design brief as context. Our two user studies showed that participants the system was more enjoyable, user-friendly, and easier to explore materials with the suggestion chatbot and feedback module included. From the second study, designers found the material generator and
+the suggestion chatbot helpful in searching and exploring materials. However, results from the expert validation show only a slight agreement in the chatbot suggesting durable and aesthetic materials, and poor agreement in suggesting
+materials based on sourcing, cost, and sustainability. For both user studies, almost none of the participants used the feedback module, with the designers mentioning that they were unsure about its credibility and preferred human feedback. Moreover, they found the generator and chatbot occasionally imprecise in creating texture maps that visually
+did not match the suggested materials’ text. Some also found the generator difficult as they were not used to prompting to create texture maps. They also had difficulty checking what they looked like already applied to their target 3D model and if it harmonized with the other surrounding materials. To answer our main research question, using generative AI to assist in selecting materials can help designers quickly explore texture maps and suggest materials in textual form that are generally suitable and contextual to the design brief; however, considerations for improvement in suggesting are visual suitability and harmony in the 3D design, and including more specific information on materials in the system such as their unit cost and supplier details in order to make more informed suggestions. Moreover, using generative
+AI to give feedback was not helpful due to credibility issues and preference for 
+human feedback. We recommend fine-tuning the module on reliable sources or having it mediate human feedback instead as areas for improvement and future research.
+========================================================
+
+I also consulted with my supervisor, and here is his feedback:
+========================================================
+The paper is well structured and constructively discussed.
+Thank you for your careful preparation.
+
+The proposed system seamlessly integrates DALL-E 2 and ChatGPT into a
+system that supports interior design.
+Writing my first impressions as a reviewer, I wonder if the same could
+be done with ChatGPT itself, which is provided by OpenAI. While there
+may not be anything integrated for interior design at the moment,
+could something similar be done with a general-purpose ChatGPT if the
+prompts could be sufficiently contextualized?
+If I were to answer these questions, I would say that this paper is
+not a claim of technological novelty, but rather a careful observation
+and discussion of how such a system could be used by professionals and
+what effect it would have on students studying such a specialized
+field.
+This kind of reflection is important because of the current
+pervasiveness of this kind of general-purpose AI.
+Is this the correct way to think about the position of this paper?
+========================================================
+
+Now, tell me, what changes or additions should I make to my paper in order to address my supervisor's comments?
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ChatGPT:
+Your supervisor's feedback is insightful and raises an important point about the novelty and positioning of your paper within the broader context of AI-assisted design tools. To address the comments, consider the following changes and additions:
+
+1. Clarify the Novelty and Contribution:
+   - Explicitly state the unique contributions of PractiMat in the introduction and abstract. Emphasize the co-creative aspect, the integration of DALL-E 2 and ChatGPT, and the specific focus on practical material selection in interior design.
+   - Discuss how PractiMat goes beyond what is currently possible with a general-purpose ChatGPT by providing a specialized, context-aware tool tailored for interior design professionals.
+
+2. Contextualization of Prompts:
+   - Include a section or a paragraph discussing the limitations of general-purpose AI like ChatGPT in the domain of interior design and how PractiMat addresses these limitations through prompt engineering and contextualization.
+   - Provide examples of how the prompts used in PractiMat are specifically designed to elicit more relevant and practical responses for interior design tasks.
+
+3. Comparative Analysis:
+   - If possible, add a comparative analysis or discussion on the use of a general-purpose ChatGPT with custom prompts versus the integrated system of PractiMat. Highlight the advantages of your system in terms of efficiency, relevance, and user experience.
+   - Discuss any experiments or user studies that compare the performance of PractiMat with a non-specialized use of ChatGPT in interior design tasks.
+
+4. Reflection on the Role of AI in Design:
+   - Expand the discussion section to reflect on the broader implications of integrating AI into specialized fields like interior design. Consider the potential impact on the design process, creativity, and the role of the designer.
+   - Address ethical considerations, such as the potential for AI to influence design decisions and the importance of maintaining human oversight.
+
+5. Future Work:
+   - In the future work section, discuss the potential for general-purpose AI to evolve and become more specialized through training on domain-specific datasets or through the development of more advanced contextual understanding.
+   - Suggest avenues for further research, such as the development of AI systems that can learn from user interactions and become more attuned to the specific needs of the design domain.
+
+6. Technological Implications:
+   - Discuss the technological implications of your work, including how the integration of multiple AI systems into a cohesive tool can serve as a model for other specialized applications.
+   - Consider the scalability of your approach and how it might be adapted or extended to other domains beyond interior design.
+
+By addressing these points, you will strengthen the positioning of your paper, clarify the novelty of your contribution, and provide a thoughtful reflection on the role of AI in specialized fields like interior design. This will help to ensure that your paper resonates with both the HCI and AI communities, as well as with practitioners in the field of interior design.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+USER: Can you show me examples of how I can do those actions? You can make rewritings of certain sections from my paper.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+ChatGPT:
+Certainly! Below are examples of how you might rewrite certain sections of your paper to address your supervisor's comments:
+
+1. Clarify the Novelty and Contribution (Abstract):
+   Original:
+   "To approach this problem, we propose PractiMat, a generative AI co-creative system that uses DALLE-2 and ChatGPT to assist designers in choosing suitable materials when texturing 3D scenes by generating, suggesting, and providing feedback on materials."
+
+   Revised:
+   "To address the unique challenges of material selection in interior design, we introduce PractiMat, a specialized co-creative system that seamlessly integrates DALLE-2 and ChatGPT. Unlike general-purpose AI, PractiMat is tailored to the nuanced requirements of interior designers, offering context-aware suggestions, practical feedback, and custom-generated texture maps that align with professional standards and design briefs."
+
+2. Contextualization of Prompts (Section 4.1.2 Suggestion Chatbot):
+   Original:
+   "The suggestion chatbot uses ChatGPT and DALLE-2 to suggest materials and color palettes to the designer based on their queries."
+
+   Revised:
+   "The suggestion chatbot, a core component of PractiMat, leverages the capabilities of ChatGPT and DALLE-2 but extends beyond general-purpose usage by employing domain-specific prompt engineering. This approach ensures that the chatbot's responses are not only contextually relevant to the design brief but also adhere to the practical considerations and aesthetic sensibilities unique to interior design."
+
+3. Comparative Analysis (Section 8 Discussion):
+   Original:
+   "Our two user studies showed that participants found the system was more enjoyable, user-friendly, and easier to explore materials with the suggestion chatbot and feedback module included."
+
+   Revised:
+   "In a comparative analysis, PractiMat demonstrated superior performance over general-purpose ChatGPT in facilitating material selection for interior design. Participants reported enhanced enjoyment, user-friendliness, and material exploration capabilities, underscoring the benefits of a specialized AI system that is finely tuned to the context of the task at hand."
+
+4. Reflection on the Role of AI in Design (Section 8 Discussion):
+   Original:
+   "Using generative AI to assist in selecting materials can help designers quickly explore texture maps and suggest materials in textual form that are generally suitable and contextual to the design brief."
+
+   Revised:
+   "The integration of generative AI into the interior design process represents a paradigm shift, augmenting the designer's toolkit with intelligent systems like PractiMat. This study reflects on the transformative potential of such tools, which can enhance creativity, streamline decision-making, and maintain a delicate balance between AI suggestions and the designer's expertise."
+
+5. Future Work (Section 8.3 Limitations and Future Work):
+   Original:
+   "One area for future work would be to use generative image models that support multi-modal input like ControlNet that can create different variants by inputting a reference texture map image and text specifying its desired characteristics."
+
+   Revised:
+   "Future research will explore the integration of multi-modal generative models, such as ControlNet, which accept both image and text inputs to produce texture maps with specified characteristics. This advancement could significantly refine the material selection process, allowing designers to input visual references and receive tailored outputs that closely match their vision."
+
+6. Technological Implications (Section 8 Discussion):
+   Original:
+   "We recommend fine-tuning the module on reliable sources or having it mediate human feedback instead as areas for improvement and future research."
+
+   Revised:
+   "The technological implications of PractiMat extend beyond interior design, serving as a blueprint for the development of AI-assisted tools in other specialized domains. By fine-tuning AI modules with reliable sources and facilitating the mediation of human feedback, we can create intelligent systems that not only support but also enhance human expertise."
+
+These revisions aim to address your supervisor's feedback by emphasizing the novelty of PractiMat, its specialized application in interior design, and the broader implications of AI integration in professional domains.
