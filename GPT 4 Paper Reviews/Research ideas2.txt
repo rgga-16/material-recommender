@@ -1,0 +1,29 @@
+Idea 1: Integration of a Multimodal Generative AI for Texture and Object Suggestions
+
+Given the aforementioned challenge regarding the input and output of visual representation, where designers found difficulty in writing optimal prompts and visualizing how texture maps would look on objects, integrating multimodal generative AI capable of understanding text and visual context may significantly benefit the design process. With tools such as LLAVA and GPT-4 Vision that can consider images in addition to text, designers could input reference images and receive suggestions that are more visually aligned with their intentions.
+
+Justification: Considering the feedback provided by designers in the user studies, there's a clear desire for a system that can better understand and respond to visual context. The idea was not explicitly mentioned in the paper, but it’s a natural extension of the existing approach to better address the visual-oriented nature of designers. Responding to visual prompts more effectively would increase the accuracy of texture maps and material suggestions, likely improving user satisfaction and system usability.
+
+Idea 2: Creation of a Comprehensive Material Database with Environmental and Economic Impact Data
+
+To tackle challenges related to material sourcing, costs, and sustainability, creating a comprehensive database to support the generative AI's ability to provide context-aware material recommendations is crucial. This database would include detailed information about the lifecycle of different materials, including their environmental impact, cost variations across regions, and availability, which would be integrated into the system to provide more specific suggestions.
+
+Justification: This idea stems from challenges highlighted in the usability studies where the suitability of material suggestions was often broad and lacked specificity. Integrating such a database directly addresses the gap in generative AI's knowledge regarding specific material criteria and could greatly improve the system's function as a practical design assistant.
+
+Idea 3: Development of a Generative AI Feedback Mediator for Client and Team Feedback
+
+The feedback module in PractiMat was not widely used, mainly due to its credibility and the unfamiliarity of receiving feedback from AI. To circumvent this, developing an AI feedback mediator that can consolidate and structure feedback from various human sources (clients, design teammates, or even focus groups) could provide a more trusted and human-centric way of integrating feedback into the design workflow.
+
+Justification: This idea, although not directly mentioned in the paper, is inferred from the feedback regarding the AI feedback module. As designers prefer human feedback, an AI system that can capture and organize such feedback efficiently would be valued. This allows the designers to continue benefiting from the human touch while leveraging AI to enhance the process.
+
+Idea 4: Local Execution of Generative AI Models to Enhance Speed and Reliability
+
+Considering the slowness of AI modules in generating texture maps and providing suggestions, optimizing the AI models for local execution could enhance the system's speed and reliability. This might involve edge computing solutions or powerful local servers that designers can access in their studios or offices, ensuring the generative AI's responsiveness without being too reliant on internet-based services.
+
+Justification: Slow and unreliable system performance was a notable issue during the user studies, contributing to incomplete tasks and overall user frustration. Localizing AI computations would reduce dependency on internet connectivity and potentially increase the models' speed, addressing these challenges effectively.
+
+Idea 5: AI-Assisted 3D Modeling and Lighting Suggestion Tools
+
+Designers expressed the need to adjust 3D objects and lighting to assess the interior layout better and to see how materials interact with the lighting conditions. Developing AI-assisted tools for suggesting 3D models and lighting setups in real-time within the 3D environment could extend the usefulness of PractiMat. AI could evaluate the current scene and offer suggestions for furnishings and light fixtures compatible with the design aesthetic and functional requirements.
+
+Justification: This idea is derived from the feedback provided by designers, who missed the ability to adjust the 3D scene actively. By integrating AI that can understand not only textures but the spatial composition and lighting dynamics of an interior space, designers would benefit from a more holistic and dynamic design support system.

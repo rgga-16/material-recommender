@@ -584,7 +584,7 @@
         {/if}
   </div>
 
-  <div class="w3-bar w3-grey tabs" style="width:100%;">
+  <div class="w3-bar w3-grey tabs" >
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='adjust-finish'} on:click={()=>switchTab('adjust-finish')} id="adjust-finish-btn"> 
       {japanese ? "素材の仕上げ" : "Material Finish"} 
     </button>
@@ -607,7 +607,7 @@
     {/if}
   </div>
 
-  <div class="card container tab-content" class:active={activeTab==='adjust-finish'}>
+  <div class="card tab-content" class:active={activeTab==='adjust-finish'}>
     <h5><b> {japanese ? "素材仕上げの調整" : "Adjust Material Finish"}</b></h5> 
     <div class="control">
       <img src="./logos/opacity-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="opacity">
@@ -645,19 +645,13 @@
         <RangeSlider on:change={() => updateNormalScale(normalScale[0])} bind:values={normalScale} min={0} max={10} step={0.1} float={true}/> 
       </div>
     </div>
-    <!-- <div class="control">
-      <span> {japanese ? "高さマップの強度:" : "Height Scale:"} </span>
-      <div style="width:100%; align-items:inherit; justify-content:inherit;" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("displacementScale", displacementScale[0], 0.00)}}> 
-        <RangeSlider on:change={() => updateDisplacementScale(displacementScale[0])} bind:values={displacementScale} min={0} max={0.5} step={0.01} float={true}/> 
-      </div>
-    </div> -->
   </div>
 
-  <div class="card container tab-content " class:active={activeTab==='adjust-texture-map'}>
+  <div class="card tab-content " class:active={activeTab==='adjust-texture-map'}>
     <h5><b> {japanese ? "テクスチャマップを調整する": "Adjust Texture Map"} </b></h5>
-    <div class="control">
+    <div class="control" style = "align-items:flex-start;  height:100%;">
 
-      <div class="card container" style="height: auto;">
+      <div class="card ">
         <div class="control"> 
           <img src="./logos/move-alt-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="translate">
           <h6> <b> {japanese ? "平行移動": "Translation"} </b></h6>
@@ -672,7 +666,7 @@
         </div>
       </div>
 
-      <div class="card container" style="height: auto;">
+      <div class="card ">
         <div class="control"> 
           <img src="./logos/rotate-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="rotate">
           <h6> <b> {japanese ? "回転": "Rotation"} </b></h6>
@@ -683,7 +677,7 @@
         </div>
       </div>
 
-      <div class="card container" style="height: auto;">
+      <div class="card ">
         <div class="control"> 
           <img src="./logos/scale-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="scale">
           <h6> <b> {japanese ? "スケール": "Scale"}  </b></h6>
@@ -715,7 +709,7 @@
     </div>
   </div>
 
-  <div class="card container tab-content" class:active={activeTab==='adjust-color'}>
+  <div class="card tab-content" class:active={activeTab==='adjust-color'}>
     <h5> <b> {japanese ? "カラー仕上げの調整": "Adjust Color Finish"}  </b></h5>
 
     <div class="control container" id="color-palette-header">
@@ -776,7 +770,7 @@
     {/if}
   </div>
 
-  <div class="card container tab-content" class:active={activeTab==='attached-parts'}>
+  <div class="card tab-content" class:active={activeTab==='attached-parts'}>
     {#if parents.length > 0}
       <h5> <b> {japanese ? "付属部品" : "Attached Parts"} </b></h5>
       {#each parents as p}
@@ -794,7 +788,7 @@
   </div>
 
   {#if get(use_chatgpt)}
-    <div class="card container tab-content" class:active={activeTab==='view-feedback'} style="flex-wrap:wrap;">
+    <div class="card tab-content" class:active={activeTab==='view-feedback'} style="flex-wrap:wrap;">
       <h5> <b> {japanese ?  "フィードバック" : "Feedback"}</b></h5>
         {#if formatted_feedback || japanese_formatted_feedback}
           <SvelteMarkdown source={intro_text} />
@@ -812,7 +806,10 @@
 
           {#each Object.keys(formatted_feedback) as aspect}
             <div class="card container tab-content" class:active={activeAspect===aspect}>
-              <SvelteMarkdown source={japanese ? japanese_formatted_feedback[aspect]['feedback'] : formatted_feedback[aspect]['feedback']} />
+              <p>
+                {japanese ? japanese_formatted_feedback[aspect]['feedback'] : formatted_feedback[aspect]['feedback']}
+              </p>
+              <!-- <SvelteMarkdown source={japanese ? japanese_formatted_feedback[aspect]['feedback'] : formatted_feedback[aspect]['feedback']} /> -->
               
               <div class="card container">
                 <h6> <b> <u>{japanese ? "ご提案": "Suggestions" }</u>  </b></h6>

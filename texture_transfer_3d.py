@@ -4,7 +4,10 @@ torch.cuda.empty_cache()
 from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 import time, os
 import openai
-openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+ #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
 from utils import image
 from PIL import Image 
 
@@ -26,15 +29,13 @@ def text2texture_similar(texture_str, img_path,n=4, gen_imsize=256):
     images = []
     for _ in range(n):
         try: 
-            response = openai.Image.create_variation(
-                image=open(img_path, 'rb'), #BUG: TypeError: Object of type BufferedReader is not JSON serializable
-                n=1,
-                # size=f"{gen_imsize}x{gen_imsize}",
-                size=f"{256}x{256}",
-                response_format="b64_json"
-            )
-            image_b64 = response['data'][0]['b64_json']
-        except openai.error.OpenAIError as e:
+            response = client.images.generate(image=open(img_path, 'rb'), #BUG: TypeError: Object of type BufferedReader is not JSON serializable
+            n=1,
+            # size=f"{gen_imsize}x{gen_imsize}",
+            size=f"{256}x{256}",
+            response_format="b64_json")
+            image_b64 = response.data[0].b64_json
+        except openai.OpenAIError as e:
             print(e.http_status)
             print(e.error)
             blank_img = Image.new('RGB',(256,256),color='black')
@@ -55,40 +56,23 @@ class DALLE2():
         images_b64 = []
         images = []
 
-        # try: 
-        #     response = openai.Image.create(
-        #         prompt=texture_str,
-        #         n=n,
-        #         size=f"{256}x{256}",
-        #         response_format="b64_json"
-        #     )
-        #     images_b64 = response['data']
-        #     for image_b64 in images_b64:
-        #         images.append(image.b64_2_img(image_b64['b64_json']).convert('RGB'))
-        #         images_b64.append(image_b64)
-        # except openai.error.OpenAIError as e:
-        #     print(e.http_status)
-        #     print(e.error)
-        #     blank_img = Image.new('RGB',(256,256),color='black')
-        #     image_b64 = image.im_2_b64(blank_img)  
-        #     images.append(image.b64_2_img(image_b64).convert('RGB'))
-        #     images_b64.append(image_b64)
-
-
         for _ in range(n):
-            try: 
-                response = openai.Image.create(
-                    prompt=texture_str,
-                    n=1,
-                    size=f"{256}x{256}",
-                    response_format="b64_json"
-                )
-                image_b64 = response['data'][0]['b64_json']
-            except openai.error.OpenAIError as e:
-                print(e.http_status)
-                print(e.error)
-                blank_img = Image.new('RGB',(256,256),color='black')
-                image_b64 = image.im_2_b64(blank_img)  
+            # try: 
+            response = client.images.generate(
+                model="dall-e-3",
+                style='natural',
+                prompt=texture_str,
+                n=1,
+                size=f"{1024}x{1024}",
+                quality="standard",
+                response_format="b64_json"
+            )
+            image_b64 = response.data[0].b64_json #BUG: TypeError: 'ImagesResponse' object is not subscriptable
+            # except openai.error.OpenAIError as e:
+            #     print(e.http_status)
+            #     print(e.error)
+            #     blank_img = Image.new('RGB',(256,256),color='black')
+            #     image_b64 = image.im_2_b64(blank_img)  
             im = image.b64_2_img(image_b64).convert('RGB')
             images.append(im)
             images_b64.append(image_b64)
