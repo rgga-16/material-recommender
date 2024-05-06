@@ -1,0 +1,23 @@
+To convert the section "Qualitative Feedback from Design Professionals and Students" into a concise subsubsection under "User Study #2: Exploratory Study with Design Professionals and Students," you should summarize the key findings and insights while eliminating any redundant information or detailed anecdotes that do not contribute to the overall understanding of the system's effectiveness and user experience.
+
+Here's an example of how you might condense the section:
+
+---
+
+### User Study #2: Exploratory Study with Design Professionals and Students
+
+#### Qualitative Feedback
+
+Design professionals and students provided valuable insights into the use of PractiMat. The feedback highlighted the system's ability to facilitate material exploration and search, with the generative AI modules aiding in the discovery of new materials and the suggestion chatbot being particularly useful for querying based on specific criteria such as cost or trends.
+
+Participants appreciated the accuracy and context-awareness of the chatbot's suggestions, which were aligned with the design briefs. This feature was seen as helpful, especially when dealing with lengthy briefs that could be cumbersome to read in detail. The explanations accompanying the suggested materials were informative and aided in decision-making, especially for those less familiar with available materials and their climate-related suitability.
+
+However, challenges were also noted. A lack of visual representation in the input and output of the material generator and chatbot sometimes made it difficult for designers to visualize the final appearance of materials on their intended 3D objects. The feedback module was underutilized, with designers expressing concerns about its credibility and relevance, as well as a preference for feedback from human clients.
+
+Issues with the precision and speed of the chatbot and generator were mentioned, with some participants unable to complete their tasks within the allotted time. Additionally, the lack of essential features commonly found in 3D modeling software, such as a materials library and the ability to adjust lighting, was a limitation that affected the overall user experience.
+
+In conclusion, while PractiMat's generative AI components were found to be helpful in suggesting materials and facilitating exploration, improvements are needed to enhance visual representation, credibility of feedback, and system performance. Future work should consider integrating more specific material information and expanding the system's capabilities to include additional design features.
+
+---
+
+This condensed version captures the essence of the feedback from the design professionals and students, focusing on the benefits and challenges of using PractiMat. It provides a clear and concise summary that fits within the larger context of the "User Study #2" subsection.
