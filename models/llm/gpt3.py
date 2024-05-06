@@ -1,13 +1,13 @@
 
-import os, copy
+import copy
 import openai, tiktoken
-openai.api_key=os.getenv("OPENAI_API_KEY") #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
+from openai import OpenAI
+ #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
 import re , ast, json, time
-import yake 
 from datetime import datetime
+from langchain_community.tools.ddg_search.tool import DuckDuckGoSearchResults
 
-
-from langchain.tools import DuckDuckGoSearchResults
+client = OpenAI()
 
 def remove_https(s):
     return s.replace('https://', '')
@@ -108,9 +108,13 @@ message_history = []
 temperature=1.0
 # model_name = "gpt-3.5-turbo"
 # max_tokens = 4097
-model_name = "gpt-3.5-turbo-16k"
+# model_name = "gpt-3.5-turbo-16k"
+
 # model_name= "gpt-4"
-max_tokens=16383
+# max_tokens=16383
+
+model_name = "gpt-4-1106-preview"
+max_tokens=100000
 # max_tokens = 8096
 encoding = tiktoken.get_encoding("cl100k_base")
 # encoding = tiktoken.encoding_for_model(model_name)
@@ -155,9 +159,13 @@ def check_and_trim_message_history():
     global max_tokens
     global model_name 
 
-    if num_tokens_from_messages(message_history, model=model_name) > max_tokens:
+    model_name_ = model_name
+    if(model_name=="gpt-4-1106-preview"):
+        model_name_="gpt-4"
+
+    if num_tokens_from_messages(message_history, model=model_name_) > max_tokens:
         print("Current number of tokens in message history exceeds the maximum number of tokens allowed. Trimming message history.")
-        while num_tokens_from_messages(message_history, model=model_name) > max_tokens - offset:
+        while num_tokens_from_messages(message_history, model=model_name_) > max_tokens - offset:
             del message_history[1] # Delete the 2nd message in the history. The first message is always the system prompt, which should not be deleted.
             
 
@@ -194,32 +202,8 @@ def internet_search(query,role="user",n_results=10):
         If the provided information from the internet results refers to multiple subjects with the same name, write separate answers for each subject:
     '''
     results_str= search.run(query)
-
-    print("Results string before")
-    print(results_str)
-
-    if u'\u2014' in results_str:
-        print("Found u'\\u2014' in the string.")
-        results_str = results_str.replace(u'\u2014', '-')
-
-    results = string_to_dict(results_str)
-
-    # results_str = remove_after_paren(results_str)
-
-    # results_str = remove_https(results_str)
-
-    # # results_str = correct_string(results_str)
-
-    # # Replace brackets by curly braces
-    # results_str = re.sub(r"\[(.*?)\]", r"{\1}", results_str)
-
-    # # Adding quotes around specific keys and their values
-    # results_str = re.sub(r'(\{|, )((snippet|title|link)): ', r'\1"\2": ', results_str)
-    # results_str = re.sub(r': (.*?)(?=(, "snippet":|, "title":|, "link":|\}$))', r': "\1"', results_str)
-
-    # print("Results string after")
-    # print(results_str)
-    # results = ast.literal_eval(f"[{results_str}]")
+    results_str = results_str.replace('\u2026', '...')
+    results = ast.literal_eval(results_str)
     for i in range(len(results)):
         r = results[i]
         prompt += f'''\n
@@ -247,12 +231,12 @@ def translate(text,target_lang, source_lang,role="user"):
     history.append({"role":role, "content":prompt})
     
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=history,
             temperature=0.1
         )
-        response_msg = response["choices"][0]["message"]["content"]
+        response_msg = response.choices[0].message.content
     except Exception as e:
         response_msg = f"Translation Error"
 
@@ -264,13 +248,13 @@ def query(prompt,role="user", temp=temperature):
     check_and_trim_message_history()
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model=model_name,
             messages=message_history,
             temperature=temp
         )
-        response_msg = response["choices"][0]["message"]["content"]
-        message_history.append({"role":response["choices"][0]["message"]["role"], "content":response_msg})
+        response_msg = response.choices[0].message.content
+        message_history.append({"role":response.choices[0].message.role, "content":response_msg})
     except Exception as e:
         response_msg = f"Error: {e}"
     return response_msg
@@ -296,12 +280,12 @@ def suggest_finish_settings(finish_name, material_name, object_name, part_name, 
     global init_history
     init_history_clone = copy.deepcopy(init_history)
     init_history_clone.append({"role":"user", "content":prompt})
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=init_history_clone,
         temperature=0.2
     )
-    suggested_settings_str = response["choices"][0]["message"]["content"]
+    suggested_settings_str = response.choices[0].message.content
 
     # Remove text before and after the Python dict
     start_index = suggested_settings_str.find('{')
@@ -507,14 +491,14 @@ def brainstorm_prompt_keywords(material):
     global init_history
     init_history_clone = copy.deepcopy(init_history)
     init_history_clone.append({"role":"user", "content":texture_map_keywords_prompt})
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=init_history_clone,
         temperature=0.8
     )
 
     try: 
-        keywords = ast.literal_eval(response["choices"][0]["message"]["content"])
+        keywords = ast.literal_eval(response.choices[0].message.content)
     except SyntaxError as e:
         keywords = [["Error. Please try again."]]
         print(f"Sorry, please try again. We got the following error: {e}.")
@@ -527,24 +511,24 @@ def brainstorm_material_queries():
     init_history_clone = copy.deepcopy(init_history)
     init_history_clone.append({"role":"user", "content":materials_suggestion_prompt})
 
-    initial_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+    initial_response = client.chat.completions.create(
+        model=model_name,
         messages=init_history_clone,
-        temperature=0.7
+        temperature=1.0
     )
     
-    init_history_clone.append({"role":"assistant", "content":initial_response["choices"][0]["message"]["content"]})
+    init_history_clone.append({"role":"assistant", "content":initial_response.choices[0].message.content})
     python_list_prompt = "Now, return the brainstormed prompts as a Python list. Do not say anything else apart from the list."
     init_history_clone.append({"role":"user", "content":python_list_prompt})
 
-    python_list_response = openai.ChatCompletion.create(
+    python_list_response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=init_history_clone,
         temperature=0.0
     )
 
     try: 
-        prompts = ast.literal_eval(python_list_response["choices"][0]["message"]["content"])
+        prompts = ast.literal_eval(python_list_response.choices[0].message.content)
     except SyntaxError as e:
         prompts = ["(Error. Please try again.)"]
         print(f"Sorry, please try again. We got the following error: {e}.")
@@ -593,6 +577,7 @@ def provide_material_feedback2(material_name, object_name, part_name, use_intern
             internet_search_query = f'{aspect} of a {object_name} {part_name} made out of {material_name}'
             _, results = internet_search(internet_search_query,role="user",n_results=3)
             materials_internet_sources += f"**{aspect}**:"
+
             for r in results:
                 materials_internet_sources += f'''\n
                 NUMBER:{src_idx}
@@ -653,18 +638,18 @@ def provide_material_feedback2(material_name, object_name, part_name, use_intern
     '''
 
     material_feedback_prompt = material_feedback_prompt_head + materials_parts + material_feedback_task + materials_internet_sources + design_brief_context + material_feedback_format
-
+    print(material_feedback_prompt)
     global init_history
     init_history_clone = copy.deepcopy(init_history)
     init_history_clone.append({"role":"user", "content":material_feedback_prompt})
 
     
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model=feedback_model,
         messages=init_history_clone,
         temperature=0.1
     )
-    suggestions_dict_str = response["choices"][0]["message"]["content"]
+    suggestions_dict_str = response.choices[0].message.content
 
     # Remove text before and after the Python dict
     start_index = suggestions_dict_str.find('{')
@@ -687,311 +672,3 @@ def provide_material_feedback2(material_name, object_name, part_name, use_intern
     unformatted_response = ""
     intro_text = ""
     return intro_text, unformatted_response, suggestions_dict, references
-
-
-
-
-
-
-
-
-
-
-
-
-# DUMP (OLD CODE)
-# def feedback_on_assembly(object, child_part, child_material, parent_part, parent_material,n=3):
-#     recommendation_prompt = f'''
-#         What can be used to attach a {object} {child_part} made of {child_material} to a {object} {parent_part} made of {parent_material}? 
-#         Give {n} recommendations. For each recommendation, give your reason. Separate the recommendation and reason by a | . Return in bullet points.
-#     '''
-
-#     response = openai.Completion.create(
-#         model="text-davinci-003",
-#         prompt=recommendation_prompt,
-#         max_tokens=512,
-#         temperature=0.7,
-#     )
-
-#     items = parse_into_list(response["choices"][0]["text"])
-
-#     attachments = []
-#     for item in items:
-#         name = item.split("|")[0].strip()
-#         reason = item.split("|")[1].strip()
-#         keywords = extract_keywords(reason)
-#         attachments.append({"name":name,"reason":reason, "keywords":keywords})
-
-#     return attachments
-
-# def extract_keywords(text):
-#     return kw_extractor.extract_keywords(text)
-
-
-# def suggest_materials_by_style(style,material_type,n_materials=5,object=None,part=None):
-#     prompt=f'''
-#     What examples of {material_type} materials are of {style} interior design style?
-#     For each example, give your reason. Separate the example and reason by a | . Return in bullet points.
-#     '''
-
-#     # Using ChatGPT
-#     response = openai.ChatCompletion.create(
-#         model="gpt-3.5-turbo",
-#         messages=[{"role":"user", "content":prompt}],
-#         max_tokens=512,
-#         temperature=0.7,
-#     )
-#     items = parse_into_list(response["choices"][0]["text"])
-#     materials = []
-#     for item in items:
-#         name = item.split("|")[0].strip()
-#         reason = item.split("|")[1].strip()
-#         keywords = extract_keywords(reason)
-#         materials.append({"name":name,"reason":reason, "keywords":keywords})
-#     return materials
-
-# def suggest_color_by_style(style,n_themes=5):
-#     prompt=f'''
-#     What are colors that are of {style} interior design style? Return {n_themes} hex color themes.
-    
-#     Don't say anything else apart from the hex codes and theme name. Return them as a dictionary.
-#     '''
-
-#     # Using ChatGPT
-#     response = openai.ChatCompletion.create(
-#         model="gpt-3.5-turbo",
-#         messages=[{"role":"user", "content":prompt}],
-#     )
-#     response_msg = response["choices"][0]["message"]["content"]
-
-#     color_palettes = ast.literal_eval(response_msg)
-
-#     return color_palettes
-
-# def suggest_materials(prompt,role="user", use_internet=True, design_brief=None):
-#     start_time= time.time()
-#     refined_prompt = f"{prompt}"
-#     if use_internet:
-#         refined_prompt,_ = internet_search(refined_prompt,role)
-#     initial_response = query(refined_prompt,role)
-#     intro_text = initial_response.split('\n')[0].strip()
-
-#     if design_brief:
-#         context_aware_prompt = f''' 
-#         Now, I want you to answer again but consider the following design brief for context: 
-#         ==========================
-#         {design_brief}.
-#         ==========================
-#         Some parts of the design brief may be relevant to the question or instruction, while others may not be relevant.
-#         '''
-
-#         if use_internet:
-#             context_aware_prompt += '''
-#             You may refer to the sources retrieved from the internet in the previous message.
-#             Make sure to cite results using [[NUMBER](URL)] notation after the reference.
-#             Make sure that you answer the question or fulfill the instruction by both using the sources from the internet and also in the context of the design brief.
-#             '''
-#         else: 
-#             context_aware_prompt += '''
-#             Make sure that you answer the question or fulfill the instruction in the context of the design brief.
-#             '''
-#         context_aware_response = query(context_aware_prompt,role)
-#         intro_text = context_aware_response.split('\n')[0].strip()
-
-#     if use_internet: 
-#         python_dict_prompt = f'''
-#             Now, return the suggested materials and their detailed reasons from the previous response as a Python dictionary. 
-#             The keys are the names of the suggested materials, and the values are the detailed reasons. The detailed reasons should be written using Markdown.
-#             Make sure the reasons are the same as the ones in the previous response, and maintain their reference citations.
-#             Do not say anything else apart from the dictionary.
-#         '''
-#     else: 
-#         python_dict_prompt= '''
-#         Now, return the suggested materials and their detailed reasons as a Python dictionary. 
-#         The keys are the names of the suggested materials, and the values are the detailed reasons. The detailed reasons should be written using Markdown.
-#         Make sure the reasons are the same as the ones in the previous response.
-#         Do not say anything else apart from the dictionary.'''
-#     python_dict_response = query(python_dict_prompt,role).strip()
-#     end_time = time.time()
-#     print(f"Time elapsed: {end_time-start_time} seconds.")
-
-#     # Remove text before and after the Python list
-#     start_index = python_dict_response.find('{')
-#     if start_index>0:
-#         print("Removing text before the Python list.")
-#         python_dict_response = python_dict_response[start_index:].strip()
-#     end_index = python_dict_response.rfind('}')
-#     if end_index<len(python_dict_response)-1:
-#         print("Removing text after the Python list.")
-#         python_dict_response = python_dict_response[:end_index+1].strip()
-
-#     python_dict_response = python_dict_response.strip()
-
-#     try:
-#         suggestions = ast.literal_eval(python_dict_response)
-#     except SyntaxError as e:
-#         intro_text = f"Sorry, please try again. We got the following error: {e}."
-#         suggestions = {}
-#     return intro_text, suggestions
-# '''
-# attached_parts: list of tuples (object_name, part_name, material_name)
-# '''
-# def provide_material_feedback(material_name, object_name, part_name, use_internet=False, attached_parts=None, design_brief=None):
-    
-#     feedback_model = "gpt-3.5-turbo-16k"
-#     aspects = ["durability", "maintenance", "sustainability", "assembly", "cost", "availability"]
-#     if(object_name==part_name):
-#         part_name=""
-#     material_feedback_prompt_head = f"I have a {object_name} {part_name} made out of {material_name}. "
-
-#     materials_context=""
-#     if attached_parts is not None and len(attached_parts)>0:
-#         materials_context = f'''Here is additional information on other parts it is attached to for context: \n'''
-#         for attached_part in attached_parts:
-#             parent = attached_part[0]
-#             part=attached_part[1]
-#             if parent==part:
-#                 materials_context += f'''It is attached to a {attached_part[0]} made out of {attached_part[2]}. '''
-#             else:
-#                 materials_context += f'''It is attached to a {attached_part[0]} {attached_part[1]} made out of {attached_part[2]}. '''
-
-#     material_feedback_prompt_tail = f'''\nPlease provide feedback on the material used based on the following aspects: {", ".join(aspects[:-1])} {", and " + aspects[-1]}. 
-#     For each aspect, if you gave critical feedback on that aspect, please provide up to 5 suggestions 
-#     (e.g. alternative materials, adding material finishes, assembly attachments) to improve the aspect. 
-#     Make sure that you also consider the object the material is used on.
-#     '''
-    
-#     if use_internet:
-#         results = []
-#         material_feedback_prompt_tail += f'''\n 
-#         Here are sources from the internet that you can refer to and cite when providing feedback: \n
-#         '''
-#         src_idx=1
-#         references = []
-#         for i in range(len(aspects)):
-#             aspect = aspects[i]
-#             internet_search_query = f'{aspect} of a {object_name} {part_name} made out of {material_name}'
-#             _, results = internet_search(internet_search_query,role="user",n_results=5)
-#             material_feedback_prompt_tail += f"**{aspect}**:"
-#             for r in results:
-#                 material_feedback_prompt_tail += f'''\n
-#                 NUMBER:{src_idx}
-#                 URL:{r['link']}
-#                 TITLE:{r['title']}
-#                 CONTENT:{r['snippet']}
-#                 '''
-#                 references.append({
-#                     "number":src_idx,
-#                     "url":r['link'],
-#                     "title":r['title'],
-#                 })
-#                 src_idx+=1
-#         material_feedback_prompt_tail += f'''
-#         Make sure to cite results using [[NUMBER](URL)] notation after the reference. 
-#         If the provided information from the internet results refers to multiple subjects with the same name, write separate answers for each subject.
-#         '''
-
-#     material_feedback_prompt = material_feedback_prompt_head + materials_context + material_feedback_prompt_tail +  "\nRespond using Markdown."
-#     # print(material_feedback_prompt)
-#     global init_history
-#     init_history_clone = copy.deepcopy(init_history)
-#     init_history_clone.append({"role":"user", "content":material_feedback_prompt})
-
-    
-#     response = openai.ChatCompletion.create(
-#         model=feedback_model,
-#         messages=init_history_clone,
-#         temperature=0.1
-#     )
-
-#     material_feedback = response["choices"][0]["message"]["content"]
-#     init_history_clone.append({"role":"assistant", "content":material_feedback})
-#     intro_text = material_feedback.split('\n')[0].strip()
-
-#     if design_brief: 
-#         context_aware_prompt = f''' 
-#         Now, I want you to answer again but consider the following design brief for context:
-#         ==========================
-#         {design_brief}.
-#         ==========================
-#         Some parts of the design brief may be relevant to the question or instruction, while others may not be relevant.
-#         '''
-#         if use_internet:
-#             context_aware_prompt += '''
-#             You may refer to the sources retrieved from the internet in the previous message.
-#             Make sure to cite results using [[NUMBER](URL)] notation after the reference.
-#             Make sure that you answer the question or fulfill the instruction by both using the sources from the internet and also in the context of the design brief.
-#             '''
-#         else: 
-#             context_aware_prompt += '''
-#             Make sure that you answer the question or fulfill the instruction in the context of the design brief.
-#             '''
-#         init_history_clone.append({"role":"user", "content":context_aware_prompt})
-        
-#         context_aware_feedback_start_time=time.time()
-#         context_aware_response = openai.ChatCompletion.create(
-#             model=feedback_model,
-#             messages=init_history_clone,
-#             temperature=0.7
-#         )
-#         context_aware_feedback_end_time=time.time()
-#         context_aware_feedback_time = context_aware_feedback_end_time-context_aware_feedback_start_time
-#         print(f"Context-aware feedback time: {context_aware_feedback_time}")
-#         context_aware_feedback = context_aware_response["choices"][0]["message"]["content"]
-#         init_history_clone.append({"role":"assistant", "content":context_aware_feedback})
-#         intro_text = context_aware_feedback.split('\n')[0].strip()
-
-
-#     #########################################
-#     follow_up_prompt = f'''
-#     Based on the feedback, return a Python dictionary. Each key should be an aspect. The values of each aspect are "feedback" and "suggestions".
-#     "feedback" is the key to the feedback you provided for that aspect. Make sure that the feedback is in Markdown format and it is exactly the same as the feedback you provided for that aspect in the previous response.
-#     "suggestions" is a list of lists where each list contains the name of the suggested item and item type.
-#     The item type must either be one of the following: material, finish, attachment, or other.
-#     Here is a template:
-#     '''
-
-#     dict_template2 = {}
-#     for i in range(len(aspects)):
-#         aspect = aspects[i]
-#         dict_template2[aspect] = {
-#             "feedback": f"{aspect} feedback",
-#             "suggestions": [["item1","item_type"], ["item2","item_type"]]
-#         }
-
-#     dict_template_str = json.dumps(dict_template2, indent=4)
-#     follow_up_prompt += dict_template_str
-#     init_history_clone.append({"role":"user", "content":follow_up_prompt})
-#     #########################################
-
-#     suggestions_dict_response_start_time=time.time()
-#     suggestions_dict_response = openai.ChatCompletion.create(
-#         model=feedback_model,
-#         messages=init_history_clone,
-#         temperature=0.0
-#     )
-#     suggestions_dict_response_end_time=time.time()
-#     suggestions_dict_response_time = suggestions_dict_response_end_time-suggestions_dict_response_start_time
-#     print(f"Suggestions dict response time: {suggestions_dict_response_time}")
-#     suggestions_dict_str= suggestions_dict_response["choices"][0]["message"]["content"]
-
-#     # Remove text before and after the Python dict
-#     start_index = suggestions_dict_str.find('{')
-#     if start_index>0:
-#         print("Removing text before the Python dictionary.")
-#         suggestions_dict_str = suggestions_dict_str[start_index:].strip()
-#     end_index = suggestions_dict_str.rfind('}')
-#     if end_index<len(suggestions_dict_str)-1:
-#         print("Removing text after the Python dictionary.")
-#         suggestions_dict_str = suggestions_dict_str[:end_index+1].strip()
-
-#     suggestions_dict_str = suggestions_dict_str.strip()
-
-#     try:
-#         suggestions_dict= ast.literal_eval(suggestions_dict_str)
-#     except SyntaxError as e:
-#         intro_text = f"Sorry, please try again. We got the following error: {e}."
-#         suggestions_dict = {}
-#     return intro_text, material_feedback, suggestions_dict, references
-
-

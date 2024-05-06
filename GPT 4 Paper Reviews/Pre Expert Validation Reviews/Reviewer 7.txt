@@ -1,0 +1,33 @@
+Summary of the Paper:
+The study presents a generative AI co-creative system using DALLE-2 and ChatGPT to assist interior designers with material selection by generating, suggesting, and giving feedback on material textures within 3D scenes. The system was evaluated in two user studies for usability, creativity support, and task load. Designers appreciated the suggestion chatbot for exploring materials and learning from suggestions but expressed issues with trust, speed, the precision of suggestions, and lack of visualization of texture maps in context.
+
+Strengths:
+1. The research targets the significant and practical area of material selection in interior design, with clear potential for industry impact.
+2. The adoption of cutting-edge generative AI technologies like DALLE-2 and ChatGPT brings novelty to the approach.
+3. The system's integration of multiple functionalities (generation, suggestion, feedback) aligns with the co-creative purpose and could enhance the design process.
+4. The inclusion of user studies with varied participants adds strength to the paper through practical evaluation.
+5. A thorough exploration of the problem context is evident from the formative interview study.
+
+Weaknesses:
+1. The research might be limited by its prototype nature and the controlled user study settings, which may not fully mimic real-world scenarios and workloads of professional designers.
+2. Trust and credibility issues with the feedback module indicate need improvement in system reliability.
+3. The limitations in interactivity and adjustability of 3D models during run-time may detract from the real-world applicability and natural workflow of a designer.
+4. The lack of quantitative data on the system's impact on the efficiency and quality of the design outputs is a significant absence.
+5. Reliance on online services (DALLE-2 and ChatGPT) for major functionalities raises questions regarding latency, downtime, and robustness.
+
+Originality:
+The integration of generative AI models to provide a contextual suggestion and feedback system within the interior design process demonstrates a novel approach.
+
+Significance:
+The system's ability to stimulate exploration and provide education aligns with the ongoing shift to AI-augmented design tools, signifying a step towards AI-assisted creative professions.
+
+Research Quality:
+The qualitative and quantitative data from user studies indicate solid research quality. However, the study could be enhanced by broadening the scope of the evaluation to include parameters like design outcomes, efficiency, and user satisfaction in terms of the final product.
+
+Summary of the Review:
+The paper presents an innovative system to support interior design material selection through generative AI, with a successful demonstration of use. While promising, the research faces issues with reliability, real-world integration, and lacks hard metrics on design efficiency and output quality.
+
+Recommendation:
+RRX - I can go with either Reject or Revise and Resubmit
+
+While the foundational idea is strong, the system requires significant refinement, particularly in credibility and practical workflow integration, before it's ready for conference acceptance. Robust user studies with more comprehensive measures of design impact and addressing the concerns relating to the professional applicability of AI tools are necessary. The paper would greatly benefit from additional rounds of design iteration and testing post-revisions.

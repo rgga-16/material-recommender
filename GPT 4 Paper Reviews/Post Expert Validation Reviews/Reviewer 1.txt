@@ -1,0 +1,37 @@
+**Summary of the Paper**
+
+The paper introduces PractiMat, a generative AI co-creative system designed to support interior designers in the material and texture map selection process by generating texture maps, suggesting context-aware material options, and providing feedback on materials. The system, which integrates DALL-E 2 and ChatGPT models, was evaluated through a formative study with professionals, a within-subjects study, and a user study involving professionals and students. The evaluations used the NASA-TLX, CSI, and SUS metrics and found that PractiMat's suggestion chatbot and feedback modules facilitated exploring and selecting practical materials based on a design brief.
+
+**Strengths**
+
+1. The premise of integrating generative AI models to assist a highly creative domain such as interior design is original and innovative.
+2. The work is situated in a real and pressing need within the interior design community, hence its potential impact on the practice.
+3. A comprehensive set of evaluations was conducted, including formative studies, a within-subjects user study, and a study with professional designers, providing robust insights into the system's usability and effectiveness.
+4. The paper is built upon extensive related research, providing a thorough understanding of the challenges and considerations in material selection for interior design.
+
+**Weaknesses**
+
+1. The paper's focus on the tool's implementation specifics and evaluation may have overshadowed a substantive theoretical contribution or clear articulation of design implications for future research.
+2. Expert validation showed only a slight agreement on some aspects, suggesting the suggestions offered by PractiMat may need better calibration for practical industry application.
+3. The system seems to lack some important capabilities expected in a 3D design environment, such as manipulating objects and adjusting lighting, which may limit its real-world application.
+4. The user studies, specifically with professional designers, involved a small sample size and may not generalize across the broader design community.
+
+**Originality**
+
+The paper presents original research with a novel application of AI in a design context, specifically in material and texture selection, which is a less explored area.
+
+**Significance**
+
+The potential impact of this system on the practice of interior design is significant, as it promises to streamline the material selection process and stimulate the exploration of material options.
+
+**Research Quality**
+
+The research methodology is sound, and the inclusion of different user studies lends credibility to the findings, but some aspects, such as the limited external validity and agreement in expert validation, could reduce the perceived robustness of the results.
+
+**Summary of Review**
+
+The paper demonstrates the novel use of AI in supporting interior designers with a system that could meaningfully impact the design process. However, certain usability issues and a gap in research regarding the theoretical contributions hold back the research. There is a need for refinement to ensure that the system's suggestions are industry-relevant and that the tool integrates well into existing design workflows. The research is supported by robust user studies, albeit with a scope for improvement in terms of sample size and diversity.
+
+**Recommendation: RRX - I can go with either Reject or Revise and Resubmit**
+
+Given the mixed findings, particularly regarding the system's applicability in professional settings and some critical usability concerns, the potential for a significant contribution is evident, but the paper is not yet ready for acceptance. The authors should consider substantial revisions to better align the system capabilities with professional practice needs, expand theoretical implications, and refine the evaluation study's external validity. The authors are encouraged to resubmit the revised manuscript for review.

@@ -20,27 +20,9 @@ texture_generator = DALLE2()
 # texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
 
 # fast_texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
-# quality_texture_generator = DALLE2()
-
 
 
 app = Flask(__name__, static_folder="./client/public")
-
-# DEEPL_AUTHKEY='2c0ea470-3cef-d714-4176-cde832a9b2f5:fx'
-# translator = deepl.Translator(DEEPL_AUTHKEY)
-# @app.route("/translate", methods=['POST'])
-# def translate():
-#     form_data = request.get_json()
-#     text = form_data["text"]
-#     target_lang = form_data["target_lang"]
-#     source_lang = form_data["source_lang"]
-
-#     result = translator.translate_text(text, source_lang=source_lang, target_lang=target_lang)
-
-#     if isinstance(result,list):
-#         print("translation is a list for some reason")
-#         print()
-#     return jsonify({"text":result.text})
 
 @app.route("/translate", methods=['POST'])
 def translate_gpt(): 
@@ -355,10 +337,8 @@ def generate_similar_textures():
         texture_filename = f"{texture_str}_similar_{i+1}.png"
         texture_filename = texture_filename.replace(" ","_")
         savepath = os.path.join(SERVER_IMDIR,texture_filename)
-
-        normal_path, height_path = generate_normal_and_heightmap(savepath)
-
         similar_textures[i].save(savepath)
+        normal_path, height_path = generate_normal_and_heightmap(savepath)
         texture_loadpaths.append({
             'rendering': None,
             'texture': savepath
@@ -716,13 +696,7 @@ use_chatgpt = True
 RENDER_MODE = 'CYCLES'
 '''
 if __name__ == "__main__":
-
     emptydir(SERVER_IMDIR,delete_dirs=True)
-    # emptydir(os.path.join(SERVER_IMDIR,"suggested"),delete_dirs=True)
-    # emptydir(os.path.join(SERVER_IMDIR,"feedbacked"),delete_dirs=True)
-    # emptydir(os.path.join(SERVER_IMDIR,"generated"),delete_dirs=True)
-    # emptydir(os.path.join(SERVER_IMDIR,"renderings","current"),delete_dirs=True)
-    # emptydir(os.path.join(SERVER_IMDIR,"renderings","saved"),delete_dirs=True)
 
     # Here, you should make the necessary dirs under client/public.
     makedir(SERVER_IMDIR)
