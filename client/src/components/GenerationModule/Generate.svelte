@@ -90,7 +90,6 @@
                     temp = dictToString(temp);
                     material = dictToString(material);
                 }
-
                 input += ", " + temp;
             }
         }
@@ -116,8 +115,6 @@
         const results_json = await results_response.json();
         generated_textures = results_json["results"];
         is_loading=false;
-
-        // generated_texture_name.set(input_material);
         generated_texture_name.set(material);
     }
 
@@ -168,8 +165,6 @@
         const results_json = await results_response.json();
         generated_textures = results_json["results"];
         is_loading=false;
-
-        // generated_texture_name.set(input_material);
         generated_texture_name.set(material);
 
         texture_history.append({
@@ -603,156 +598,6 @@
     .collapsed {
         display:none;
     }
-
-
-
-
-
 </style>
 
-<!-- OLD CODE BELOW-->
-<!--     
-<div class="page" class:hidden={current_page!=1} id="apply_textures">
-    <form on:submit|preventDefault={()=>apply_textures()}>
-        <h4> Apply textures to rendering</h4>
-        {#await objs_and_parts}
-            <pre>Loading object names and their part names</pre>
-        {:then data} 
-            <div class="w3-bar w3-grey tabs">
-                {#each Object.entries(data) as [obj_name, attribs],i}
-                    <button class="w3-bar-item w3-button tab-btn" class:active={active_obj_id===i} on:click|preventDefault={()=>switchObjectTab(i)}> {obj_name} </button>
-                {/each}
-            </div>
-
-            {#each Object.entries(data) as [obj_name,attribs], i}
-                <div class="tab-content" class:active={active_obj_id===i}>
-                    <div class="checkbox-group">
-                        {#each attribs.parts.names as part_name}
-                            <div class="checkbox-item">
-                                <label for="checkbox-{part_name}"> 
-                                    <input type="checkbox" bind:group={selected_object_parts} id="checkbox-{obj_name}-{part_name}" 
-                                    name="checkbox-group-{obj_name}" value="{obj_name}-{part_name}" >
-                                    {part_name} 
-                                </label>
-                            </div>
-                        {/each}
-                    </div>
-                </div>
-            {/each}
-        {/await}
-        <button> Apply textures </button>
-    </form>
-    {#if rendering_texture_pairs.length > 0}
-            <GeneratedRenderings pairs= {rendering_texture_pairs} bind:selected_index={selected_index} />
-            {#if selected_index!=undefined}
-                <p> Rendering #{selected_index} selected. </p>
-            {:else }
-                <p> Please select a rendering to proceed.</p>
-            {/if}
-    {:else if is_loading==true}
-        <div class="images-placeholder">
-            Generating texture maps...
-            <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
-        </div>
-    {:else}
-        <div class="images-placeholder">
-            <pre>No renderings generated yet.</pre>
-        </div>
-    {/if}
-    
-    <div class="carousel-nav-btns">
-        <button on:click|preventDefault={()=>prev_page()}> Back </button>
-        <button disabled={!(selected_index!=undefined && rendering_texture_pairs.length > 0)} on:click|preventDefault={()=>next_page()}> Next </button>
-    </div>
-</div>
-
-<div class="page" class:hidden={current_page!=2} id="refine_textures">
-    {#if selected_index!=undefined && rendering_texture_pairs.length > 0}
-        <RefineTexture bind:selected_index={selected_index} 
-        bind:rendering_texture_pairs={rendering_texture_pairs} 
-        objs_and_parts={objs_and_parts} 
-        bind:selected_objs_and_parts_dict={selected_obj_parts_dict}/>
-    {/if}
-    
-    <div class="carousel-nav-btns">
-        <button on:click|preventDefault={()=>prev_page()}> Back </button>
-        <button on:click|preventDefault={()=>apply_to_curr_rendering(selected_index)}> Apply to current rendering </button>
-    </div>
-</div> -->
-
-
-<!-- <script>
-    function next_page() {
-        current_page+=1;
-        if (current_page >= n_pages) {
-            current_page=n_pages-1;
-        }
-    }
-
-function prev_page() {
-    current_page-=1;
-    if(current_page < 0){
-        current_page=0;
-    }
-}
-
-async function apply_textures() {
-        rendering_texture_pairs=[];
-        selected_obj_parts_dict = {};
-        if (selected_object_parts.length <= 0) { alert("Please select at least 1 object part"); return }
-        is_loading=true;
-        for (let i = 0; i < selected_object_parts.length; i++) {
-            let splitted = selected_object_parts[i].split("-");
-            let obj = splitted[0];
-            let part = splitted[1];
-            if(obj in selected_obj_parts_dict) {
-                selected_obj_parts_dict[obj].push(part);
-            } else {
-                selected_obj_parts_dict[obj] = [part]; 
-            }
-        }
-        const results_response = await fetch("/apply_textures", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                "obj_parts_dict": selected_obj_parts_dict,
-                "selected_texturepaths":selected_textures,
-                "texture_string":input_material
-            }),
-        });
-        const results_json = await results_response.json();
-        rendering_texture_pairs = results_json["results"];
-        is_loading=false;
-    }
-
-    async function apply_to_curr_rendering(index) {
-        // console.log("apply to curr rendering");
-        if(index==undefined) {
-            alert("Please select one of the options"); 
-            return;
-        }
-        let selected_render_texture_pair = rendering_texture_pairs[index];
-        let selected_rendering_path = selected_render_texture_pair.rendering; 
-        let selected_texture_path = selected_render_texture_pair.texture; 
-        let selected_rendering_info = selected_render_texture_pair.info; 
-        let selected_info_path = selected_render_texture_pair.info_path;
-        const response = await fetch("/apply_to_current_rendering", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                "rendering_path": selected_rendering_path,
-                "texture_parts":selected_rendering_info,
-                "textureparts_path": selected_info_path
-            }),
-        });
-
-        const json = await response.json();
-        curr_rendering_path.set(json["rendering_path"]);
-        curr_texture_parts.set(await json["texture_parts"]);
-		curr_textureparts_path.set(await json["textureparts_path"]);
-
-        callUpdateCurrentRendering();
-    }
-
-</script> -->
 
