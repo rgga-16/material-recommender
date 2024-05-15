@@ -148,8 +148,6 @@
             }
         }
 
-        // console.log(suggested_color_palettes);
-
         let message_type = "suggested_color_palettes";
         messages.push({
             "message": intro_text,
@@ -325,7 +323,6 @@
 
     <div style="height: 200px; width: 100%; background-color:white; color:white;"> 
         <p>Lorem ipsum dolor sit amet. Eos libero voluptatem sit excepturi rerum vel porro odio est eligendi voluptatibus. At mollitia quam ea dolorum quae aut nemo ipsum est asperiores quibusdam est voluptatem accusamus. Ut eligendi porro quo autem illum non voluptatem rerum et nobis nisi est molestiae facilis quo magni perferendis.
-
         Ea Quis molestiae cum minus consequatur At velit internos et omnis neque qui nihil consequatur et acc</p>
     </div> <!-- Filler div  -->
 </div>
