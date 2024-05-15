@@ -5,7 +5,7 @@ from openai import OpenAI
  #If first time using this repo, set the environment variable "OPENAI_API_KEY", to your API key from OPENAI
 import re , ast, json, time
 from datetime import datetime
-from langchain_community.tools.ddg_search.tool import DuckDuckGoSearchResults
+from langchain_community.tools import DuckDuckGoSearchResults
 
 
 client = OpenAI()
