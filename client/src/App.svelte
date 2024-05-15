@@ -353,17 +353,6 @@
 		<!-- Left Section -->
 		<div class="actions-panel" class:collapsed={actions_panel_collapsed} style="width: {curr_actions_panel_width}%;">
 			
-			<!-- <button class="collapse-button"on:click={() => collapse_actions_panel()} 
-				style={actions_panel_collapsed ? "top: 90%; right: -185%; transform:rotate(270deg);" : "top: 50%; right: -10%; transform:rotate(270deg);"}
-			>
-				{#if actions_panel_collapsed}
-					{japanese ? "展開する" : "Expand"}
-					<img src="./logos/dropdown-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
-				{:else}
-					{japanese ? "折りたたむ": "Collapse"} 
-					<img src="./logos/dropup-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
-				{/if}
-			</button> -->
 			<ActionsPanel onCallUpdateCurrentRendering={updateCurrentRendering}/> 
 		</div>
 
@@ -374,16 +363,9 @@
 				
 				<div id="action-history-btns">
 					<button id="" on:click = {() => {undoAction()}} disabled={history.currentIndex <= -1} title={history.currentIndex <= -1 ? "" : "Undo " + history.actions[history.currentIndex]["name"]}> 
-						<!-- {#if history.currentIndex > -1}
-							Undo "{history.actions[history.currentIndex]["name"]}"
-						{/if} -->
-						
 						<img src="./logos/undo-small-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 					</button>
 					<button id="" on:click = {() => {redoAction()}} disabled={history.currentIndex >= history.actions.length - 1} > 
-						<!-- {#if history.currentIndex < history.actions.length - 1}
-							Redo "{history.actions[history.currentIndex+1]["name"]}"
-						{/if} -->
 						<img src="./logos/redo-small-svgrepo-com.svg" alt="" style="width: 20px; height: 20px;" />
 					</button>
 				</div>
