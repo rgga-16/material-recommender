@@ -29,11 +29,13 @@ def text2texture_similar(texture_str, img_path,n=4, gen_imsize=256):
     images = []
     for _ in range(n):
         try: 
-            response = client.images.generate(image=open(img_path, 'rb'), #BUG: TypeError: Object of type BufferedReader is not JSON serializable
-            n=1,
-            # size=f"{gen_imsize}x{gen_imsize}",
-            size=f"{256}x{256}",
-            response_format="b64_json")
+            response = client.images.create_variation(
+                image=open(img_path, 'rb'), 
+                model="dall-e-2",
+                n=1,
+                size=f"{512}x{512}",
+                response_format="b64_json"
+            )
             image_b64 = response.data[0].b64_json
         except openai.OpenAIError as e:
             print(e.http_status)
