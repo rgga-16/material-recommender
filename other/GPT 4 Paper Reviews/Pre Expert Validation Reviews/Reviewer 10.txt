@@ -1,0 +1,38 @@
+Title: A Co-creative System for Suitable Material Texturing in Interior Design using Generative AI
+
+Summary of the Paper:
+The paper describes the development and evaluation of a co-creative system for interior design material texturing, in which generative AI models, notably DALLE-2 and ChatGPT, assist interior designers. The system enables designers to generate texture maps, receive suggestions, and obtain feedback on selected materials. Evaluation was carried out through two user studies—one with non-design students to assess usability and another with professional designers and students to explore practical utility. The results highlighted the system's advantages in aiding material exploration and the learning process, as well as some challenges, such as slow response times, imprecision in generated material suggestions, and challenges incorporating visual context in AI suggestions.
+
+Strengths:
+
+1. Originality: The use of a combination of DALLE-2 and ChatGPT to assist in material selection in interior design appears to be novel, and the system addresses a specific gap in the literature regarding texture transfer and suitability assessment.
+
+2. Significance: The research targets a practical problem in interior design, attempting to streamline the material selection process, which has real-world relevance and can potentially benefit the industry.
+
+3. Research Quality: The paper includes a formative study, two user studies for evaluation, and a thoughtful discussion of results. The use of standardized measures (NASA-TLX, CSI, SUS) for assessment is commendable.
+
+Weaknesses:
+
+1. Research Depth: The focus on usability over the technical robustness raises concerns about the generalization of the findings outside of controlled user studies.
+
+2. Design Methodology: The absence of comparative analysis against current state-of-the-art systems or industry standards limits the contextual understanding of the system's effectiveness.
+
+3. Impact of AI Limitations: The paper's discussion does not sufficiently address how the inherent limitations of generative AI, such as DALLE-2 and ChatGPT, may affect the system's practical application and scalability.
+
+4. System Integration: The paper does not indicate how easily this system might be integrated with existing design tools and workflows, which affects the assessment of its adaptability in real-world settings.
+
+5. Generalization: The participant demographic is limited in terms of geography and occupational diversity, potentially limiting the applicability of findings across other cultures and professional experience levels.
+
+6. Technical Stability: Participants reported slow response times and system crashes, which suggest that the technical robustness of the system requires significant improvement before deployment.
+
+Originality:
+The integration of the two AI models in this novel context is an original contribution to the domain of human-AI co-creation systems in interior design, and the system's emphasis on the suitability of materials is a unique angle not fully explored in the existing literature.
+
+Significance:
+The system's attempt to balance aesthetic considerations with practical factors such as durability and cost is significant. It could potentially provide substantial support for designers in making more informed choices.
+
+Research Quality:
+While the system has been tested with user studies, it's unclear how well the results would translate to real-world usage. Significant improvements in terms of participant diversity, experimentation with real-world projects, and technical refinement would be necessary for the research to have a broader impact.
+
+Recommendation: RRX
+The research is an interesting step towards integrating generative AI into interior design processes, but given the current limitations in system robustness, user diversity, integration potential with existing tools, and detail on AI's limitations, it indicates the need for substantial revisions. The recommendation is thus between Revise and Resubmit (RR) and Reject (X), with a strong encouragement for the authors to address the mentioned issues and possibly augment the studies with further empirical data before resubmission.

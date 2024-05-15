@@ -1,0 +1,36 @@
+To integrate the "Qualitative Feedback from Design Professionals and Students" into the "Results" section effectively, you can follow these steps:
+
+1. **Combine Quantitative and Qualitative Findings**:
+Merge the narrative of the quantitative data from the "Results" section with the qualitative feedback to present a more cohesive analysis of user experiences and perceptions.
+
+2. **Summarize Key Themes**:
+Identify the main themes from the qualitative feedback that align with your quantitative results. Summarize these themes rather than presenting individual quotes unless a quote is particularly illustrative.
+
+3. **Align Feedback with Study Objectives**:
+Connect the feedback directly to the research questions and user study objectives to show how the qualitative data substantiates your quantitative findings.
+
+An example of how you might revise the "Results" section by incorporating qualitative feedback is presented below:
+
+---
+
+### Results
+
+**6.1 User Study #1: Chatbot and Feedback vs No Chatbot and Feedback**
+
+In the first user study, the integration of the suggestion chatbot and feedback module was found to significantly enhance the user experience. The average NASA-TLX score reduced in the treatment condition across all categories. Participants reported lower levels of frustration and found the system less temporally demanding. In terms of creativity support, the treatment condition outperformed the control condition, indicating that participants were able to explore a broader range of material options with the added features.
+
+Interviews supplemented these findings, revealing that participants particularly appreciated the ease of searching for materials with the generative AI tools. The suggestion chatbot was highlighted as beneficial for its user-friendly interface and informative material suggestions. Despite these positive aspects, challenges were also noted, including slow response times and occasional imprecision in texture map generation.
+
+**6.2 User Study #2: Exploratory Study with Design Professionals and Students**
+
+Quantitatively, the second user study with design professionals and students reported moderate levels of taskload with an average NASA-TLX score indicating a balanced workload. Creativity support indices were generally favorable, with high ratings in exploration and expressiveness demonstrating the system's capacity to stimulate design ideation effectively.
+
+Qualitative feedback from interviews demonstrated that the system facilitated easy material exploration, with the material generator enabling quick iterations of texture maps. The chatbot's context-aware suggestions based on the design brief were particularly lauded for their relevance and utility in the design process. Nonetheless, professionals voiced concerns over the absence of visual input capabilities and expressed hesitance regarding the trustworthiness of AI-provided feedback, longing for more established sources and human interaction.
+
+Overall, participants expressed a preference for the system when the chatbot and feedback module were available, confirming the value of co-creative AI tools in the material selection process. The primary challenges centered around system speed, precision of the generative tools, and a desire for additional features commonplace in traditional design software.
+
+The findings indicate that while the generative AI tools provided enhanced support for material exploration and decision-making, improvements in AI responsiveness and feature completeness could further strengthen the utility of the system in professional design contexts.
+
+---
+
+By organizing the "Results" section in this manner, you maintain a seamless flow from quantitative to qualitative data while grounding the discussion in your research objectives. The feedback is integrated in a way that complements rather than interrupts the presentation of your results.

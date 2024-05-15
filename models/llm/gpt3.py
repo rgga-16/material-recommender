@@ -7,8 +7,70 @@ import re , ast, json, time
 from datetime import datetime
 from langchain_community.tools import DuckDuckGoSearchResults
 
-
 client = OpenAI()
+
+def remove_https(s):
+    return s.replace('https://', '')
+
+def remove_after_paren(s):
+    # Use regex to remove the string in specified format
+    return  re.sub("\(.*\.\.\.,", ",", s)
+
+def remove_non_ascii(s):
+    return ''.join(i if ord(i) < 128 else ' ' for i in s)
+
+def correct_string(input_string):
+    # Replace specific string patterns
+    input_string = input_string.replace("[snippet:", "{\"snippet\":\"")
+    input_string = input_string.replace(", title:", ", \"title\":\"")
+    input_string = input_string.replace(", link:", ", \"link\":\"")
+    input_string = input_string.replace("],", "\"},")
+    input_string = input_string.replace("]", "\"}")
+    input_string = input_string.replace("[", "{")
+    
+    # Add quotes around the values
+    # input_string = ': "'.join(input_string.split(":"))
+    # input_string = '",'.join(input_string.split(","))
+    
+    # Return the corrected string only
+    return "[" + input_string + "]"
+
+def string_to_dict(s): 
+
+    # Split the string by "], [" to get the individual items
+    items = re.split(r'\], \[', s)
+
+    # For each item, replace the leading and trailing brackets
+    items = [re.sub(r'^\[', '', re.sub(r'\]$', '', item)) for item in items]
+
+    # For each item, split by ', '. We end up with a list of lists.
+    items = [re.split(r', ', item) for item in items]
+
+    # For each item, split by ': '. We end up with a list of lists of lists.
+    items = [[re.split(r': ', field, 1) for field in item] for item in items]
+
+    # Parse the list of lists of lists into a list of dictionaries
+    list_of_dicts = []
+    for i in range(len(items)):
+        item_list=items[i]
+        dictionary ={"snippet":"", "title":"", "link":""}
+        for k in range(len(item_list)):
+            item = item_list[k]
+            if(len(item)>1):
+                if(item[0]=="snippet"):
+                    snippet_value = item[1]
+                    for j in range(k,len(item_list)):
+                        item2 = item_list[j]
+                        if(len(item2)<2):
+                            snippet_value+=item2[0]
+                    dictionary["snippet"] = snippet_value
+                elif(item[0]=="title"):
+                    dictionary["title"] = item[1]
+                elif(item[0]=="link"):
+                    dictionary["link"] = item[1]
+        list_of_dicts.append(dictionary)
+
+    return list_of_dicts
 
 
 system_prompt = '''
@@ -127,6 +189,7 @@ def init_query():
 def internet_search(query,role="user",n_results=10):
     global message_history 
     search = DuckDuckGoSearchResults(num_results=n_results)
+    results=[]
     prompt = f'''
         Disregard any previous instructions.
         I will give you a question or an instruction. Your objective is to answer my question or fulfill my instruction.
@@ -512,7 +575,7 @@ def provide_material_feedback2(material_name, object_name, part_name, use_intern
         for i in range(len(aspects)):
             aspect = aspects[i]
             internet_search_query = f'{aspect} of a {object_name} {part_name} made out of {material_name}'
-            _, results = internet_search(internet_search_query,role="user",n_results=5)
+            _, results = internet_search(internet_search_query,role="user",n_results=3)
             materials_internet_sources += f"**{aspect}**:"
 
             for r in results:
