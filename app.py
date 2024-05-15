@@ -287,18 +287,6 @@ def brainstorm_material_queries():
     prompts = gpt3.brainstorm_material_queries()
     return jsonify({"prompts":prompts,"role":"assistant"})
 
-@app.route("/get_feedback_on_assembly", methods=['POST'])
-def feedback_on_assembly():
-    form_data = request.get_json()
-
-    object = form_data["object"]
-    child_part = form_data["child_part"]; child_material = form_data["child_material"]
-    parent_part = form_data["parent_part"]; parent_material = form_data["parent_material"]
-
-    recommended_attachments = gpt3.feedback_on_assembly(object,child_part,child_material,parent_part,parent_material)
-    return recommended_attachments
-
-
 
 @app.route("/get_image", methods=['POST'])
 def get_image(): 
