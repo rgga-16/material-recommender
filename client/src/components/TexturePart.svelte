@@ -563,7 +563,7 @@
             {japanese ? "素材仕上げ：": "Finish:"} <EditableTextbox bind:text={none} />
           </div>
         {/if}
-        {#if get(use_chatgpt)}
+        <!-- {#if get(use_chatgpt)}
           <div class="control">
             <button on:click|preventDefault={suggestSimilarMaterials}>{japanese ? "類似素材の提案" : "Suggest similar materials"} </button>
             <div style="border:1px black;">
@@ -575,7 +575,7 @@
             </div>
             
           </div>
-        {/if}
+        {/if} -->
   </div>
 
   <div class="w3-bar w3-grey tabs" >
@@ -592,13 +592,13 @@
       {japanese ? "カラー仕上げ" : "Color Finish"}
     </button>
 
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='attached-parts'} on:click={()=>switchTab('attached-parts')} id="attached-parts-btn"> 
+    <!-- <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='attached-parts'} on:click={()=>switchTab('attached-parts')} id="attached-parts-btn"> 
       {japanese ? "付属部品" : "Attached Parts"}
     </button>
 
     {#if get(use_chatgpt)}
       <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='view-feedback'} on:click={()=>switchTab('view-feedback')} id="view-feedback-btn"> {japanese ? "フィードバックを見る" : "View Feedback"} </button>
-    {/if}
+    {/if} -->
   </div>
 
   <div class="card tab-content" class:active={activeTab==='adjust-finish'}>
