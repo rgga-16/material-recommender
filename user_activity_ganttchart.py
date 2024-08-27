@@ -89,26 +89,111 @@ data = [
     {'User': 'P1', 'Start': 34.31, 'End': 34.31, 'Task': 'MG - Apply'}, ##rubber floor 5
     {'User': 'P1', 'Start': 34.32, 'End': 34.32, 'Task': 'MG - Apply'}, ##rubber floor 3
     {'User': 'P1', 'Start': 34.54, 'End': 34.44, 'Task': 'MG - Generate'}, ##Stone flooring
-    {'User': 'P1', 'Start': 35.32, 'End': 35.50, 'Task': 'Save'}
+    {'User': 'P1', 'Start': 35.32, 'End': 35.50, 'Task': 'Save'},
     {'User': 'P1', 'Start': 35.52, 'End': 35.52, 'Task': 'Click Object'}, ##floor
     {'User': 'P1', 'Start': 35.55, 'End': 35.55, 'Task': 'MG - Apply'}, ##stone flooring 6
     {'User': 'P1', 'Start': 36.00, 'End': 36.02, 'Task': 'Scale Texture'}, ##stone flooring 4
     {'User': 'P1', 'Start': 36.03, 'End': 37.26, 'Task': 'Render'}, 
-    {'User': 'P1', 'Start': 37.30, 'End': 37.47, 'Task': 'Save'}
+    {'User': 'P1', 'Start': 37.30, 'End': 37.47, 'Task': 'Save'},
 
-    {'User': 'P3', 'Start': 47.37, 'End': 47.57, 'Task': 'Click Object'},
-    {'User': 'P4', 'Start': 39.05, 'End': 39.30, 'Task': 'CB - Query Material'},
-    {'User': 'P4', 'Start': 39.30, 'End': 39.57, 'Task': 'MG - Generate'},
-    {'User': 'P4', 'Start': 39.57, 'End': 40.00, 'Task': 'MG - Apply'},
-    {'User': 'P5', 'Start': 28.24, 'End': 28.45, 'Task': 'Click Object'},
-    {'User': 'P6', 'Start': 42.07, 'End': 42.20, 'Task': 'CB - Query Material'},
-    {'User': 'P6', 'Start': 42.57, 'End': 43.07, 'Task': 'MG - Apply'},
-    {'User': 'P7', 'Start': 42.00, 'End': 42.20, 'Task': 'Click Object'},
-    {'User': 'P8', 'Start': 1.20, 'End': 1.40, 'Task': 'Click Object'},
-    {'User': 'P9', 'Start': 45.35, 'End': 45.57, 'Task': 'CB - Query Material'},
-    {'User': 'P10', 'Start': 5.00, 'End': 5.20, 'Task': 'Click Object'},
-    {'User': 'P11', 'Start': 5.40, 'End': 6.00, 'Task': 'CB - Query Material'},
-    {'User': 'P12', 'Start': 48.32, 'End': 49.00, 'Task': 'Click Object'},
+    {'User': 'P3', 'Start': 0.10, 'End': 0.10, 'Task': 'Click Object'}, #pool edge
+    {'User': 'P3', 'Start': 0.30, 'End': 1.06, 'Task': 'MG - Generate'}, #blue tiles
+    {'User': 'P3', 'Start': 1.20, 'End': 1.20, 'Task': 'MG - Apply'}, #blue tiles 2
+    {'User': 'P3', 'Start': 1.43, 'End': 1.47, 'Task': 'Set Roughness'}, #0.1
+    {'User': 'P3', 'Start': 1.53, 'End': 1.55, 'Task': 'Set Roughness'}, #0.2
+    {'User': 'P3', 'Start': 2.08, 'End': 2.08, 'Task': 'Click Object'}, #floor
+    {'User': 'P3', 'Start': 2.21, 'End': 2.55, 'Task': 'MG - Generate'}, #wood deck
+    {'User': 'P3', 'Start': 3.05, 'End': 3.05, 'Task': 'MG - Apply'}, #wood deck 3
+    {'User': 'P3', 'Start': 3.10, 'End': 3.10, 'Task': 'Click Object'}, #floor
+    {'User': 'P3', 'Start': 3.14, 'End': 3.33, 'Task': 'Scale Texture'}, #40
+    {'User': 'P3', 'Start': 3.48, 'End': 3.48, 'Task': 'Click Object'}, #2 lounge chair cushions
+    {'User': 'P3', 'Start': 3.55, 'End': 4.31, 'Task': 'MG - Generate'}, #rattan
+    {'User': 'P3', 'Start': 3.59, 'End': 4.01, 'Task': 'Click Object'}, #2 lounge chair cushions
+    {'User': 'P3', 'Start': 4.45, 'End': 4.45, 'Task': 'MG - Apply'}, #rattan 1
+    {'User': 'P3', 'Start': 4.49, 'End': 4.55, 'Task': 'Scale Texture'}, #10
+    {'User': 'P3', 'Start': 5.03, 'End': 5.03, 'Task': 'Click Object'}, #1 lounge chair frame
+    {'User': 'P3', 'Start': 5.10, 'End': 5.14, 'Task': 'Color Texture'}, #white (didn't work)
+    {'User': 'P3', 'Start': 5.15, 'End': 5.15, 'Task': 'Click Object'}, #1 lounge chair frame
+    {'User': 'P3', 'Start': 5.18, 'End': 5.23, 'Task': 'Color Texture'}, #white (didn't work)
+    {'User': 'P3', 'Start': 5.28, 'End': 5.28, 'Task': 'Click Object'}, #2 lounge chair frames
+    {'User': 'P3', 'Start': 5.49, 'End': 6.25, 'Task': 'MG - Generate'}, #metal, white
+    {'User': 'P3', 'Start': 6.33, 'End': 6.41, 'Task': 'MG - Brainstorm Keywords'}, #shiny, reflective
+    {'User': 'P3', 'Start': 6.55, 'End': 7.31, 'Task': 'MG - Generate'}, #metal, white, shiny, reflective
+    {'User': 'P3', 'Start': 7.38, 'End': 7.38, 'Task': 'MG - Apply'}, #metal, white, shiny, reflective 4
+    {'User': 'P3', 'Start': 7.44, 'End': 7.46, 'Task': 'Click Object'}, #2 lounge chair frames
+    {'User': 'P3', 'Start': 8.02, 'End': 8.02, 'Task': 'Click Object'}, #1 umbrella canopy
+    {'User': 'P3', 'Start': 8.32, 'End': 8.54, 'Task': 'MG - Generate'}, #green fabric
+    {'User': 'P3', 'Start': 9.05, 'End': 9.05, 'Task': 'MG - Apply'}, #green fabric 1
+    {'User': 'P3', 'Start': 9.15, 'End': 9.19, 'Task': 'Scale Texture'}, #5
+    {'User': 'P3', 'Start': 9.32, 'End': 9.32, 'Task': 'Click Object'}, #1 umbrella frame
+    {'User': 'P3', 'Start': 9.49, 'End': 9.53, 'Task': 'MG - Brainstorm Keywords'}, #shiny, reflective, smooth 
+    {'User': 'P3', 'Start': 10.05, 'End': 10.41, 'Task': 'MG - Generate'}, #metal, shiny, reflective, smooth
+    {'User': 'P3', 'Start': 10.50, 'End': 10.50, 'Task': 'MG - Apply'}, #metal, shiny, reflective, smooth 2
+    {'User': 'P3', 'Start': 11.0, 'End': 11.0, 'Task': 'Click Object'}, #1 sidetable
+    {'User': 'P3', 'Start': 11.14, 'End': 11.49, 'Task': 'MG - Generate'}, #wood, white
+    {'User': 'P3', 'Start': 12.01, 'End': 12.06, 'Task': 'MG - Brainstorm Keywords'}, #shiny, reflective, smooth 
+    {'User': 'P3', 'Start': 12.23, 'End': 12.23, 'Task': 'MG - Apply'}, #wood 2
+    {'User': 'P3', 'Start': 12.32, 'End': 12.41, 'Task': 'Set Roughness'}, #0.1
+    {'User': 'P3', 'Start': 12.49, 'End': 12.55, 'Task': 'Rotate Texture'}, #90
+    {'User': 'P3', 'Start': 13.19, 'End': 13.25, 'Task': 'Click Object'}, #Sofa cushions
+    {'User': 'P3', 'Start': 13.35, 'End': 14.11, 'Task': 'MG - Generate'}, #Light blue fabric
+    {'User': 'P3', 'Start': 14.18, 'End': 14.18, 'Task': 'MG - Apply'}, #Light blue fabric 1
+    {'User': 'P3', 'Start': 14.31, 'End': 14.35, 'Task': 'Click Object'}, #Sofa frames and coffee table base  
+    {'User': 'P3', 'Start': 14.41, 'End': 15.15, 'Task': 'MG - Generate'}, #white rattan
+    {'User': 'P3', 'Start': 15.21, 'End': 15.21, 'Task': 'MG - Apply'}, #white rattan 1
+    {'User': 'P3', 'Start': 15.25, 'End': 15.25, 'Task': 'MG - Apply'}, #white rattan 2
+    {'User': 'P3', 'Start': 15.33, 'End': 15.36, 'Task': 'Color Texture'},   
+    {'User': 'P3', 'Start': 15.43, 'End': 15.47, 'Task': 'Scale Texture'}, #10
+    {'User': 'P3', 'Start': 15.53, 'End': 15.53, 'Task': 'Click Object'}, #Floor
+    {'User': 'P3', 'Start': 15.57, 'End': 16.02, 'Task': 'Click Object'}, #Sofa frames and coffee table base  
+    {'User': 'P3', 'Start': 16.04, 'End': 16.04, 'Task': 'Click Object'}, #Coffee table top
+    {'User': 'P3', 'Start': 16.13, 'End': 16.49, 'Task': 'MG - Generate'}, #clear glass
+    {'User': 'P3', 'Start': 16.55, 'End': 16.59, 'Task': 'MG - Brainstorm Keywords'}, #smooth, reflective
+    {'User': 'P3', 'Start': 17.11, 'End': 17.45, 'Task': 'MG - Generate'}, #clear glass, smooth, relective
+    {'User': 'P3', 'Start': 17.53, 'End': 17.53, 'Task': 'MG - Apply'}, #clear glass, smooth, relective 2
+    {'User': 'P3', 'Start': 17.55, 'End': 17.55, 'Task': 'Click Object'}, #Coffee table top
+    {'User': 'P3', 'Start': 18.01, 'End': 18.04, 'Task': 'Click Object'}, #Sofa pillows
+    {'User': 'P3', 'Start': 18.14, 'End': 18.51, 'Task': 'MG - Generate'}, #light grey fabric
+    {'User': 'P3', 'Start': 18.56, 'End': 18.56, 'Task': 'MG - Apply'},  #light grey fabric 2
+    {'User': 'P3', 'Start': 19.03, 'End': 19.03, 'Task': 'Click Object'}, #Fences
+    {'User': 'P3', 'Start': 19.18, 'End': 19.53, 'Task': 'MG - Generate'}, #oak wood
+    {'User': 'P3', 'Start': 20.06, 'End': 20.06, 'Task': 'MG - Apply'},  #oak wood 4
+    {'User': 'P3', 'Start': 20.26, 'End': 20.25, 'Task': 'Color Texture'}, 
+    {'User': 'P3', 'Start': 20.29, 'End': 20.31, 'Task': 'Click Object'}, #Fences
+    {'User': 'P3', 'Start': 20.57, 'End': 21.01, 'Task': 'Click Object'}, #Other 2 patio chair cushions
+    {'User': 'P3', 'Start': 21.16, 'End': 21.50, 'Task': 'MG - Generate'}, #rattan
+    {'User': 'P3', 'Start': 22.07, 'End': 22.07, 'Task': 'MG - Apply'},  #rattan 3
+    {'User': 'P3', 'Start': 22.15, 'End': 22.18, 'Task': 'Color Texture'}, 
+    {'User': 'P3', 'Start': 22.19, 'End': 22.21, 'Task': 'Click Object'}, #Other 2 patio chair cushions
+    {'User': 'P3', 'Start': 22.23, 'End': 22.30, 'Task': 'Scale Texture'}, 
+    {'User': 'P3', 'Start': 22.34, 'End': 22.41, 'Task': 'Click Object'}, # umbrella metals, patio chair frames, dining table, and dining chairs
+    {'User': 'P3', 'Start': 23.13, 'End': 23.48, 'Task': 'MG - Generate'}, #white metal
+    {'User': 'P3', 'Start': 23.56, 'End': 23.58, 'Task': 'MG - Brainstorm Keywords'}, #shiny, reflective, smooth
+    {'User': 'P3', 'Start': 24.06, 'End': 24.42, 'Task': 'MG - Generate'}, #white metal, shiny, reflective, smooth
+    {'User': 'P3', 'Start': 24.49, 'End': 24.49, 'Task': 'MG - Apply'}, #white metal, shiny, reflective, smooth 1
+    {'User': 'P3', 'Start': 25.03, 'End': 25.03, 'Task': 'Click Object'}, #Other umbrella canopy
+    {'User': 'P3', 'Start': 25.10, 'End': 25.46, 'Task': 'MG - Generate'}, #white metal, shiny, reflective, smooth
+    {'User': 'P3', 'Start': 25.52, 'End': 25.52, 'Task': 'MG - Apply'}, #green fabric 1
+    {'User': 'P3', 'Start': 26.03, 'End': 26.03, 'Task': 'Click Object'}, #Other sidetable
+    {'User': 'P3', 'Start': 26.13, 'End': 26.50, 'Task': 'MG - Generate'}, #wood
+    {'User': 'P3', 'Start': 26.55, 'End': 27.33, 'Task': 'MG - Generate'}, #wood, white
+    {'User': 'P3', 'Start': 27.51, 'End': 27.53, 'Task': 'Rotate Texture'}, #90
+    {'User': 'P3', 'Start': 28.15, 'End': 29.42, 'Task': 'Render'}, 
+    {'User': 'P3', 'Start': 30.45, 'End': 30.54, 'Task': 'Save'}, 
+
+
+    # {'User': 'P4', 'Start': 39.05, 'End': 39.30, 'Task': 'CB - Query Material'},
+    # {'User': 'P4', 'Start': 39.30, 'End': 39.57, 'Task': 'MG - Generate'},
+    # {'User': 'P4', 'Start': 39.57, 'End': 40.00, 'Task': 'MG - Apply'},
+    # {'User': 'P5', 'Start': 28.24, 'End': 28.45, 'Task': 'Click Object'},
+    # {'User': 'P6', 'Start': 42.07, 'End': 42.20, 'Task': 'CB - Query Material'},
+    # {'User': 'P6', 'Start': 42.57, 'End': 43.07, 'Task': 'MG - Apply'},
+    # {'User': 'P7', 'Start': 42.00, 'End': 42.20, 'Task': 'Click Object'},
+    # {'User': 'P8', 'Start': 1.20, 'End': 1.40, 'Task': 'Click Object'},
+    # {'User': 'P9', 'Start': 45.35, 'End': 45.57, 'Task': 'CB - Query Material'},
+    # {'User': 'P10', 'Start': 5.00, 'End': 5.20, 'Task': 'Click Object'},
+    # {'User': 'P11', 'Start': 5.40, 'End': 6.00, 'Task': 'CB - Query Material'},
+    # {'User': 'P12', 'Start': 48.32, 'End': 49.00, 'Task': 'Click Object'},
 ]
 
 # Convert to DataFrame
@@ -121,12 +206,15 @@ color_map = {
     'Read Brief': 'red',
     'MG - Apply': 'cyan',
     'Scale Texture': 'magenta',
+    'Rotate Texture': 'indigo',
     'Render': 'yellow',
     'Color Texture': 'purple',
     'CB - Query Material': 'orange',
     'CB - Apply': 'blue',
     'Set Metalness': 'black',
-    'Set Roughness': 'brown'
+    'Set Roughness': 'brown',
+    'Save': 'pink',
+    'MG - Brainstorm Keywords': 'lime'
 
 }
 
