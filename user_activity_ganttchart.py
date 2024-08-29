@@ -3,98 +3,98 @@ import pandas as pd
 
 # List of dictionaries representing each user action
 data = [
-    {'User': 'P1', 'Start': 5.13, 'End': 5.13, 'Task': 'Click Object'},
-    {'User': 'P1', 'Start': 5.20, 'End': 5.55, 'Task': 'MG - Generate'}, #wood deck
-    # {'User': 'P1', 'Start': 5.26, 'End': 5.32, 'Task': 'Read Brief'},
-    {'User': 'P1', 'Start': 5.57, 'End': 5.57, 'Task': 'MG - Apply'}, #wood deck 2
-    {'User': 'P1', 'Start': 5.57, 'End': 5.57, 'Task': 'Click Object'}, #floor
-    {'User': 'P1', 'Start': 6.10, 'End': 6.10, 'Task': 'MG - Apply'}, #wood deck 1
-    {'User': 'P1', 'Start': 6.11, 'End': 6.11, 'Task': 'MG - Apply'}, #wood deck 2
-    {'User': 'P1', 'Start': 6.19, 'End': 6.30, 'Task': 'Scale Texture'}, #floor  
-    {'User': 'P1', 'Start': 6.40, 'End': 6.40, 'Task': 'MG - Apply'}, #wood deck 1
-    {'User': 'P1', 'Start': 6.43, 'End': 6.45, 'Task': 'Scale Texture'}, #floor  
-    {'User': 'P1', 'Start': 7.08, 'End': 7.42, 'Task': 'MG - Generate'}, #gray nonskid tiles
-    {'User': 'P1', 'Start': 7.52, 'End': 7.52, 'Task': 'MG - Apply'}, #gray nonskid tiles 2
-    {'User': 'P1', 'Start': 7.55, 'End': 7.57, 'Task': 'Scale Texture'}, #floor  
-    {'User': 'P1', 'Start': 8.04, 'End': 9.11, 'Task': 'Render'}, 
-    {'User': 'P1', 'Start': 9.21, 'End': 9.21, 'Task': 'Click Object'}, #floor
-    {'User': 'P1', 'Start': 9.27, 'End': 9.27, 'Task': 'Click Object'}, #pool edge
-    {'User': 'P1', 'Start': 9.34, 'End': 10.07, 'Task': 'MG - Generate'}, #pool tiles 
-    {'User': 'P1', 'Start': 10.13, 'End': 10.13, 'Task': 'MG - Apply'}, #pool tiles 2
-    {'User': 'P1', 'Start': 10.17, 'End': 10.17, 'Task': 'MG - Apply'}, #pool tiles 4
-    {'User': 'P1', 'Start': 10.43, 'End': 10.54, 'Task': 'Color Texture'}, #pool tiles
-    {'User': 'P1', 'Start': 10.55, 'End': 10.55, 'Task': 'Click Object'}, #lounge chair seat
-    {'User': 'P1', 'Start': 11.20, 'End': 12.21, 'Task': 'CB - Query Material'}, #Can you suggest cloth material for the pool beds?
-    {'User': 'P1', 'Start': 11.45, 'End': 11.45, 'Task': 'Click Object'}, #left fence
-    {'User': 'P1', 'Start': 12.10, 'End': 13.21, 'Task': 'MG - Generate'}, #wood slats
-    {'User': 'P1', 'Start': 12.29, 'End': 12.29, 'Task': 'Click Object'}, #umbrella canopy
-    {'User': 'P1', 'Start': 12.30, 'End': 12.30, 'Task': 'CB - Apply'}, #sunbrella fabric to canopy 1
-    {'User': 'P1', 'Start': 12.44, 'End': 12.48, 'Task': 'Color Texture'}, #umbrella canopy 1
-    {'User': 'P1', 'Start': 13.08, 'End': 13.08, 'Task': 'CB - Apply'}, #sunbrella fabric to canopy 2
-    {'User': 'P1', 'Start': 13.14, 'End': 13.19, 'Task': 'Color Texture'}, #umbrella canopy 2
-    {'User': 'P1', 'Start': 13.23, 'End': 13.23, 'Task': 'Click Object'}, #left fence
-    {'User': 'P1', 'Start': 13.25, 'End': 13.25, 'Task': 'MG - Apply'}, #wood slats 4
-    {'User': 'P1', 'Start': 13.33, 'End': 13.33, 'Task': 'Click Object'}, #right fence
-    {'User': 'P1', 'Start': 13.36, 'End': 13.36, 'Task': 'MG - Apply'}, #wood slats 4
-    {'User': 'P1', 'Start': 13.41, 'End': 13.41, 'Task': 'Click Object'}, #right fence
-    {'User': 'P1', 'Start': 13.49, 'End': 14.00, 'Task': 'Scale Texture'}, #right fence
-    {'User': 'P1', 'Start': 14.11, 'End': 15.34, 'Task': 'Render'}, 
-    {'User': 'P1', 'Start': 15.57, 'End': 15.57, 'Task': 'Click Object'}, #umbrella canopy 2
-    {'User': 'P1', 'Start': 15.59, 'End': 15.59, 'Task': 'Click Object'}, #pool edge
-    {'User': 'P1', 'Start': 16.54, 'End': 17.28, 'Task': 'MG - Generate'}, #gray cloth
-    {'User': 'P1', 'Start': 17.41, 'End': 18.15, 'Task': 'MG - Generate'}, #cloth
-    {'User': 'P1', 'Start': 18.30, 'End': 18.37, 'Task': 'Click Object'}, #lounge chair cushions
-    {'User': 'P1', 'Start': 18.39, 'End': 18.39, 'Task': 'MG - Apply'}, #cloth
-    {'User': 'P1', 'Start': 20.30, 'End': 20.41, 'Task': 'Click Object'}, #lounge chair cushions
-    {'User': 'P1', 'Start': 20.45, 'End': 20.47, 'Task': 'Scale Texture'}, #lounge chair cushions
-    {'User': 'P1', 'Start': 21.08, 'End': 21.45, 'Task': 'MG - Generate'}, #powdercoated
-    {'User': 'P1', 'Start': 22.02, 'End': 22.42, 'Task': 'Click Object'}, #umbrella poles and lounge chair frames
-    {'User': 'P1', 'Start': 22.43, 'End': 22.46, 'Task': 'Color Texture'}, #umbrella poles and lounge chair frames
-    {'User': 'P1', 'Start': 22.48, 'End': 22.49, 'Task': 'Set Metalness'}, # 1
-    {'User': 'P1', 'Start': 22.50, 'End': 22.51, 'Task': 'Set Roughness'}, # 0
-    {'User': 'P1', 'Start': 23.19, 'End': 23.53, 'Task': 'MG - Generate'}, #weaved
-    {'User': 'P1', 'Start': 24.03, 'End': 25.36, 'Task': 'MG - Generate'}, #weaved rattan, setted number to 10
-    {'User': 'P1', 'Start': 24.37, 'End': 25.59, 'Task': 'Render'},  
-    {'User': 'P1', 'Start': 26.08, 'End': 26.08, 'Task': 'Click Object'}, #sofa chair frame
-    {'User': 'P1', 'Start': 26.10, 'End': 26.10, 'Task': 'MG - Apply'}, #weaved rattan 1
-    {'User': 'P1', 'Start': 26.18, 'End': 26.27, 'Task': 'Click Object'}, #sofa chair frames, coffee table base
-    {'User': 'P1', 'Start': 26.30, 'End': 26.30, 'Task': 'MG - Apply'}, #weaved rattan 1
-    {'User': 'P1', 'Start': 26.31, 'End': 26.31, 'Task': 'MG - Apply'}, #weaved rattan 3
-    {'User': 'P1', 'Start': 26.35, 'End': 26.38, 'Task': 'Scale Texture'}, #sofa chair frames, coffee table base
-    {'User': 'P1', 'Start': 26.43, 'End': 26.51, 'Task': 'Color Texture'}, #sofa chair frames, coffee table base, yellow
-    {'User': 'P1', 'Start': 27.03, 'End': 28.39, 'Task': 'MG - Generate'}, #cotton material
-    {'User': 'P1', 'Start': 27.19, 'End': 27.19, 'Task': 'Click Object'}, #floor
-    {'User': 'P1', 'Start': 28.30, 'End': 30.04, 'Task': 'CB - Query Material'}, #Can you suggest similar materials to gray nonskid tiles for a floor?
-    {'User': 'P1', 'Start': 28.42, 'End': 29.05, 'Task': 'Click Object'}, #sofa cushions and pillows
-    {'User': 'P1', 'Start': 29.09, 'End': 29.09, 'Task': 'MG - Apply'}, #cotton material 4
-    {'User': 'P1', 'Start': 29.20, 'End': 29.26, 'Task': 'Click Object'}, #sofa cushions and pillows 
-    {'User': 'P1', 'Start': 29.28, 'End': 29.28, 'Task': 'MG - Apply'}, ##cotton material 7
-    {'User': 'P1', 'Start': 29.40, 'End': 29.43, 'Task': 'Scale Texture'}, ##sofa cushions and pillows 
-    {'User': 'P1', 'Start': 29.48, 'End': 29.48, 'Task': 'Click Object'}, ##coffee table
-    {'User': 'P1', 'Start': 29.58, 'End': 30.51, 'Task': 'MG - Generate'}, ##glass
-    {'User': 'P1', 'Start': 30.04, 'End': 30.04, 'Task': 'Click Object'}, ##floor
-    {'User': 'P1', 'Start': 30.10, 'End': 30.10, 'Task': 'CB - Apply'}, ##rubber flooring
-    {'User': 'P1', 'Start': 30.11, 'End': 30.13, 'Task': 'Scale Texture'}, ##floor
-    {'User': 'P1', 'Start': 31.02, 'End': 31.02, 'Task': 'Click Object'}, ##coffee table top
-    {'User': 'P1', 'Start': 31.10, 'End': 31.10, 'Task': 'MG - Apply'}, ##glass 3
-    {'User': 'P1', 'Start': 31.58, 'End': 33.10, 'Task': 'Render'}, ##glass 4
-    {'User': 'P1', 'Start': 33.25, 'End': 34.30, 'Task': 'MG - Generate'}, ##Rubber Flooring, from CB
-    {'User': 'P1', 'Start': 33.30, 'End': 33.30, 'Task': 'Click Object'}, ##floor
-    {'User': 'P1', 'Start': 33.46, 'End': 33.46, 'Task': 'Click Object'}, ##right fence
-    {'User': 'P1', 'Start': 33.51, 'End': 33.51, 'Task': 'Click Object'}, ##pool edge
-    {'User': 'P1', 'Start': 34.27, 'End': 34.27, 'Task': 'Click Object'}, ##floor
-    {'User': 'P1', 'Start': 34.28, 'End': 34.28, 'Task': 'MG - Apply'}, ##rubber floor 2
-    {'User': 'P1', 'Start': 34.29, 'End': 34.29, 'Task': 'MG - Apply'}, ##rubber floor 4
-    {'User': 'P1', 'Start': 34.30, 'End': 34.30, 'Task': 'MG - Apply'}, ##rubber floor 6
-    {'User': 'P1', 'Start': 34.31, 'End': 34.31, 'Task': 'MG - Apply'}, ##rubber floor 5
-    {'User': 'P1', 'Start': 34.32, 'End': 34.32, 'Task': 'MG - Apply'}, ##rubber floor 3
-    {'User': 'P1', 'Start': 34.54, 'End': 34.44, 'Task': 'MG - Generate'}, ##Stone flooring
-    {'User': 'P1', 'Start': 35.32, 'End': 35.50, 'Task': 'Save'},
-    {'User': 'P1', 'Start': 35.52, 'End': 35.52, 'Task': 'Click Object'}, ##floor
-    {'User': 'P1', 'Start': 35.55, 'End': 35.55, 'Task': 'MG - Apply'}, ##stone flooring 6
-    {'User': 'P1', 'Start': 36.00, 'End': 36.02, 'Task': 'Scale Texture'}, ##stone flooring 4
-    {'User': 'P1', 'Start': 36.03, 'End': 37.26, 'Task': 'Render'}, 
-    {'User': 'P1', 'Start': 37.30, 'End': 37.47, 'Task': 'Save'},
+    {'User': 'P1', 'Start': 0.13, 'End': 0.13, 'Task': 'Click Object'},
+    {'User': 'P1', 'Start': 0.20, 'End': 0.55, 'Task': 'MG - Generate'}, #wood deck
+    # {'User': 'P1', 'Start': 0.26, 'End': 0.32, 'Task': 'Read Brief'},
+    {'User': 'P1', 'Start': 0.57, 'End': 0.57, 'Task': 'MG - Apply'}, #wood deck 2
+    {'User': 'P1', 'Start': 0.57, 'End': 0.57, 'Task': 'Click Object'}, #floor
+    {'User': 'P1', 'Start': 1.10, 'End': 1.10, 'Task': 'MG - Apply'}, #wood deck 1
+    {'User': 'P1', 'Start': 1.11, 'End': 1.11, 'Task': 'MG - Apply'}, #wood deck 2
+    {'User': 'P1', 'Start': 1.19, 'End': 1.30, 'Task': 'Scale Texture'}, #floor  
+    {'User': 'P1', 'Start': 1.40, 'End': 1.40, 'Task': 'MG - Apply'}, #wood deck 1
+    {'User': 'P1', 'Start': 1.43, 'End': 1.45, 'Task': 'Scale Texture'}, #floor  
+    {'User': 'P1', 'Start': 2.08, 'End': 2.42, 'Task': 'MG - Generate'}, #gray nonskid tiles
+    {'User': 'P1', 'Start': 2.52, 'End': 2.52, 'Task': 'MG - Apply'}, #gray nonskid tiles 2
+    {'User': 'P1', 'Start': 2.55, 'End': 2.57, 'Task': 'Scale Texture'}, #floor  
+    {'User': 'P1', 'Start': 3.04, 'End': 4.11, 'Task': 'Render'}, 
+    {'User': 'P1', 'Start': 4.21, 'End': 4.21, 'Task': 'Click Object'}, #floor
+    {'User': 'P1', 'Start': 4.27, 'End': 4.27, 'Task': 'Click Object'}, #pool edge
+    {'User': 'P1', 'Start': 4.34, 'End': 5.07, 'Task': 'MG - Generate'}, #pool tiles 
+    {'User': 'P1', 'Start': 5.13, 'End': 5.13, 'Task': 'MG - Apply'}, #pool tiles 2
+    {'User': 'P1', 'Start': 5.17, 'End': 5.17, 'Task': 'MG - Apply'}, #pool tiles 4
+    {'User': 'P1', 'Start': 5.43, 'End': 5.54, 'Task': 'Color Texture'}, #pool tiles
+    {'User': 'P1', 'Start': 5.55, 'End': 5.55, 'Task': 'Click Object'}, #lounge chair seat
+    {'User': 'P1', 'Start': 6.20, 'End': 7.21, 'Task': 'CB - Query Material'}, #Can you suggest cloth material for the pool beds?
+    {'User': 'P1', 'Start': 6.45, 'End': 6.45, 'Task': 'Click Object'}, #left fence
+    {'User': 'P1', 'Start': 7.10, 'End': 8.21, 'Task': 'MG - Generate'}, #wood slats
+    {'User': 'P1', 'Start': 7.29, 'End': 7.29, 'Task': 'Click Object'}, #umbrella canopy
+    {'User': 'P1', 'Start': 7.30, 'End': 7.30, 'Task': 'CB - Apply'}, #sunbrella fabric to canopy 1
+    {'User': 'P1', 'Start': 7.44, 'End': 7.48, 'Task': 'Color Texture'}, #umbrella canopy 1
+    {'User': 'P1', 'Start': 8.08, 'End': 8.08, 'Task': 'CB - Apply'}, #sunbrella fabric to canopy 2
+    {'User': 'P1', 'Start': 8.14, 'End': 8.19, 'Task': 'Color Texture'}, #umbrella canopy 2
+    {'User': 'P1', 'Start': 8.23, 'End': 8.23, 'Task': 'Click Object'}, #left fence
+    {'User': 'P1', 'Start': 8.25, 'End': 8.25, 'Task': 'MG - Apply'}, #wood slats 4
+    {'User': 'P1', 'Start': 8.33, 'End': 8.33, 'Task': 'Click Object'}, #right fence
+    {'User': 'P1', 'Start': 8.36, 'End': 8.36, 'Task': 'MG - Apply'}, #wood slats 4
+    {'User': 'P1', 'Start': 8.41, 'End': 8.41, 'Task': 'Click Object'}, #right fence
+    {'User': 'P1', 'Start': 8.49, 'End': 9.00, 'Task': 'Scale Texture'}, #right fence
+    {'User': 'P1', 'Start': 9.11, 'End': 10.34, 'Task': 'Render'}, 
+    {'User': 'P1', 'Start': 10.57, 'End': 10.57, 'Task': 'Click Object'}, #umbrella canopy 2
+    {'User': 'P1', 'Start': 10.59, 'End': 10.59, 'Task': 'Click Object'}, #pool edge
+    {'User': 'P1', 'Start': 11.54, 'End': 12.28, 'Task': 'MG - Generate'}, #gray cloth
+    {'User': 'P1', 'Start': 12.41, 'End': 13.15, 'Task': 'MG - Generate'}, #cloth
+    {'User': 'P1', 'Start': 13.30, 'End': 13.37, 'Task': 'Click Object'}, #lounge chair cushions
+    {'User': 'P1', 'Start': 13.39, 'End': 13.39, 'Task': 'MG - Apply'}, #cloth
+    {'User': 'P1', 'Start': 15.30, 'End': 15.41, 'Task': 'Click Object'}, #lounge chair cushions
+    {'User': 'P1', 'Start': 15.45, 'End': 15.47, 'Task': 'Scale Texture'}, #lounge chair cushions
+    {'User': 'P1', 'Start': 16.08, 'End': 16.45, 'Task': 'MG - Generate'}, #powdercoated
+    {'User': 'P1', 'Start': 17.02, 'End': 17.42, 'Task': 'Click Object'}, #umbrella poles and lounge chair frames
+    {'User': 'P1', 'Start': 17.43, 'End': 17.46, 'Task': 'Color Texture'}, #umbrella poles and lounge chair frames
+    {'User': 'P1', 'Start': 17.48, 'End': 17.49, 'Task': 'Set Metalness'}, # 1
+    {'User': 'P1', 'Start': 17.50, 'End': 17.51, 'Task': 'Set Roughness'}, # 0
+    {'User': 'P1', 'Start': 18.19, 'End': 18.53, 'Task': 'MG - Generate'}, #weaved
+    {'User': 'P1', 'Start': 19.03, 'End': 20.36, 'Task': 'MG - Generate'}, #weaved rattan, setted number to 10
+    {'User': 'P1', 'Start': 19.37, 'End': 20.59, 'Task': 'Render'},  
+    {'User': 'P1', 'Start': 21.08, 'End': 21.08, 'Task': 'Click Object'}, #sofa chair frame
+    {'User': 'P1', 'Start': 21.10, 'End': 21.10, 'Task': 'MG - Apply'}, #weaved rattan 1
+    {'User': 'P1', 'Start': 21.18, 'End': 21.27, 'Task': 'Click Object'}, #sofa chair frames, coffee table base
+    {'User': 'P1', 'Start': 21.30, 'End': 21.30, 'Task': 'MG - Apply'}, #weaved rattan 1
+    {'User': 'P1', 'Start': 21.31, 'End': 21.31, 'Task': 'MG - Apply'}, #weaved rattan 3
+    {'User': 'P1', 'Start': 21.35, 'End': 21.38, 'Task': 'Scale Texture'}, #sofa chair frames, coffee table base
+    {'User': 'P1', 'Start': 21.43, 'End': 21.51, 'Task': 'Color Texture'}, #sofa chair frames, coffee table base, yellow
+    {'User': 'P1', 'Start': 22.03, 'End': 23.39, 'Task': 'MG - Generate'}, #cotton material
+    {'User': 'P1', 'Start': 22.19, 'End': 22.19, 'Task': 'Click Object'}, #floor
+    {'User': 'P1', 'Start': 23.30, 'End': 25.04, 'Task': 'CB - Query Material'}, #Can you suggest similar materials to gray nonskid tiles for a floor?
+    {'User': 'P1', 'Start': 23.42, 'End': 24.05, 'Task': 'Click Object'}, #sofa cushions and pillows
+    {'User': 'P1', 'Start': 24.09, 'End': 24.09, 'Task': 'MG - Apply'}, #cotton material 4
+    {'User': 'P1', 'Start': 24.20, 'End': 24.26, 'Task': 'Click Object'}, #sofa cushions and pillows 
+    {'User': 'P1', 'Start': 24.28, 'End': 24.28, 'Task': 'MG - Apply'}, #cotton material 7
+    {'User': 'P1', 'Start': 24.40, 'End': 24.43, 'Task': 'Scale Texture'}, #sofa cushions and pillows 
+    {'User': 'P1', 'Start': 24.48, 'End': 24.48, 'Task': 'Click Object'}, #coffee table
+    {'User': 'P1', 'Start': 24.58, 'End': 25.51, 'Task': 'MG - Generate'}, #glass
+    {'User': 'P1', 'Start': 25.04, 'End': 25.04, 'Task': 'Click Object'}, #floor
+    {'User': 'P1', 'Start': 25.10, 'End': 25.10, 'Task': 'CB - Apply'}, #rubber flooring
+    {'User': 'P1', 'Start': 25.11, 'End': 25.13, 'Task': 'Scale Texture'}, #floor
+    {'User': 'P1', 'Start': 26.02, 'End': 26.02, 'Task': 'Click Object'}, #coffee table top
+    {'User': 'P1', 'Start': 26.10, 'End': 26.10, 'Task': 'MG - Apply'}, #glass 3
+    {'User': 'P1', 'Start': 26.58, 'End': 28.10, 'Task': 'Render'}, #glass 4
+    {'User': 'P1', 'Start': 28.25, 'End': 29.30, 'Task': 'MG - Generate'}, #Rubber Flooring, from CB
+    {'User': 'P1', 'Start': 28.30, 'End': 28.30, 'Task': 'Click Object'}, #floor
+    {'User': 'P1', 'Start': 28.46, 'End': 28.46, 'Task': 'Click Object'}, #right fence
+    {'User': 'P1', 'Start': 28.51, 'End': 28.51, 'Task': 'Click Object'}, #pool edge
+    {'User': 'P1', 'Start': 29.27, 'End': 29.27, 'Task': 'Click Object'}, #floor
+    {'User': 'P1', 'Start': 29.28, 'End': 29.28, 'Task': 'MG - Apply'}, #rubber floor 2
+    {'User': 'P1', 'Start': 29.29, 'End': 29.29, 'Task': 'MG - Apply'}, #rubber floor 4
+    {'User': 'P1', 'Start': 29.30, 'End': 29.30, 'Task': 'MG - Apply'}, #rubber floor 6
+    {'User': 'P1', 'Start': 29.31, 'End': 29.31, 'Task': 'MG - Apply'}, #rubber floor 5
+    {'User': 'P1', 'Start': 29.32, 'End': 29.32, 'Task': 'MG - Apply'}, #rubber floor 3
+    {'User': 'P1', 'Start': 29.54, 'End': 29.44, 'Task': 'MG - Generate'}, #Stone flooring
+    {'User': 'P1', 'Start': 30.32, 'End': 30.50, 'Task': 'Save'},
+    {'User': 'P1', 'Start': 30.52, 'End': 30.52, 'Task': 'Click Object'}, #floor
+    {'User': 'P1', 'Start': 30.55, 'End': 30.55, 'Task': 'MG - Apply'}, #stone flooring 6
+    {'User': 'P1', 'Start': 31.00, 'End': 31.02, 'Task': 'Scale Texture'}, #stone flooring 4
+    {'User': 'P1', 'Start': 31.03, 'End': 32.26, 'Task': 'Render'}, 
+    {'User': 'P1', 'Start': 32.30, 'End': 32.47, 'Task': 'Save'},
 
     {'User': 'P3', 'Start': 0.10, 'End': 0.10, 'Task': 'Click Object'}, #pool edge
     {'User': 'P3', 'Start': 0.30, 'End': 1.06, 'Task': 'MG - Generate'}, #blue tiles
@@ -181,6 +181,18 @@ data = [
     {'User': 'P3', 'Start': 28.15, 'End': 29.42, 'Task': 'Render'}, 
     {'User': 'P3', 'Start': 30.45, 'End': 30.54, 'Task': 'Save'}, 
 
+    {'User': 'P4', 'Start': 0.41, 'End': 0.50, 'Task': 'CB - Query Color'}, #Suggest color palettes that involve monochromatic blues.
+    {'User': 'P4', 'Start': 1.00, 'End': 1.00, 'Task': 'CB - Save Color'}, #Cool and Serene
+    {'User': 'P4', 'Start': 1.08, 'End': 1.10, 'Task': 'Click Object'}, #Fences
+    {'User': 'P4', 'Start': 1.38, 'End': 2.13, 'Task': 'MG - Generate'}, #white wood
+    {'User': 'P4', 'Start': 2.29, 'End': 2.29, 'Task': 'MG - Apply'}, #white wood 4
+    {'User': 'P4', 'Start': 3.37, 'End': 3.42, 'Task': 'Click Object'}, #lounge chair cushions
+    {'User': 'P4', 'Start': 4.10, 'End': 4.47, 'Task': 'MG - Generate'}, #leather
+    {'User': 'P4', 'Start': 5.18, 'End': 5.18, 'Task': 'MG - Add Keyword'}, #matte
+    {'User': 'P4', 'Start': 5.25, 'End': 7.00, 'Task': 'MG - Generate'}, #leather, matte
+    {'User': 'P4', 'Start': 7.20, 'End': 7.20, 'Task': 'MG - Apply'}, #leather, matte 3
+    {'User': 'P4', 'Start': 7.27, 'End': 7.48, 'Task': 'Scale Texture'}, #leather, matte 4
+    {'User': 'P4', 'Start': 8.18, 'End': 8.18, 'Task': 'Color Texture'}, #Cool and Serene 1
 
     # {'User': 'P4', 'Start': 39.05, 'End': 39.30, 'Task': 'CB - Query Material'},
     # {'User': 'P4', 'Start': 39.30, 'End': 39.57, 'Task': 'MG - Generate'},
