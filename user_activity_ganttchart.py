@@ -313,11 +313,11 @@ data = [
     {'User': 'P6', 'Start': 19.33, 'End': 19.33, 'Task': 'Click Object'}, #sidetables, coffee table, dining table, dining chairs
     {'User': 'P6', 'Start': 20.25, 'End': 20.25, 'Task': 'MG - Apply'}, #wood 5
     {'User': 'P6', 'Start': 20.41, 'End': 20.41, 'Task': 'Color Texture'}, #grey
-    {'User': 'P6', 'Start': 20.55, 'End': 20.55, 'Task': 'Click Object'} #sidetables, coffee table, dining table, dining chairs
+    {'User': 'P6', 'Start': 20.55, 'End': 20.55, 'Task': 'Click Object'}, #sidetables, coffee table, dining table, dining chairs
     {'User': 'P6', 'Start': 21.12, 'End': 21.12, 'Task': 'Color Texture'}, #darker grey
     {'User': 'P6', 'Start': 21.22, 'End': 21.22, 'Task': 'Click Object'}, #sidetables, coffee table, dining table, dining chairs
     {'User': 'P6', 'Start': 21.34, 'End': 21.34, 'Task': 'Color Texture'}, #darker brown
-    {'User': 'P6', 'Start': 22.08, 'End': 22.08, 'Task': 'Click Object'} #sofa chair frames
+    {'User': 'P6', 'Start': 22.08, 'End': 22.08, 'Task': 'Click Object'}, #sofa chair frames
     {'User': 'P6', 'Start': 22.12, 'End': 22.12, 'Task': 'MG - Apply'}, #wood 5
     {'User': 'P6', 'Start': 22.23, 'End': 22.23, 'Task': 'Click Object'}, #coffee table top and sofa chair frames
     {'User': 'P6', 'Start': 22.30, 'End': 22.30, 'Task': 'Color Texture'},
