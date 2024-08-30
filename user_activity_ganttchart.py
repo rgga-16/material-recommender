@@ -313,18 +313,27 @@ data = [
     {'User': 'P6', 'Start': 19.33, 'End': 19.33, 'Task': 'Click Object'}, #sidetables, coffee table, dining table, dining chairs
     {'User': 'P6', 'Start': 20.25, 'End': 20.25, 'Task': 'MG - Apply'}, #wood 5
     {'User': 'P6', 'Start': 20.41, 'End': 20.41, 'Task': 'Color Texture'}, #grey
-    {'User': 'P6', 'Start': 20.55, 'End': 20.55, 'Task': 'Click Object'}
+    {'User': 'P6', 'Start': 20.55, 'End': 20.55, 'Task': 'Click Object'} #sidetables, coffee table, dining table, dining chairs
     {'User': 'P6', 'Start': 21.12, 'End': 21.12, 'Task': 'Color Texture'}, #darker grey
-    {'User': 'P6', 'Start': 21.22, 'End': 21.22, 'Task': 'Click Object'}
+    {'User': 'P6', 'Start': 21.22, 'End': 21.22, 'Task': 'Click Object'}, #sidetables, coffee table, dining table, dining chairs
     {'User': 'P6', 'Start': 21.34, 'End': 21.34, 'Task': 'Color Texture'}, #darker brown
-
-
-
-
-
-
-
-
+    {'User': 'P6', 'Start': 22.08, 'End': 22.08, 'Task': 'Click Object'} #sofa chair frames
+    {'User': 'P6', 'Start': 22.12, 'End': 22.12, 'Task': 'MG - Apply'}, #wood 5
+    {'User': 'P6', 'Start': 22.23, 'End': 22.23, 'Task': 'Click Object'}, #coffee table top and sofa chair frames
+    {'User': 'P6', 'Start': 22.30, 'End': 22.30, 'Task': 'Color Texture'},
+    {'User': 'P6', 'Start': 22.55, 'End': 22.55, 'Task': 'Click Object'}, #sofa pillows
+    {'User': 'P6', 'Start': 23.34, 'End': 23.53, 'Task': 'CB - Query Material'}, #what waterproof soft finishes are good for the pillows?
+    #chatbot error
+    {'User': 'P6', 'Start': 24.11, 'End': 25.21, 'Task': 'CB - Query Material'}, #What waterproof textures are good for the pillows?
+    {'User': 'P6', 'Start': 25.43, 'End': 25.43, 'Task': 'Click Object'}, #sofa pillows and canopies
+    {'User': 'P6', 'Start': 25.50, 'End': 25.50, 'Task': 'CB - Apply'}, #nylon
+    {'User': 'P6', 'Start': 26.21, 'End': 26.21, 'Task': 'Color Texture'}, #light blue
+    {'User': 'P6', 'Start': 26.48, 'End': 26.48, 'Task': 'Click Object'}, #patio and umbrella frames
+    {'User': 'P6', 'Start': 27.07, 'End': 28.34, 'Task': 'MG - Generate'}, #steel
+    {'User': 'P6', 'Start': 29.07, 'End': 29.07, 'Task': 'MG - Apply'}, #steel 2
+    {'User': 'P6', 'Start': 29.13, 'End': 29.13, 'Task': 'Color Texture'}, #black
+    {'User': 'P6', 'Start': 29.29, 'End': 30.43, 'Task': 'Render'}, # 
+    {'User': 'P6', 'Start': 30.55, 'End': 31.06, 'Task': 'Save'}, 
 
 
 
