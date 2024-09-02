@@ -335,6 +335,165 @@ data = [
     {'User': 'P6', 'Start': 29.29, 'End': 30.43, 'Task': 'Render'}, # 
     {'User': 'P6', 'Start': 30.55, 'End': 31.06, 'Task': 'Save'}, 
 
+    {'User': 'P7', 'Start': 0.17, 'End': 0.17, 'Task': 'Click Object'}, #pool edge
+    {'User': 'P7', 'Start': 0.43, 'End': 1.37, 'Task': 'MG - Generate'}, #pool tiles
+    {'User': 'P7', 'Start': 1.56, 'End': 1.56, 'Task': 'MG - Apply'}, #pool tiles 1
+    {'User': 'P7', 'Start': 2.23, 'End': 2.23, 'Task': 'Scale Texture'}, #17.7
+    {'User': 'P7', 'Start': 2.54, 'End': 2.54, 'Task': 'Click Object'}, #floor
+    {'User': 'P7', 'Start': 3.04, 'End': 4.04, 'Task': 'MG - Generate'}, #natural stone
+    {'User': 'P7', 'Start': 4.19, 'End': 4.19, 'Task': 'MG - Apply'}, #natural stone 2
+    # {'User': 'P7', 'Start': 4.3, 'End': 4.3, 'Task': 'Click Object'}, #floor. clicked but did nothing? maybe remove?
+    {'User': 'P7', 'Start': 5.05, 'End': 5.05, 'Task': 'Click Object'}, #patio chair cushions
+    {'User': 'P7', 'Start': 5.18, 'End': 6.12, 'Task': 'MG - Generate'}, #chiffon
+    {'User': 'P7', 'Start': 6.58, 'End': 6.58, 'Task': 'MG - Apply'}, #chiffon 3
+    {'User': 'P7', 'Start': 7.10, 'End': 7.10, 'Task': 'Set Roughness'}, #0.8
+    {'User': 'P7', 'Start': 7.57, 'End': 7.57, 'Task': 'Color Texture'}, #grey
+    {'User': 'P7', 'Start': 8.44, 'End': 9.36, 'Task': 'MG - Generate'}, #woven
+    {'User': 'P7', 'Start': 10.0, 'End': 10.0, 'Task': 'Click Object'}, #entire sofa and sofa chairs
+    {'User': 'P7', 'Start': 10.17, 'End': 10.17, 'Task': 'MG - Apply'}, #woven 5
+    {'User': 'P7', 'Start': 10.31, 'End': 10.31, 'Task': 'Scale Texture'}, #7.1
+    {'User': 'P7', 'Start': 10.53, 'End': 10.53, 'Task': 'Click Object'}, #coffee table base
+    {'User': 'P7', 'Start': 11.0, 'End': 11.54, 'Task': 'MG - Generate'}, #wood
+    {'User': 'P7', 'Start': 12.20, 'End': 12.20, 'Task': 'MG - Apply'}, #wood 2
+    {'User': 'P7', 'Start': 12.40, 'End': 13.33, 'Task': 'MG - Generate'}, #glass
+    {'User': 'P7', 'Start': 13.45, 'End': 13.45, 'Task': 'MG - Brainstorm Keywords'}, #(none selected)
+    {'User': 'P7', 'Start': 13.45, 'End': 13.45, 'Task': 'MG - Add Keyword'}, #clear, transparent
+    {'User': 'P7', 'Start': 13.59, 'End': 14.52, 'Task': 'MG - Generate'}, #glass, clear, transparent
+    {'User': 'P7', 'Start': 15.14, 'End': 16.05, 'Task': 'MG - Generate'}, #glass, clear, transparent, smooth
+    #set MG number to 10
+    {'User': 'P7', 'Start': 16.25, 'End': 17.57, 'Task': 'MG - Generate'}, #glass, clear, transparent, smooth
+    {'User': 'P7', 'Start': 18.24, 'End': 18.24, 'Task': 'Click Object'}, #coffee table top
+    {'User': 'P7', 'Start': 19.21, 'End': 19.21, 'Task': 'MG - Apply'}, #glass 10
+    {'User': 'P7', 'Start': 19.26, 'End': 19.26, 'Task': 'Set Opacity'}, #0.5
+    {'User': 'P7', 'Start': 19.56, 'End': 19.56, 'Task': 'Click Object'}, #sofa pillows
+    {'User': 'P7', 'Start': 20.02, 'End': 20.02, 'Task': 'Click Object'}, #sofa pillows
+    {'User': 'P7', 'Start': 21.45, 'End': 22.40, 'Task': 'MG - Generate'}, #canvas
+    {'User': 'P7', 'Start': 22.50, 'End': 23.44, 'Task': 'MG - Generate'}, #canvas, white
+    {'User': 'P7', 'Start': 24.10, 'End': 25.04, 'Task': 'MG - Generate'}, #fabric
+    {'User': 'P7', 'Start': 25.19, 'End': 25.19, 'Task': 'MG - Apply'}, #fabric 6
+    {'User': 'P7', 'Start': 25.47, 'End': 26.43, 'Task': 'MG - Generate'}, #fabric, white
+    {'User': 'P7', 'Start': 27.10, 'End': 27.10, 'Task': 'MG - Apply'}, #fabric 1
+    {'User': 'P7', 'Start': 27.24, 'End': 27.24, 'Task': 'Click Object'}, #left fence
+    {'User': 'P7', 'Start': 27.32, 'End': 28.30, 'Task': 'MG - Generate'}, #cypress wood
+    {'User': 'P7', 'Start': 28.42, 'End': 28.42, 'Task': 'Click Object'}, #right fence
+    {'User': 'P7', 'Start': 28.45, 'End': 28.45, 'Task': 'MG - Apply'}, #cypress wood 4
+    {'User': 'P7', 'Start': 28.55, 'End': 28.55, 'Task': 'Color Texture'}, #darker brown
+    {'User': 'P7', 'Start': 29.42, 'End': 29.42, 'Task': 'Click Object'}, #dining table
+    {'User': 'P7', 'Start': 30.01, 'End': 30.01, 'Task': 'MG - Apply'}, #cypress wood 6
+    {'User': 'P7', 'Start': 30.21, 'End': 31.13, 'Task': 'MG - Generate'}, #acacia wood
+    {'User': 'P7', 'Start': 31.31, 'End': 31.31, 'Task': 'Click Object'}, #dining chairs
+    {'User': 'P7', 'Start': 31.37, 'End': 31.37, 'Task': 'MG - Apply'}, #acacia wood 1
+    {'User': 'P7', 'Start': 32.20, 'End': 32.50, 'Task': 'Render'}, 
+    {'User': 'P7', 'Start': 33.15, 'End': 33.30, 'Task': 'Save'}, 
+
+    {'User': 'P8', 'Start': 0.10, 'End': 0.45, 'Task': 'MG - Generate'}, #sandstone flooring
+    {'User': 'P8', 'Start': 0.48, 'End': 0.48, 'Task': 'Click Object'}, #floor
+    {'User': 'P8', 'Start': 0.51, 'End': 0.51, 'Task': 'MG - Apply'}, #sandstone flooring 4
+    {'User': 'P8', 'Start': 0.59, 'End': 0.59, 'Task': 'Scale Texture'}, #2.4
+    {'User': 'P8', 'Start': 1.16, 'End': 1.51, 'Task': 'MG - Generate'}, #stucco wall
+    {'User': 'P8', 'Start': 2.01, 'End': 2.01, 'Task': 'Click Object'}, #fences
+    {'User': 'P8', 'Start': 2.04, 'End': 2.04, 'Task': 'MG - Apply'}, #stucco wall 1
+    {'User': 'P8', 'Start': 2.16, 'End': 2.16, 'Task': 'Color Texture'}, #cream yellow
+    {'User': 'P8', 'Start': 2.30, 'End': 3.07, 'Task': 'MG - Generate'}, #white rattan
+    {'User': 'P8', 'Start': 3.24, 'End': 3.24, 'Task': 'Click Object'}, #coffee table top
+    {'User': 'P8', 'Start': 3.27, 'End': 3.27, 'Task': 'MG - Apply'}, #white rattan 2
+    {'User': 'P8', 'Start': 3.30, 'End': 3.30, 'Task': 'MG - Apply'}, #white rattan 4
+    {'User': 'P8', 'Start': 3.35, 'End': 3.35, 'Task': 'Scale Texture'}, #3.9
+    {'User': 'P8', 'Start': 4.05, 'End': 4.42, 'Task': 'MG - Generate'}, #white wood wash
+    {'User': 'P8', 'Start': 4.25, 'End': 4.25, 'Task': 'Click Object'}, #floor
+    {'User': 'P8', 'Start': 4.45, 'End': 4.45, 'Task': 'Click Object'}, #coffee table top
+    {'User': 'P8', 'Start': 4.48, 'End': 4.48, 'Task': 'Click Object'}, #coffee table base
+    {'User': 'P8', 'Start': 4.51, 'End': 4.51, 'Task': 'MG - Apply'}, #white wood wash 1
+    {'User': 'P8', 'Start': 4.57, 'End': 4.57, 'Task': 'Click Object'}, #coffee table top
+    {'User': 'P8', 'Start': 5.05, 'End': 5.05, 'Task': 'MG - Apply'}, #white wood wash 1
+    {'User': 'P8', 'Start': 5.14, 'End': 5.14, 'Task': 'Click Object'}, #sofa chair frames
+    {'User': 'P8', 'Start': 5.17, 'End': 5.17, 'Task': 'MG - Apply'}, #white wood wash 2
+    {'User': 'P8', 'Start': 5.29, 'End': 5.29, 'Task': 'Color Texture'}, #yellow
+    {'User': 'P8', 'Start': 5.38, 'End': 5.38, 'Task': 'Color Texture'}, #beige
+    {'User': 'P8', 'Start': 5.45, 'End': 5.45, 'Task': 'Click Object'}, #coffee table top
+    {'User': 'P8', 'Start': 5.54, 'End': 5.54, 'Task': 'Click Object'}, #sofa chair frame
+    {'User': 'P8', 'Start': 5.57, 'End': 5.57, 'Task': 'MG - Apply'}, #white wood wash 1
+    {'User': 'P8', 'Start': 6.00, 'End': 6.00, 'Task': 'Click Object'}, #sofa chair frame
+    {'User': 'P8', 'Start': 6.01, 'End': 6.01, 'Task': 'MG - Apply'}, #white wood wash 1
+    {'User': 'P8', 'Start': 6.45, 'End': 6.45, 'Task': 'Click Object'}, #sofa chair frame
+    {'User': 'P8', 'Start': 6.48, 'End': 6.48, 'Task': 'Color Texture'}, #beige
+    {'User': 'P8', 'Start': 6.45, 'End': 6.45, 'Task': 'Click Object'}, #coffee table top
+    {'User': 'P8', 'Start': 6.55, 'End': 6.55, 'Task': 'Color Texture'}, #dark grey
+    {'User': 'P8', 'Start': 7.00, 'End': 7.00, 'Task': 'Color Texture'}, #light grey
+    {'User': 'P8', 'Start': 7.10, 'End': 7.10, 'Task': 'Click Object'}, #coffee table top
+    {'User': 'P8', 'Start': 7.12, 'End': 7.12, 'Task': 'Color Texture'}, #grey
+    {'User': 'P8', 'Start': 7.23, 'End': 7.23, 'Task': 'Click Object'}, #sofa chair frame
+    {'User': 'P8', 'Start': 7.25, 'End': 7.25, 'Task': 'Set Roughness'}, #0.6
+    {'User': 'P8', 'Start': 8.04, 'End': 8.04, 'Task': 'Click Object'}, #dining table (took long, had a hard time)
+    {'User': 'P8', 'Start': 8.45, 'End': 8.45, 'Task': 'MG - Apply'}, #white wood wash 1
+    {'User': 'P8', 'Start': 9.03, 'End': 9.03, 'Task': 'Click Object'}, #side table
+    {'User': 'P8', 'Start': 9.05, 'End': 9.05, 'Task': 'MG - Apply'}, #white wood wash 1
+    {'User': 'P8', 'Start': 9.19, 'End': 9.19, 'Task': 'Click Object'}, #sofa chair frames and others
+    # was scrolling back and forth the objects selected??
+    {'User': 'P8', 'Start': 10.40, 'End': 10.40, 'Task': 'Color Texture'}, #green??
+    {'User': 'P8', 'Start': 11.08, 'End': 11.08, 'Task': 'Color Texture'}, #beige
+    {'User': 'P8', 'Start': 11.15, 'End': 11.15, 'Task': 'Click Object'}, #other sofa chair frames
+    {'User': 'P8', 'Start': 11.27, 'End': 11.27, 'Task': 'Color Texture'}, #pink (??)
+    {'User': 'P8', 'Start': 11.50, 'End': 11.50, 'Task': 'Click Object'}, #other sofa chair frame
+    {'User': 'P8', 'Start': 11.52, 'End': 11.52, 'Task': 'Color Texture'}, #beige
+    {'User': 'P8', 'Start': 12.02, 'End': 12.02, 'Task': 'Click Object'}, #other sofa chair frame that's pink
+    {'User': 'P8', 'Start': 12.04, 'End': 12.04, 'Task': 'Color Texture'}, #beige
+    {'User': 'P8', 'Start': 12.17, 'End': 12.17, 'Task': 'Click Object'}, #coffee table top
+    {'User': 'P8', 'Start': 12.19, 'End': 12.19, 'Task': 'Color Texture'}, #beige
+    {'User': 'P8', 'Start': 12.23, 'End': 12.23, 'Task': 'Click Object'}, #coffee table base
+    {'User': 'P8', 'Start': 12.25, 'End': 12.25, 'Task': 'Color Texture'}, #grey
+    {'User': 'P8', 'Start': 12.35, 'End': 12.35, 'Task': 'Click Object'}, #sofa cushions
+    {'User': 'P8', 'Start': 12.44, 'End': 13.18, 'Task': 'MG - Generate'}, #blue white stripes
+    {'User': 'P8', 'Start': 12.58, 'End': 12.58, 'Task': 'Click Object'}, #sidetable
+    {'User': 'P8', 'Start': 13.03, 'End': 13.03, 'Task': 'Color Texture'}, #beige
+    {'User': 'P8', 'Start': 13.12, 'End': 13.12, 'Task': 'Click Object'}, #sidetable
+    {'User': 'P8', 'Start': 13.14, 'End': 13.14, 'Task': 'Color Texture'}, #beige
+    {'User': 'P8', 'Start': 13.45, 'End': 14.20, 'Task': 'MG - Generate'}, #blue white stripes, solid stripe, modern, streamline
+    {'User': 'P8', 'Start': 14.25, 'End': 14.25, 'Task': 'Click Object'}, #sofa cushions
+    {'User': 'P8', 'Start': 14.27, 'End': 14.27, 'Task': 'MG - Apply'}, #blue white stripes, solid stripe, modern, streamline 3
+    {'User': 'P8', 'Start': 14.41, 'End': 15.09, 'Task': 'MG - Generate'}, #blue white stripes, solid stripe, modern, streamline (similar textures to 3)
+    # set number 10
+    {'User': 'P8', 'Start': 15.16, 'End': 16.40, 'Task': 'MG - Generate'}, #blue white stripes, solid stripe, modern, streamline 
+    {'User': 'P8', 'Start': 16.18, 'End': 16.18, 'Task': 'Click Object'}, #sofa cushion
+    {'User': 'P8', 'Start': 16.25, 'End': 16.25, 'Task': 'Rotate Texture'}, #57 (i think playing around while waiting)
+    {'User': 'P8', 'Start': 16.26, 'End': 16.26, 'Task': 'Click Object'}, #sofa cushion
+    {'User': 'P8', 'Start': 16.47, 'End': 16.47, 'Task': 'MG - Apply'}, #blue white stripes, solid stripe, modern, streamline 7
+    {'User': 'P8', 'Start': 16.49, 'End': 16.49, 'Task': 'Click Object'}, #another sofa cushion
+    {'User': 'P8', 'Start': 16.50, 'End': 16.50, 'Task': 'MG - Apply'}, #blue white stripes, solid stripe, modern, streamline 7
+    {'User': 'P8', 'Start': 16.55, 'End': 16.55, 'Task': 'Click Object'}, #another sofa cushion
+    {'User': 'P8', 'Start': 16.57, 'End': 16.57, 'Task': 'MG - Apply'}, #blue white stripes, solid stripe, modern, streamline 7
+    {'User': 'P8', 'Start': 17.01, 'End': 17.01, 'Task': 'MG - Apply'}, #blue white stripes, solid stripe, modern, streamline 2
+    {'User': 'P8', 'Start': 17.05, 'End': 17.05, 'Task': 'Click Object'}, #another sofa cushion
+    {'User': 'P8', 'Start': 17.06, 'End': 17.06, 'Task': 'MG - Apply'}, #blue white stripes, solid stripe, modern, streamline 7
+    {'User': 'P8', 'Start': 17.07, 'End': 17.07, 'Task': 'Click Object'}, #another sofa cushion
+    {'User': 'P8', 'Start': 17.09, 'End': 17.09, 'Task': 'MG - Apply'}, #blue white stripes, solid stripe, modern, streamline 7
+    {'User': 'P8', 'Start': 17.13, 'End': 17.13, 'Task': 'Click Object'}, #another sofa cushion
+    {'User': 'P8', 'Start': 17.14, 'End': 17.14, 'Task': 'MG - Apply'}, #blue white stripes, solid stripe, modern, streamline 7
+    {'User': 'P8', 'Start': 17.18, 'End': 17.18, 'Task': 'Click Object'}, #another sofa cushion
+    {'User': 'P8', 'Start': 17.19, 'End': 17.19, 'Task': 'MG - Apply'}, #blue white stripes, solid stripe, modern, streamline 7
+    {'User': 'P8', 'Start': 17.21, 'End': 17.21, 'Task': 'Click Object'}, #another sofa cushion
+    {'User': 'P8', 'Start': 17.22, 'End': 17.22, 'Task': 'MG - Apply'}, #blue white stripes, solid stripe, modern, streamline 7
+    {'User': 'P8', 'Start': 17.28, 'End': 17.28, 'Task': 'Click Object'}, #another sofa cushion
+    {'User': 'P8', 'Start': 17.30, 'End': 17.30, 'Task': 'MG - Apply'}, #blue white stripes, solid stripe, modern, streamline 7
+    {'User': 'P8', 'Start': 17.34, 'End': 17.34, 'Task': 'Click Object'}, #another sofa cushion
+    {'User': 'P8', 'Start': 17.35, 'End': 17.35, 'Task': 'MG - Apply'}, #blue white stripes, solid stripe, modern, streamline 7
+    {'User': 'P8', 'Start': 17.37, 'End': 17.37, 'Task': 'Click Object'}, #another sofa cushion
+    {'User': 'P8', 'Start': 17.39, 'End': 17.39, 'Task': 'MG - Apply'}, #blue white stripes, solid stripe, modern, streamline 7
+    {'User': 'P8', 'Start': 18.0, 'End': 18.30, 'Task': 'Render'}, 
+    {'User': 'P8', 'Start': 19.30, 'End': 19.45, 'Task': 'Save'}, 
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     # {'User': 'P5', 'Start': 28.24, 'End': 28.45, 'Task': 'Click Object'},
@@ -370,13 +529,14 @@ color_map = {
     'Set Metalness': 'black',
     'Set Roughness': 'brown',
     'Save': 'pink',
-    'MG - Brainstorm Keywords': 'lime'
+    'MG - Brainstorm Keywords': 'lime',
+    'Set Opacity': 'red',
 }
 
 df['Color'] = df['Task'].map(color_map)
 
 # Tasks to be represented as points instead of bars
-point_tasks = ['Click Object', 'MG - Apply', 'CB-Apply', 'Set Metalness', 'Set Roughness', 'Color Texture', 'Scale Texture', 'Rotate Texture']
+point_tasks = ['Click Object', 'MG - Apply', 'CB-Apply', 'Set Metalness', 'Set Roughness', 'Set Opacity', 'Color Texture', 'Scale Texture', 'Rotate Texture',  'MG - Add Keyword', 'CB - Save Color', 'MG - Brainstorm Keywords']
 
 # Plot
 fig, ax = plt.subplots(figsize=(12, 6))
@@ -392,7 +552,7 @@ for i, row in df.iterrows():
 # Create a legend with unique tasks
 handles, labels = ax.get_legend_handles_labels()
 unique_labels = dict(zip(labels, handles))
-ax.legend(unique_labels.values(), unique_labels.keys(), title="Tasks", loc='upper right')
+ax.legend(unique_labels.values(), unique_labels.keys(), title="Tasks", loc='upper left', bbox_to_anchor=(1, 1))
 
 # Format x-axis to show minutes
 plt.xlabel('Minutes')
@@ -400,5 +560,7 @@ plt.ylabel('User')
 plt.title('User Activity Timeline (Minutes) with Tasks as Points and Bars')
 
 plt.grid(True)
+# Adjust layout to ensure the legend is not cut off
+plt.tight_layout(rect=[0, 0, 1, 1])
 plt.show()
 pass
