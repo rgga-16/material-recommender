@@ -549,11 +549,75 @@ data = [
     {'User': 'P9', 'Start': 32.55, 'End': 33.10, 'Task': 'Save'}, 
 
 
-
-
-
-
-
+    {'User': 'P10', 'Start': 0.11, 'End': 0.56, 'Task': 'MG - Generate'}, #sandstone
+    {'User': 'P10', 'Start': 0.15, 'End': 0.15, 'Task': 'Click Object'}, #floor
+    {'User': 'P10', 'Start': 1.04, 'End': 1.27, 'Task': 'CB - Query Material'}, # materials for outdoor chair upholstery (error came out)
+    # Add keywords
+    {'User': 'P10', 'Start': 1.12, 'End': 1.12, 'Task': 'MG - Add Keyword'}, #light colored, beige, sand like
+    {'User': 'P10', 'Start': 1.29, 'End': 2.04, 'Task': 'MG - Generate'}, #sandstone, light colored, beige, sand like
+    {'User': 'P10', 'Start': 1.48, 'End': 2.11, 'Task': 'CB - Query Material'}, # materials for outdoor chair upholstery (error came out)
+    {'User': 'P10', 'Start': 2.08, 'End': 2.08, 'Task': 'MG - Apply'}, #sandstone, light colored, beige, sand like 2
+    {'User': 'P10', 'Start': 2.31, 'End': 3.07, 'Task': 'MG - Generate'}, #polyester, light colored, beige, sand like
+    {'User': 'P10', 'Start': 2.37, 'End': 2.37, 'Task': 'Click Object'}, #patio chair cushions
+    {'User': 'P10', 'Start': 2.08, 'End': 2.08, 'Task': 'MG - Apply'}, #polyester, light colored, beige, sand like 2
+    {'User': 'P10', 'Start': 3.21, 'End': 4.06, 'Task': 'MG - Generate'}, #polyester
+    {'User': 'P10', 'Start': 3.33, 'End': 3.33, 'Task': 'CB - Apply'}, # sunbrella fabric
+    #(she applied to all parts by accident and wnated to remove from the metal frame)
+    {'User': 'P10', 'Start': 4.19, 'End': 4.28, 'Task': 'MG - Generate'}, #polyester fabric
+    {'User': 'P10', 'Start': 4.28, 'End': 4.52, 'Task': 'MG - Generate'}, #Sunbrella Fabric (from CB)
+    {'User': 'P10', 'Start': 4.40, 'End': 4.40, 'Task': 'Click Object'}, #floor
+    {'User': 'P10', 'Start': 5.22, 'End': 4.52, 'Task': 'MG - Generate'}, #stainless steel, smooth
+    {'User': 'P10', 'Start': 5.50, 'End': 5.50, 'Task': 'Click Object'}, #patio chair cushions
+    {'User': 'P10', 'Start': 6.00, 'End': 6.00, 'Task': 'Scale Texture'}, #1.8
+    {'User': 'P10', 'Start': 5.50, 'End': 5.50, 'Task': 'Click Object'}, #patio chair cushions
+    {'User': 'P10', 'Start': 6.08, 'End': 6.08, 'Task': 'Scale Texture'}, #1.0
+    {'User': 'P10', 'Start': 6.10, 'End': 6.10, 'Task': 'Translate Texture'}, #0.4
+    {'User': 'P10', 'Start': 6.27, 'End': 6.27, 'Task': 'Click Object'}, #patio chair frames
+    {'User': 'P10', 'Start': 6.39, 'End': 6.39, 'Task': 'MG - Apply'}, #stainless steel, smooth 3
+    # Set to 10
+    {'User': 'P10', 'Start': 7.22, 'End': 8.49, 'Task': 'MG - Generate'}, #tiles, smooth
+    {'User': 'P10', 'Start': 8.00, 'End': 8.00, 'Task': 'Click Object'}, #pool edge
+    {'User': 'P10', 'Start': 9.06, 'End': 10.33, 'Task': 'MG - Generate'}, # generate similar tiles, smooth 3
+    {'User': 'P10', 'Start': 10.41, 'End': 10.41, 'Task': 'MG - Apply'}, #tiles 1
+    {'User': 'P10', 'Start': 10.46, 'End': 10.46, 'Task': 'Color Texture'}, #light blue
+    {'User': 'P10', 'Start': 11.22, 'End': 12.50, 'Task': 'MG - Generate'}, # poly cotton, smooth, white
+    {'User': 'P10', 'Start': 12.58, 'End': 12.58, 'Task': 'Click Object'}, #patio seat cushions
+    {'User': 'P10', 'Start': 13.13, 'End': 13.13, 'Task': 'MG - Apply'}, #poly cotton 1
+    {'User': 'P10', 'Start': 14.15, 'End': 14.15, 'Task': 'Click Object'}, #sofa chairs
+    {'User': 'P10', 'Start': 14.23, 'End': 14.23, 'Task': 'MG - Apply'}, #poly cotton 1
+    {'User': 'P10', 'Start': 15.15, 'End': 15.15, 'Task': 'Click Object'}, #sofa chair frames
+    {'User': 'P10', 'Start': 14.33, 'End': 15.18, 'Task': 'MG - Generate'}, # Generate more synthetic resin wicker (CB)
+    {'User': 'P10', 'Start': 15.24, 'End': 15.24, 'Task': 'MG - Apply'}, #synthetic resin wicker 1
+    {'User': 'P10', 'Start': 15.28, 'End': 15.28, 'Task': 'Scale Texture'}, #5
+    {'User': 'P10', 'Start': 16.15, 'End': 17.00, 'Task': 'MG - Generate'}, # Generate oak wood, light colored
+    {'User': 'P10', 'Start': 17.13, 'End': 17.13, 'Task': 'Click Object'}, #tabletop frame and dining chairs
+    {'User': 'P10', 'Start': 17.23, 'End': 17.23, 'Task': 'MG - Apply'}, #oak wood 4
+    {'User': 'P10', 'Start': 18.17, 'End': 18.17, 'Task': 'Click Object'}, #table frame
+    {'User': 'P10', 'Start': 18.26, 'End': 18.26, 'Task': 'MG - Apply'}, #oak wood 4
+    {'User': 'P10', 'Start': 18.30, 'End': 18.30, 'Task': 'Click Object'}, #coffee tabletop
+    {'User': 'P10', 'Start': 18.33, 'End': 18.33, 'Task': 'MG - Apply'}, #oak wood 4
+    {'User': 'P10', 'Start': 18.38, 'End': 18.38, 'Task': 'Click Object'}, #sofa frames
+    {'User': 'P10', 'Start': 19.06, 'End': 19.50, 'Task': 'MG - Generate'}, #Synthetic Resin Wicker, light colored
+    {'User': 'P10', 'Start': 19.55, 'End': 19.55, 'Task': 'MG - Apply'}, #Synthetic Resin Wicker, light colored 4
+    {'User': 'P10', 'Start': 20.13, 'End': 20.13, 'Task': 'Click Object'}, #sofa frames
+    {'User': 'P10', 'Start': 20.22, 'End': 20.22, 'Task': 'MG - Apply'}, #Synthetic Resin Wicker, light colored 2
+    {'User': 'P10', 'Start': 20.40, 'End': 21.00, 'Task': 'CB - Query Material'}, # wood for fence
+    {'User': 'P10', 'Start': 21.10, 'End': 21.30, 'Task': 'MG - Generate'}, #Generate more cedar
+    {'User': 'P10', 'Start': 21.30, 'End': 21.53, 'Task': 'MG - Generate'}, #Generate cedar wood
+    {'User': 'P10', 'Start': 22.15, 'End': 22.15, 'Task': 'Click Object'}, #fences
+    {'User': 'P10', 'Start': 22.20, 'End': 23.30, 'Task': 'Render'}, 
+    {'User': 'P10', 'Start': 22.43, 'End': 23.03, 'Task': 'CB - Query Material'}, # material for sunshade umbrella
+    {'User': 'P10', 'Start': 23.23, 'End': 24.10, 'Task': 'MG - Generate'}, #Generate more sunbrella shade fabrics (CB)
+    {'User': 'P10', 'Start': 24.15, 'End': 24.15, 'Task': 'Click Object'}, #umbrella canopies
+    {'User': 'P10', 'Start': 24.22, 'End': 24.22, 'Task': 'MG - Apply'}, #sunbrella shade fabrics 4
+    {'User': 'P10', 'Start': 24.32, 'End': 25.14, 'Task': 'MG - Generate'}, #blue tiles
+    {'User': 'P10', 'Start': 25.28, 'End': 25.28, 'Task': 'Click Object'}, #pool edge
+    {'User': 'P10', 'Start': 25.30, 'End': 25.30, 'Task': 'MG - Apply'}, #blue tiles 3
+    {'User': 'P10', 'Start': 25.33, 'End': 25.33, 'Task': 'MG - Apply'}, #blue tiles 1
+    {'User': 'P10', 'Start': 25.37, 'End': 25.37, 'Task': 'MG - Apply'}, #blue tiles 4
+    {'User': 'P10', 'Start': 25.53, 'End': 25.53, 'Task': 'Scale Texture'}, #4.7
+    {'User': 'P9', 'Start': 26.34, 'End': 27.41, 'Task': 'Render'}, 
+    {'User': 'P9', 'Start': 28.28, 'End': 28.39, 'Task': 'Save'}, 
 
 
 
