@@ -651,6 +651,9 @@ color_map = {
     'CB - Apply': 'blue',
     'Set Metalness': 'black',
     'Set Roughness': 'brown',
+    'Set Opacity': 'red',
+    'Set Roughness': 'brown',
+    'Translate Texture': 'pink',
     'Save': 'pink',
     'MG - Brainstorm Keywords': 'lime',
     'Set Opacity': 'red',
@@ -659,10 +662,10 @@ color_map = {
 df['Color'] = df['Task'].map(color_map)
 
 # Tasks to be represented as points instead of bars
-point_tasks = ['Click Object', 'MG - Apply', 'CB-Apply', 'Set Metalness', 'Set Roughness', 'Set Opacity', 'Color Texture', 'Scale Texture', 'Rotate Texture',  'MG - Add Keyword', 'CB - Save Color', 'MG - Brainstorm Keywords']
+point_tasks = ['Click Object', 'MG - Apply', 'CB-Apply', 'Set Metalness', 'Set Roughness', 'Set Opacity', 'Color Texture', 'Scale Texture', 'Rotate Texture',  'MG - Add Keyword', 'CB - Save Color', 'MG - Brainstorm Keywords','Translate Texture', 'Save', 'CB - Query Color']
 
 # Plot
-fig, ax = plt.subplots(figsize=(12, 6))
+fig, ax = plt.subplots(figsize=(24, 12))
 
 for i, row in df.iterrows():
     if row['Task'] in point_tasks and row['End'] == row['Start']:
