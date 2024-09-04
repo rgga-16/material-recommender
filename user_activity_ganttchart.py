@@ -678,7 +678,8 @@ data = [
     {'User': 'P10', 'Start': 27.54, 'End': 29.10, 'Task': 'Render'}, 
     #"Is it normal to have that checkerboard there?"
     {'User': 'P10', 'Start': 30.22, 'End': 30.22, 'Task': 'Click Object'}, #patio chair cushion
-    {'User': 'P10', 'Start': 36.46, 'End': 37.01, 'Task': 'Save'}, 
+    # {'User': 'P10', 'Start': 36.46, 'End': 37.01, 'Task': 'Save'}, 
+    {'User': 'P10', 'Start': 31.46, 'End': 32.01, 'Task': 'Save'}, 
     
 
     {'User': 'P11', 'Start': 0.13, 'End': 0.13, 'Task': 'Click Object'}, #floor
@@ -765,7 +766,7 @@ df['Color'] = df['Task'].map(color_map)
 point_tasks = ['Click Object', 'MG - Apply', 'CB-Apply', 'Set Metalness', 'Set Roughness', 'Set Opacity', 'Color Texture', 'Scale Texture', 'Rotate Texture',  'MG - Add Keyword', 'CB - Save Color', 'MG - Brainstorm Keywords','Translate Texture', 'Save', 'CB - Query Color', 'Set Normal']
 
 # Plot
-fig, ax = plt.subplots(figsize=(24, 12))
+fig, ax = plt.subplots(figsize=(20, 12))
 
 for i, row in df.iterrows():
     # if row['Task'] in point_tasks and row['End'] == row['Start']:
