@@ -616,18 +616,114 @@ data = [
     {'User': 'P10', 'Start': 25.33, 'End': 25.33, 'Task': 'MG - Apply'}, #blue tiles 1
     {'User': 'P10', 'Start': 25.37, 'End': 25.37, 'Task': 'MG - Apply'}, #blue tiles 4
     {'User': 'P10', 'Start': 25.53, 'End': 25.53, 'Task': 'Scale Texture'}, #4.7
-    {'User': 'P9', 'Start': 26.34, 'End': 27.41, 'Task': 'Render'}, 
-    {'User': 'P9', 'Start': 28.28, 'End': 28.39, 'Task': 'Save'}, 
+    {'User': 'P10', 'Start': 26.34, 'End': 27.41, 'Task': 'Render'}, 
+    {'User': 'P10', 'Start': 28.28, 'End': 28.39, 'Task': 'Save'}, 
 
+    {'User': 'P11', 'Start': 0.07, 'End': 0.07, 'Task': 'Click Object'}, #click pool edge
+    {'User': 'P11', 'Start': 0.50, 'End': 2.24, 'Task': 'MG - Generate'}, # blue subway tiles
+    # Set number to 10
+    {'User': 'P11', 'Start': 1.21, 'End': 2.10, 'Task': 'CB - Query Material'}, #outdoor materials for furniture
+    # "I have a question, is there any pre-saved materials?"
+    {'User': 'P11', 'Start': 2.55, 'End': 2.55, 'Task': 'MG - Apply'}, #blue subway tiles 9
+    {'User': 'P11', 'Start': 3.21, 'End': 3.21, 'Task': 'Scale Texture'}, #9.2
+    # "I was thinking that it would suggest rattan?"
+    {'User': 'P11', 'Start': 4.35, 'End': 6.05, 'Task': 'MG - Generate'}, #rattan
+    {'User': 'P11', 'Start': 5.20, 'End': 6.45, 'Task': 'CB - Query Material'}, #suggest wood decking material
+    {'User': 'P11', 'Start': 6.17, 'End': 7.49, 'Task': 'MG - Generate'}, #white woven rattan
+    {'User': 'P11', 'Start': 8.30, 'End': 8.30, 'Task': 'Click Object'}, #coffee table top 
+    {'User': 'P11', 'Start': 8.35, 'End': 8.35, 'Task': 'Click Object'}, #coffee table base
+    {'User': 'P11', 'Start': 8.37, 'End': 8.37, 'Task': 'MG - Apply'}, #white woven rattan
+    {'User': 'P11', 'Start': 8.40, 'End': 8.40, 'Task': 'Click Object'}, #coffee table base 8 
+    {'User': 'P11', 'Start': 9.13, 'End': 9.13, 'Task': 'Click Object'}, # dining table top
+    {'User': 'P11', 'Start': 9.17, 'End': 9.17, 'Task': 'Click Object'}, # dining table frame
+    {'User': 'P11', 'Start': 9.30, 'End': 9.30, 'Task': 'Click Object'}, # sidetables
+    {'User': 'P11', 'Start': 9.40, 'End': 9.40, 'Task': 'MG - Apply'}, #white woven rattan 8 
+    {'User': 'P11', 'Start': 9.57, 'End': 9.57, 'Task': 'Scale Texture'}, #4.7
+    # {'User': 'P11', 'Start': 11.16, 'End': 11.16, 'Task': 'MG - Add Keyword'}, #tempered
+    {'User': 'P11', 'Start': 11.23, 'End': 11.23, 'Task': 'MG - Brainstorm Keywords'}, #transparent, clear
+    {'User': 'P11', 'Start': 12.16, 'End': 13.47, 'Task': 'MG - Generate'}, #glass, tempered, transparent, clear
+    # "can you generate more? I'm looking for glass that is clear"
+    # {'User': 'P11', 'Start': , 'End': , 'Task': 'MG - Add Keyword'}, #smooth
+    {'User': 'P11', 'Start': 14.53, 'End': 16.34, 'Task': 'MG - Generate'},#glass, tempered, transparent, clear, smooth
+    {'User': 'P11', 'Start': 15.23, 'End': 16.16, 'Task': 'CB - Query Color'}, #suggest colors for coastal design (error)
+    {'User': 'P11', 'Start': 16.45, 'End': 17.02, 'Task': 'CB - Query Color'}, #suggest colors for coastal design (error)
+    {'User': 'P11', 'Start': 17.04, 'End': 17.04, 'Task': 'Click Object'}, # coffee table top
+    {'User': 'P11', 'Start': 17.08, 'End': 17.08, 'Task': 'MG - Apply'}, #glass, tempered, transparent, clear, smooth 5
+    {'User': 'P11', 'Start': 17.18, 'End': 17.18, 'Task': 'Click Object'}, # coffee table top
+    {'User': 'P11', 'Start': 17.22, 'End': 17.22, 'Task': 'Set Opacity'}, #0.3
+    {'User': 'P11', 'Start': 17.48, 'End': 17.48, 'Task': 'Click Object'}, # dining table top
+    {'User': 'P11', 'Start': 17.53, 'End': 17.53, 'Task': 'MG - Apply'}, #glass, tempered, transparent, clear, smooth 5
+    {'User': 'P11', 'Start': 17.57, 'End': 17.57, 'Task': 'Set Opacity'}, #0.3
+    {'User': 'P11', 'Start': 18.16, 'End': 19.10, 'Task': 'CB - Query Color'}, #suggest colors for coastal design
+    {'User': 'P11', 'Start': 18.48, 'End': 19.45, 'Task': 'MG - Generate'}, #white oak
+    {'User': 'P11', 'Start': 19.48, 'End': 19.48, 'Task': 'CB - Save Color'},#Soft Green
+    {'User': 'P11', 'Start': 20.02, 'End': 20.02, 'Task': 'Click Object'}, # sofa cushions
+    {'User': 'P11', 'Start': 20.34, 'End': 20.34, 'Task': 'Click Object'}, # sofa cushions
+    {'User': 'P11', 'Start': 20.47, 'End': 20.47, 'Task': 'Color Texture'}, # Soft Green 4
+    {'User': 'P11', 'Start': 21.20, 'End': 21.20, 'Task': 'Click Object'}, # patio chair cushions
+    {'User': 'P11', 'Start': 21.32, 'End': 21.32, 'Task': 'Color Texture'}, # Soft Green 3
+    # {'User': 'P11', 'Start': , 'End': , 'Task': 'MG - Apply'}, #white oak (??)
+    {'User': 'P11', 'Start': 22.15, 'End': 22.15, 'Task': 'Click Object'}, # dining table frame
+    {'User': 'P11', 'Start': 22.17, 'End': 22.17, 'Task': 'MG - Apply'}, #white oak (??)
+    {'User': 'P11', 'Start': 22.42, 'End': 27.55, 'Task': 'MG - Generate'},#concrete
+    {'User': 'P11', 'Start': 23.09, 'End': 23.09, 'Task': 'Click Object'}, #umbrella canopies
+    {'User': 'P11', 'Start': 23.36, 'End': 23.36, 'Task': 'Click Object'}, #umbrella frames 
+    {'User': 'P11', 'Start': 23.46, 'End': 23.46, 'Task': 'Click Object'}, #umbrella canopies
+    {'User': 'P11', 'Start': 24.06, 'End': 24.06, 'Task': 'Color Texture'}, # Soft Green 1
+    #"can we get the material of the sidetable and apply it to the pool chair's base?"
+    {'User': 'P11', 'Start': 24.38, 'End': 24.38, 'Task': 'Click Object'}, #patio seat cushion
+    {'User': 'P11', 'Start': 24.44, 'End': 24.44, 'Task': 'Click Object'}, #patio frame
+    {'User': 'P11', 'Start': 24.52, 'End': 24.52, 'Task': 'Click Object'}, #sidetable
+    {'User': 'P11', 'Start': 27.28, 'End': 27.28, 'Task': 'Click Object'}, #fences
+    {'User': 'P11', 'Start': 27.54, 'End': 29.10, 'Task': 'Render'}, 
+    #"Is it normal to have that checkerboard there?"
+    {'User': 'P11', 'Start': 30.22, 'End': 30.22, 'Task': 'Click Object'}, #patio chair cushion
+    {'User': 'P11', 'Start': 36.46, 'End': 37.01, 'Task': 'Save'}, 
+    
 
-
-
-
-
-    # {'User': 'P9', 'Start': 45.35, 'End': 45.57, 'Task': 'CB - Query Material'},
-    # {'User': 'P10', 'Start': 5.00, 'End': 5.20, 'Task': 'Click Object'},
-    # {'User': 'P11', 'Start': 5.40, 'End': 6.00, 'Task': 'CB - Query Material'},
-    # {'User': 'P12', 'Start': 48.32, 'End': 49.00, 'Task': 'Click Object'},
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Click Object'}, #floor
+    {'User': 'P12', 'Start': 0.33, 'End': , 'Task': 'MG - Generate'}, #tropical patio flooring
+    #MG  set number 6
+    # "Do these resemble tropical flooring?" "They do but they're a bit outdated."
+    {'User': 'P12', 'Start': 1.40, 'End': , 'Task': 'CB - Query material'}, #tropical patio flooring
+    {'User': 'P12', 'Start': 3.14, 'End': , 'Task': 'MG - Generate'}, # generate more ceramic tiles with a natural stone look (CB)
+    {'User': 'P12', 'Start': 4.45, 'End': , 'Task': 'MG - Generate'}, #Similar textures ceramic tiles 4
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'MG - Apply'}, #similar ceramic tiles 6
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Scale Texture'}, #15
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Click Object'}, #pool edge
+    {'User': 'P12', 'Start': 7.57, 'End': , 'Task': 'MG - Generate'}, #pool tiles
+    # {'User': 'P12', 'Start': , 'End': , 'Task': 'MG - Add Keyword'}, #coastal
+    {'User': 'P12', 'Start': 9.29, 'End': , 'Task': 'MG - Generate'}, #pool tiles, coastal
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'MG - Apply'}, #pool tiles 2
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Scale Texture'}, #8.0
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'MG - Brainstorm'}, # "weather-resistant", "woven pattern", "light brown"
+    {'User': 'P12', 'Start': 13.08, 'End': , 'Task': 'MG - Generate'}, #synthetic rattan
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Click Object'}, #sofa chair bases and coffee table base
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'MG - Apply'}, # synthetic rattan 5
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Scale Texture'}, #8.0
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Rotate Texture'}, #90
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Click Object'}, #sofa chair bases and coffee table base
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Color Texture'}, #brown
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Click Object'}, #coffee table top
+    {'User': 'P12', 'Start': 19.17, 'End': , 'Task': 'MG - Generate'}, #terrazzo
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'MG - Apply'}, #terrazzo 3
+    {'User': 'P12', 'Start': 21.11, 'End': , 'Task': 'MG - Generate'}, #outdoor fabric
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Click Object'}, #sofa chair cushions and pillows
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'MG - Apply'}, #outdoor fabric 1
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Scale Texture'}, #12
+    {'User': 'P12', 'Start': 23.42, 'End': , 'Task': 'CB - Query Material'}, #low maintenance wood fence material
+    # "walang tumama. that is so interesting"
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Click Object'}, #fences
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'CB - Apply'}, #teak wood
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Click Object'}, #sofa chair frames and coffee table base
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Set Normal'}, #5
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Color Texture'}, #Soft Green 3
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Click Object'}, #coffee table top
+    {'User': 'P12', 'Start': , 'End': , 'Task': 'Set Roughness'}, #0.2
+    {'User': 'P12', 'Start': 29.47, 'End': , 'Task': 'Render'},
+    # """can you render from that point of view?"" ""No, you the rendering is from a fixed point."""
+    # "it's not reflected on the flooring"
+    {'User': 'P12', 'Start': 31.12, 'End': , 'Task': 'Save'}, 
 ]
 
 # Convert to DataFrame
