@@ -4,8 +4,12 @@ import matplotlib.image as mpimg
 import numpy as np
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
+icons_dict = {
+    'Click Object': './papers/icons/click.svg',
+}
 
-click_object_path = "./papers/icons/click.svg"
+def get_svg_icon(svg_path, zoom=0.1):
+    return OffsetImage(plt.imread(svg_path, format='svg'), zoom=zoom)
 
 
 # List of dictionaries representing each user action
@@ -780,7 +784,11 @@ for i, row in df.iterrows():
     # if row['Task'] in point_tasks and row['End'] == row['Start']:
     if row['Task'] in point_tasks:
         # Use scatter for tasks that are represented as points
-        ax.scatter(row['Start'], row['User'], color=row['Color'], s=100, marker='o', label=row['Task'])
+        if row['Task'] == 'Click Object':
+            ab = AnnotationBbox(get_svg_icon(icons_dict[row['Task']], zoom=0.05), (row['Start'], i), frameon=False, zorder=5)
+            q = ax.add_artist(ab)   
+        else:
+            ax.scatter(row['Start'], row['User'], color=row['Color'], s=100, marker='o', label=row['Task'])
     else:
         # Use barh for tasks that are represented as bars
         ax.barh(row['User'], row['End'] - row['Start'], left=row['Start'], height=0.4, color=row['Color'], label=row['Task'])
