@@ -1,5 +1,12 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+import matplotlib.image as mpimg
+import numpy as np
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+
+
+click_object_path = "./papers/icons/click.svg"
+
 
 # List of dictionaries representing each user action
 data = [
@@ -736,18 +743,19 @@ df = pd.DataFrame(data)
 # Assign a color to each unique task
 color_map = {
     'Click Object': 'gray',
+    'CB - Query Material': 'darkblue',
+    'CB - Query Color': 'lightblue',
     'MG - Generate': 'green',
-
     'MG - Apply': 'cyan',
 
     'Scale Texture': 'magenta',
     'Rotate Texture': 'indigo',
     'Render': 'yellow',
     'Color Texture': 'purple',
-    'CB - Query Material': 'orange',
+    
     'CB - Save Color': 'brown',
     'MG - Add Keyword': 'pink',
-    'CB - Query Color': 'lime',
+    
     'CB - Apply': 'blue',
     'Set Metalness': 'black',
     'Set Roughness': 'brown',
@@ -785,7 +793,7 @@ ax.legend(unique_labels.values(), unique_labels.keys(), title="Tasks", loc='uppe
 # Format x-axis to show minutes
 plt.xlabel('Minutes')
 plt.ylabel('User')
-plt.title('User Activity Timeline (Minutes) with Tasks as Points and Bars')
+plt.title('User Activity Timeline')
 
 plt.grid(True)
 # Adjust layout to ensure the legend is not cut off
