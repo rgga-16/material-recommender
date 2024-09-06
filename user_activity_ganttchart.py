@@ -5,11 +5,24 @@ import numpy as np
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 icons_dict = {
-    'Click Object': './papers/icons/click.svg',
+    # 'Click Object': './papers/icons/click.svg',
+    'Click Object': mpimg.imread("./papers/icons/click.png"),
 }
+
+# click_icon = mpimg.imread("./papers/icons/click.png")
 
 def get_svg_icon(svg_path, zoom=0.1):
     return OffsetImage(plt.imread(svg_path, format='svg'), zoom=zoom)
+
+def add_icon(ax, img, x, y, zoom=0.05):
+    """Adds an image at the specified coordinates (x, y) on the plot."""
+    imagebox = OffsetImage(img, zoom=zoom)
+    ab = AnnotationBbox(imagebox, (x, y), frameon=False)
+    ax.add_artist(ab)
+
+def get_icon_image(icon, zoom=0.1):
+    """Convert icon into an image that can be displayed in the legend."""
+    return OffsetImage(icon, zoom=zoom)
 
 
 # List of dictionaries representing each user action
@@ -294,7 +307,7 @@ data = [
 
     {'User': 'P5', 'Start': 00.34, 'End': 1.32, 'Task': 'CB - Query Material'}, #I want to search a material for the fence
     {'User': 'P5', 'Start': 2.27, 'End': 3.10, 'Task': 'CB - Query Material'}, #Can you suggest wood materials for the fence?
-    {'User': 'P5', 'Start': 3.30, 'End': 4.05, 'Task': 'MG - Generate'}, #Generate more Redwood
+    {'User': 'P5', 'Start': 3.30, 'End': 4.05, 'Task': 'CB-MG - Generate More Suggested Material'}, #Generate more Redwood
     {'User': 'P5', 'Start': 4.15, 'End': 4.15, 'Task': 'Click Object'}, #fences
     {'User': 'P5', 'Start': 4.17, 'End': 4.17, 'Task': 'MG - Apply'}, #redwood 3
     {'User': 'P5', 'Start': 4.35, 'End': 4.35, 'Task': 'Scale Texture'}, #4, 2.4
@@ -504,7 +517,7 @@ data = [
     {'User': 'P8', 'Start': 5.16, 'End': 5.16, 'Task': 'Scale Texture'}, #8.5
     {'User': 'P8', 'Start': 5.52, 'End': 6.54, 'Task': 'CB - Query Material'}, #umbrella materials suggestions
     {'User': 'P8', 'Start': 7.25, 'End': 7.25, 'Task': 'Click Object'}, #umbrella canopies
-    {'User': 'P8', 'Start': 7.30, 'End': 8.15, 'Task': 'MG - Generate'}, #polyster fabric umbrellas (generate more)
+    {'User': 'P8', 'Start': 7.30, 'End': 8.15, 'Task': 'CB-MG - Generate More Suggested Material'}, #polyster fabric umbrellas (generate more)
     {'User': 'P8', 'Start': 7.32, 'End': 7.32, 'Task': 'CB - Apply'}, #polyster fabric umbrellas
     {'User': 'P8', 'Start': 7.40, 'End': 7.40, 'Task': 'Click Object'}, #umbrella canopies
     {'User': 'P8', 'Start': 7.57, 'End': 7.57, 'Task': 'Color Texture'}, #navy blue
@@ -597,7 +610,7 @@ data = [
     {'User': 'P9', 'Start': 14.15, 'End': 14.15, 'Task': 'Click Object'}, #sofa chairs
     {'User': 'P9', 'Start': 14.23, 'End': 14.23, 'Task': 'MG - Apply'}, #poly cotton 1
     {'User': 'P9', 'Start': 15.15, 'End': 15.15, 'Task': 'Click Object'}, #sofa chair frames
-    {'User': 'P9', 'Start': 14.33, 'End': 15.18, 'Task': 'MG - Generate'}, # Generate more synthetic resin wicker (CB)
+    {'User': 'P9', 'Start': 14.33, 'End': 15.18, 'Task': 'CB-MG - Generate More Suggested Material'}, # Generate more synthetic resin wicker (CB)
     {'User': 'P9', 'Start': 15.24, 'End': 15.24, 'Task': 'MG - Apply'}, #synthetic resin wicker 1
     {'User': 'P9', 'Start': 15.28, 'End': 15.28, 'Task': 'Scale Texture'}, #5
     {'User': 'P9', 'Start': 16.15, 'End': 17.00, 'Task': 'MG - Generate'}, # Generate oak wood, light colored
@@ -613,12 +626,12 @@ data = [
     {'User': 'P9', 'Start': 20.13, 'End': 20.13, 'Task': 'Click Object'}, #sofa frames
     {'User': 'P9', 'Start': 20.22, 'End': 20.22, 'Task': 'MG - Apply'}, #Synthetic Resin Wicker, light colored 2
     {'User': 'P9', 'Start': 20.40, 'End': 21.00, 'Task': 'CB - Query Material'}, # wood for fence
-    {'User': 'P9', 'Start': 21.10, 'End': 21.30, 'Task': 'MG - Generate'}, #Generate more cedar
+    {'User': 'P9', 'Start': 21.10, 'End': 21.30, 'Task': 'CB-MG - Generate More Suggested Material'}, #Generate more cedar
     {'User': 'P9', 'Start': 21.30, 'End': 21.53, 'Task': 'MG - Generate'}, #Generate cedar wood
     {'User': 'P9', 'Start': 22.15, 'End': 22.15, 'Task': 'Click Object'}, #fences
     {'User': 'P9', 'Start': 22.20, 'End': 23.30, 'Task': 'Render'}, 
     {'User': 'P9', 'Start': 22.43, 'End': 23.03, 'Task': 'CB - Query Material'}, # material for sunshade umbrella
-    {'User': 'P9', 'Start': 23.23, 'End': 24.10, 'Task': 'MG - Generate'}, #Generate more sunbrella shade fabrics (CB)
+    {'User': 'P9', 'Start': 23.23, 'End': 24.10, 'Task': 'CB-MG - Generate More Suggested Material'}, #Generate more sunbrella shade fabrics (CB)
     {'User': 'P9', 'Start': 24.15, 'End': 24.15, 'Task': 'Click Object'}, #umbrella canopies
     {'User': 'P9', 'Start': 24.22, 'End': 24.22, 'Task': 'MG - Apply'}, #sunbrella shade fabrics 4
     {'User': 'P9', 'Start': 24.32, 'End': 25.14, 'Task': 'MG - Generate'}, #blue tiles
@@ -698,7 +711,7 @@ data = [
     #MG  set number 6
     # "Do these resemble tropical flooring?" "They do but they're a bit outdated."
     {'User': 'P11', 'Start': 1.40, 'End': 2.13, 'Task': 'CB - Query Material'}, #tropical patio flooring
-    {'User': 'P11', 'Start': 3.14, 'End': 3.58, 'Task': 'MG - Generate'}, # generate more ceramic tiles with a natural stone look (CB)
+    {'User': 'P11', 'Start': 3.14, 'End': 3.58, 'Task': 'CB-MG - Generate More Suggested Material'}, # generate more ceramic tiles with a natural stone look (CB)
     {'User': 'P11', 'Start': 4.45, 'End': 5.31, 'Task': 'MG - Generate'}, #Similar textures ceramic tiles 4
     {'User': 'P11', 'Start': 5.52, 'End': 5.52, 'Task': 'MG - Apply'}, #similar ceramic tiles 6
     {'User': 'P11', 'Start': 6.13, 'End': 6.13, 'Task': 'Scale Texture'}, #15
@@ -731,7 +744,7 @@ data = [
     {'User': 'P11', 'Start': 26.28, 'End': 26.28, 'Task': 'CB - Apply'}, #teak wood
     {'User': 'P11', 'Start': 26.40, 'End': 26.40, 'Task': 'Click Object'}, #fences
     {'User': 'P11', 'Start': 27.05, 'End': 27.05, 'Task': 'Click Object'}, #sofa chair frames and coffee table base
-    {'User': 'P11', 'Start': 27.28, 'End': 27.28, 'Task': 'Set Normal'}, #5
+    # {'User': 'P11', 'Start': 27.28, 'End': 27.28, 'Task': 'Set Normal'}, #5
     # {'User': 'P11', 'Start': , 'End': , 'Task': 'Color Texture'}, #Soft Green 3
     {'User': 'P11', 'Start': 28.06, 'End': 28.06, 'Task': 'Click Object'}, #coffee table top
     {'User': 'P11', 'Start': 28.10, 'End': 28.10, 'Task': 'Set Roughness'}, #0.2
@@ -747,61 +760,88 @@ df = pd.DataFrame(data)
 # Assign a color to each unique task
 color_map = {
     'Click Object': 'gray',
-    'CB - Query Material': 'darkblue',
-    'CB - Query Color': 'lightblue',
     'MG - Generate': 'green',
-    'MG - Apply': 'cyan',
+    'MG - Apply': 'green',
+
+    'CB - Query Material': 'blue',
+    'CB - Query Color': 'lightblue',
+    'CB - Apply': 'blue',
+    'CB - Save Color': 'lightblue',
+
+    'CB-MG - Generate More Suggested Material':'cyan',
 
     'Scale Texture': 'magenta',
     'Rotate Texture': 'indigo',
-    'Render': 'yellow',
+    'Translate Texture': 'pink',
     'Color Texture': 'purple',
-    
-    'CB - Save Color': 'brown',
-    'MG - Add Keyword': 'pink',
-    
-    'CB - Apply': 'blue',
+
     'Set Metalness': 'black',
     'Set Roughness': 'brown',
     'Set Opacity': 'red',
     'Set Roughness': 'brown',
-    'Translate Texture': 'pink',
-    'Save': 'pink',
+    
+    
+    'MG - Add Keyword': 'lightgreen',
     'MG - Brainstorm Keywords': 'lime',
-    'Set Opacity': 'red',
-    'Set Normal': 'black',
+    
+    
+    'Render': 'yellow',
+    'Save': 'black',
+
+    # 'Set Normal': 'black',
 }
 
 df['Color'] = df['Task'].map(color_map)
 
 # Tasks to be represented as points instead of bars
-point_tasks = ['Click Object', 'MG - Apply', 'CB-Apply', 'Set Metalness', 'Set Roughness', 'Set Opacity', 'Color Texture', 'Scale Texture', 'Rotate Texture',  'MG - Add Keyword', 'CB - Save Color', 'MG - Brainstorm Keywords','Translate Texture', 'Save', 'CB - Query Color', 'Set Normal']
+point_tasks = ['Click Object', 'MG - Apply', 'CB - Apply', 'Set Metalness', 'Set Roughness', 'Set Opacity', 'Color Texture', 'Scale Texture', 'Rotate Texture',  'MG - Add Keyword', 'CB - Save Color', 'MG - Brainstorm Keywords','Translate Texture', 'Save', 'Set Normal']
 
 # Plot
-fig, ax = plt.subplots(figsize=(20, 12))
+fig, ax = plt.subplots(figsize=(23, 13))
+
 
 for i, row in df.iterrows():
-    # if row['Task'] in point_tasks and row['End'] == row['Start']:
+
+    # Get the index of the participant to determine vertical position (y-axis)
+    participant_idx = df['User'].unique().tolist().index(row['User'])
+
     if row['Task'] in point_tasks:
-        # Use scatter for tasks that are represented as points
-        if row['Task'] == 'Click Object':
-            ab = AnnotationBbox(get_svg_icon(icons_dict[row['Task']], zoom=0.05), (row['Start'], i), frameon=False, zorder=5)
-            q = ax.add_artist(ab)   
-        else:
-            ax.scatter(row['Start'], row['User'], color=row['Color'], s=100, marker='o', label=row['Task'])
+    #     # Use scatter for tasks that are represented as points
+    #     if row['Task'] == 'Click Object':
+    #         add_icon(ax, icons_dict['Click Object'], row['Start'], participant_idx, zoom=0.04)
+    #         pass
+    #     else:
+    #         ax.scatter(row['Start'], row['User'], color=row['Color'], s=60, marker='o', label=row['Task'])
+        ax.scatter(row['Start'], row['User'], color=row['Color'], s=100, marker='o', label=row['Task'])
     else:
         # Use barh for tasks that are represented as bars
         ax.barh(row['User'], row['End'] - row['Start'], left=row['Start'], height=0.4, color=row['Color'], label=row['Task'])
 
+
+# Set a tighter x-axis range to minimize the dead space on the left and right
+ax.set_xlim(left=0, right=df['End'].max() + 1)
+
+# # Custom legend icons
+# custom_legend_elements = [
+#     plt.Line2D([0], [0], marker='o', color='w', label='Click Object', markerfacecolor='gray', markersize=10),
+#     plt.Line2D([0], [0], marker='o', color='w', label='MG - Generate', markerfacecolor='green', markersize=10),
+#     plt.Line2D([0], [0], marker='o', color='w', label='CB - Query Material', markerfacecolor='blue', markersize=10),
+# ]
+# # Add the icon to the legend as an image
+# icon = get_icon_image(icons_dict['Click Object'], zoom=0.04)
+# custom_legend_elements.append(OffsetImage(icon, zoom=0.05))
+# ax.legend(handles=custom_legend_elements, loc='upper left', bbox_to_anchor=(0.90, 1), title="Actions", fontsize=7)
+
 # Create a legend with unique tasks
 handles, labels = ax.get_legend_handles_labels()
 unique_labels = dict(zip(labels, handles))
-ax.legend(unique_labels.values(), unique_labels.keys(), title="Tasks", loc='upper left', bbox_to_anchor=(1, 1))
+ax.legend(unique_labels.values(), unique_labels.keys(), title="Actions", loc='upper left', bbox_to_anchor=(0.85, 1), fontsize=8.5, markerscale=0.8, handletextpad=0.5)
+
 
 # Format x-axis to show minutes
 plt.xlabel('Minutes')
 plt.ylabel('User')
-plt.title('User Activity Timeline')
+# plt.title('User Activity Timeline')
 
 plt.grid(True)
 # Adjust layout to ensure the legend is not cut off
