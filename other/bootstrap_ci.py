@@ -1,4 +1,6 @@
+import csv
 import numpy as np
+np.random.seed(42)
 import matplotlib.pyplot as plt
 
 
@@ -34,21 +36,75 @@ def bootstrap_confidence_interval(data, num_samples=10000, confidence_level=0.95
     lower_bound = np.percentile(bootstrap_means, (1 - confidence_level) / 2 * 100)
     upper_bound = np.percentile(bootstrap_means, (1 + confidence_level) / 2 * 100)
     
-    return lower_bound, upper_bound
+    return lower_bound, upper_bound, bootstrap_means
 
-# Calculate 95% confidence interval for Mental Demand
-lower, upper = bootstrap_confidence_interval(nasatlx_scores)
-print(f"95% Confidence Interval for Mental Demand: ({lower:.2f}, {upper:.2f})")
+# Open a CSV file to write the results
+with open('nasatlx_bootstrap_confidence_intervals.csv', mode='w', newline='') as file:
+    writer = csv.writer(file)
+    # Write the header
+    writer.writerow(['Dimension', 'Lower Bound', 'Upper Bound'])
 
-# ----------------------------------------------------
 
-# Plotting the bootstrap distribution
-plt.hist(bootstrap_means, bins=50, color='skyblue', alpha=0.7)
-plt.axvline(lower, color='red', linestyle='--', label=f'Lower Bound ({lower:.2f})')
-plt.axvline(upper, color='red', linestyle='--', label=f'Upper Bound ({upper:.2f})')
-plt.axvline(np.mean(nasatlx_scores), color='black', linestyle='-', label=f'Mean ({np.mean(nasatlx_scores):.2f})')
-plt.xlabel('Mean Mental Demand Score')
-plt.ylabel('Frequency')
-plt.title('Bootstrap Distribution of Mental Demand Means')
-plt.legend()
-plt.show()
+    for key, value in nasatlx_scores.items():
+        scores = value; dimension = key
+        
+        lower, upper, bootstrap_means = bootstrap_confidence_interval(scores)
+        print(f"95% Confidence Interval for {key}: {bootstrap_confidence_interval(scores)}")
+
+        # Save the results to the CSV file
+        writer.writerow([dimension, lower, upper])
+
+        # ----------------------------------------------------
+
+        # Plotting the bootstrap distribution
+        plt.hist(bootstrap_means, bins=50, color='lightcoral', alpha=0.7)
+        plt.axvline(lower, color='red', linestyle='--', label=f'Lower Bound ({lower:.2f})')
+        plt.axvline(upper, color='red', linestyle='--', label=f'Upper Bound ({upper:.2f})')
+        plt.axvline(np.mean(scores), color='black', linestyle='-', label=f'Mean ({np.mean(scores):.2f})')
+        plt.xlabel(f'Mean {key} Score')
+        plt.ylabel('Frequency')
+        plt.title(f'Bootstrap Distribution of {key} Means')
+        plt.legend()
+        # plt.show()
+        plt.savefig(f'nasatlx_bootstrap_{key}.png')
+        plt.clf()
+    
+    file.close()
+
+
+
+# Open a CSV file to write the results
+with open('csi_bootstrap_confidence_intervals.csv', mode='w', newline='') as file:
+    writer = csv.writer(file)
+    # Write the header
+    writer.writerow(['Dimension', 'Lower Bound', 'Upper Bound'])
+
+    for key, value in csi_scores.items():
+        scores = value; dimension = key
+        
+        lower, upper, bootstrap_means = bootstrap_confidence_interval(scores)
+        print(f"95% Confidence Interval for {key}: {bootstrap_confidence_interval(scores)}")
+
+        # Save the results to the CSV file
+        writer.writerow([dimension, lower, upper])
+
+        # ----------------------------------------------------
+
+        # Plotting the bootstrap distribution
+        plt.hist(bootstrap_means, bins=50, color='skyblue', alpha=0.7)
+        plt.axvline(lower, color='red', linestyle='--', label=f'Lower Bound ({lower:.2f})')
+        plt.axvline(upper, color='red', linestyle='--', label=f'Upper Bound ({upper:.2f})')
+        plt.axvline(np.mean(scores), color='black', linestyle='-', label=f'Mean ({np.mean(scores):.2f})')
+        plt.xlabel(f'Mean {key} Score')
+        plt.ylabel('Frequency')
+        plt.title(f'Bootstrap Distribution of {key} Means')
+        plt.legend()
+        # plt.show()
+        plt.savefig(f'csi_bootstrap_{key}.png')
+        plt.clf()
+
+    file.close()
+
+
+
+
