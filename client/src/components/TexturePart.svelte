@@ -569,7 +569,7 @@
             {japanese ? "素材仕上げ：": "Finish:"} <EditableTextbox bind:text={none} />
           </div>
         {/if}
-        <!-- {#if get(use_chatgpt)}
+        {#if get(use_chatgpt)}
           <div class="control">
             <button on:click|preventDefault={suggestSimilarMaterials}>{japanese ? "類似素材の提案" : "Suggest similar materials"} </button>
             <div style="border:1px black;">
@@ -581,7 +581,7 @@
             </div>
             
           </div>
-        {/if} -->
+        {/if}
   </div>
 
   <div class="w3-bar w3-grey tabs" >

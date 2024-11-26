@@ -113,7 +113,8 @@ temperature=1.0
 # model_name= "gpt-4"
 # max_tokens=16383
 
-model_name = "gpt-4-1106-preview"
+# model_name = "gpt-4-1106-preview"
+model_name = "gpt-4o"
 max_tokens=100000
 # max_tokens = 8096
 encoding = tiktoken.get_encoding("cl100k_base")
@@ -138,7 +139,7 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
     elif model == "gpt-3.5-turbo-0301":
         tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         tokens_per_name = -1  # if there's a name, the role is omitted
-    elif model == "gpt-4-0314":
+    elif model == "gpt-4-0314" or model == "gpt-4o":
         tokens_per_message = 3
         tokens_per_name = 1
     else:
@@ -160,7 +161,7 @@ def check_and_trim_message_history():
     global model_name 
 
     model_name_ = model_name
-    if(model_name=="gpt-4-1106-preview"):
+    if(model_name=="gpt-4-1106-preview" or model_name=="gpt-4o"):
         model_name_="gpt-4"
 
     if num_tokens_from_messages(message_history, model=model_name_) > max_tokens:
@@ -364,7 +365,7 @@ def suggest_materials_2(prompt,role="user", use_internet=True, design_brief=None
     refined_prompt+= '''Do not respond anything else apart from the dictionary.
     Do not respond anything else apart from the dictionary.
     Do not respond anything else apart from the dictionary.'''
-     
+
     python_dict_response_str = query(refined_prompt,role).strip()
     end_time = time.time()
     print(f"Time elapsed: {end_time-start_time} seconds.")
@@ -565,13 +566,13 @@ def provide_material_feedback2(material_name, object_name, part_name, use_intern
     '''
     
     materials_internet_sources = ""
+    references=[]
     if use_internet:
         results = []
         materials_internet_sources += f'''\n 
         Additionally, here are sources from the internet that you can refer to and cite when providing feedback: \n
         '''
         src_idx=1
-        references = []
         for i in range(len(aspects)):
             aspect = aspects[i]
             internet_search_query = f'{aspect} of a {object_name} {part_name} made out of {material_name}'

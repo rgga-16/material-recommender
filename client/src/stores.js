@@ -99,7 +99,7 @@ export const displayHeight = writable(0); //Keeps track of the height of the dis
 
 export const isDraggingImage = writable(false); //Keeps track of whether an image is currently being dragged and transferred or not
 export const generated_texture_name = writable(""); //Keeps track of the name of the generated texture
-export let in_japanese = writable(true); //Keeps track of whether the language is in Japanese or not
+export let in_japanese = writable(false); //Keeps track of whether the language is in Japanese or not
 export let use_chatgpt = writable(true); //Keeps track of whether the app uses chatgpt or not
 
 /* 
