@@ -1,7 +1,7 @@
 from flask import Flask, send_from_directory, request, jsonify, send_file
 import random, requests, json, copy, shutil, os, base64, io, time, deepl
 from PIL import Image
-from texture_transfer_3d import TextureDiffusion, DALLE2, text2texture_similar
+from texture_transfer_3d import DALLE2, text2texture_similar
 from configs import *
 
 
@@ -186,8 +186,11 @@ def feedback_materials():
     design_brief = form_data["design_brief"]
 
     # intro_text, response, suggestions_dict, references = gpt3.provide_material_feedback(material_name, object_name, part_name, use_internet=True, attached_parts=attached_parts,design_brief=design_brief)
-    intro_text, response, suggestions_dict, references = gpt3.provide_material_feedback2(material_name, object_name, part_name, use_internet=True, attached_parts=attached_parts,design_brief=design_brief)
-    references_str = format_references(references)
+    intro_text, response, suggestions_dict, references = gpt3.provide_material_feedback2(material_name, object_name, part_name, use_internet=False, attached_parts=attached_parts,design_brief=design_brief)
+    
+    references_str = ""
+    if references:
+        references_str = format_references(references)
 
     for aspect in suggestions_dict:
         for suggestion in suggestions_dict[aspect]['suggestions']:
@@ -684,6 +687,9 @@ use_chatgpt = True
 RENDER_MODE = 'CYCLES'
 '''
 if __name__ == "__main__":
+
+    # If starting a new scene
+    ############################################
     emptydir(SERVER_IMDIR,delete_dirs=True)
 
     # Here, you should make the necessary dirs under client/public.
@@ -695,15 +701,14 @@ if __name__ == "__main__":
     makedir(os.path.join(SERVER_IMDIR,"renderings","current"))
     makedir(os.path.join(SERVER_IMDIR,"renderings","saved"))
     
-    ######################################
-    # texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
+    
 
     products = [
         "nightstand_family",
         "bedroom",
         "pool-side",
         "pool-side-small",
-        "regular_bathroom"
+        "regular_bathroom",
     ]
 
     DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[3]) #Dir where the 3D scene (information, models, textures, renderings) is stored
@@ -711,7 +716,6 @@ if __name__ == "__main__":
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 
     init_texture_parts_path = os.path.join(RENDER_DIR, "current","object_part_material.json")
-    # init_texture_parts_path = os.path.join(RENDER_DIR, "current","object_part_material_new.json")
     init_render_path = os.path.join(RENDER_DIR,"current","rendering.png")
 
     # Code to render initial rendering. Uncomment the below code if you want to re-render the initial rendering.
@@ -733,6 +737,9 @@ if __name__ == "__main__":
         textureparts_path = os.path.join(dir_path,"object_part_material.json")
         add_to_saved_renderings(render_path,textureparts_path)
     
+    #####################################################
+
+
     print(f"Latest rendering ID: {LATEST_RENDER_ID}")
 
     app.run(debug=False,port=2099)

@@ -1,7 +1,7 @@
 import torch
 from torch import autocast
 torch.cuda.empty_cache()
-from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
+# from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 import time, os
 import openai
 from openai import OpenAI
