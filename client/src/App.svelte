@@ -290,12 +290,6 @@
 		const threediv = document.getElementById("display");
 		displayWidth.set(threediv.offsetWidth);
 		displayHeight.set(threediv.offsetHeight);
-		
-
-		// threed_display_global.update(value => {
-		// 	threed_display = value;
-		// 	return value;
-		// });
 
 		console.log(threed_display);
 		threed_display_global.set(threed_display);

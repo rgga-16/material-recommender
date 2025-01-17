@@ -11,10 +11,26 @@ import models.llm.gpt3 as gpt3
 
 STATIC_IMDIR = os.path.join(CWD,"client","public")
 SERVER_IMDIR = os.path.join(STATIC_IMDIR,"gen_images") 
+SERVER_PRESET_IMDIR = os.path.join(STATIC_IMDIR,"preset_materials")
 CLIENT_IMDIR = os.path.join("gen_images")
 LATEST_RENDER_ID=0
 use_chatgpt = True
 RENDER_MODE = 'CYCLES'
+
+MATERIAL_PRESETS = {
+    "Concrete": os.path.join(SERVER_PRESET_IMDIR,"concrete01-1k","concrete01 diffuse 1k.jpg"), 
+    "Wood": os.path.join(SERVER_PRESET_IMDIR,"wood-01-1k","wood 01 Diffuse.jpg"),
+    "Wood2": os.path.join(SERVER_PRESET_IMDIR,"wood-05-1k","wood 05 diffuse 1k.jpg"),
+    "Marble": os.path.join(SERVER_PRESET_IMDIR,"marble07-1k","marble07 diffuse 1k.jpg"),
+    "Marble2": os.path.join(SERVER_PRESET_IMDIR,"Marble01-1k","Marble01 diffuse 1k.jpg"),
+    "Fabric": os.path.join(SERVER_PRESET_IMDIR,"Fabric04-1k","Fabric04 diffuse 1k.jpg"),
+    "Fabric2": os.path.join(SERVER_PRESET_IMDIR,"Fabric02-1k","Fabric03 diffuse 1k.jpg"),
+    "Plaster": os.path.join(SERVER_PRESET_IMDIR,"plaster04-1k","plaster04 diffuse 1k.jpg"),
+    "Stone": os.path.join(SERVER_PRESET_IMDIR,"stone08-1k","stone08 diffuse 1k.jpg"),
+    "Stone2": os.path.join(SERVER_PRESET_IMDIR,"Stone03-1k","Stone04 diffuse 1k.jpg"),
+    "Tiles": os.path.join(SERVER_PRESET_IMDIR,"tiles03-1k","tiles03 diffuse 1k.jpg"),
+    "Tiles2": os.path.join(SERVER_PRESET_IMDIR,"tiles06-1k","tiles06 diffuse 1k.jpg"),
+}
 
 texture_generator = DALLE2()
 # texture_generator = TextureDiffusion(model_id="runwayml/stable-diffusion-v1-5")
@@ -151,6 +167,7 @@ def transfer_texture():
     src_filename = os.path.basename(src_url)
     src_dir = os.path.dirname(src_url)
     src_filename_noext = os.path.splitext(src_filename)[0]
+    src_ext= os.path.splitext(src_filename)[1]
     
     curr_dir = os.path.dirname(curr_textureparts_path)
     dest_url = os.path.join(curr_dir, src_filename)
@@ -158,14 +175,14 @@ def transfer_texture():
 
     # Color to Normal Map. Create normal map from color map
     # Check if mat_image_normal exists in curr_textureparts
-    normal_src_url = os.path.join(src_dir, f"{src_filename_noext}_normal.png")
-    normal_dest_url = os.path.join(curr_dir, f"{src_filename_noext}_normal.png")
+    normal_src_url = os.path.join(src_dir, f"{src_filename_noext}_normal{src_ext}")
+    normal_dest_url = os.path.join(curr_dir, f"{src_filename_noext}_normal{src_ext}")
     Image.open(normal_src_url).save(normal_dest_url)
 
     # Normal to Height Map. Create height map from normal map
     # Check if mat_image_height exists in curr_textureparts
-    height_src_url = os.path.join(src_dir, f"{src_filename_noext}_height.png")
-    height_dest_url = os.path.join(curr_dir, f"{src_filename_noext}_height.png")
+    height_src_url = os.path.join(src_dir, f"{src_filename_noext}_height{src_ext}")
+    height_dest_url = os.path.join(curr_dir, f"{src_filename_noext}_height{src_ext}")
     Image.open(height_src_url).save(height_dest_url)
 
     # TEST GENERATING TEXTURES AND DRAGIGING
@@ -291,6 +308,11 @@ def brainstorm_prompt_keywords():
 def brainstorm_material_queries():
     prompts = gpt3.brainstorm_material_queries()
     return jsonify({"prompts":prompts,"role":"assistant"})
+
+@app.route("/get_preset_materials", methods=['GET'])
+def get_presets():
+
+    return jsonify({"preset_material_paths":MATERIAL_PRESETS})
 
 
 @app.route("/get_image", methods=['POST'])
@@ -420,12 +442,12 @@ def generate_normal_and_heightmap(texture_filepath):
 
     # Normal to Height Map. Create height map from normal map
     height_path = os.path.join(dir, f"{filename_noext}_height.png")
-    normal_to_height_command = f'python {CWD}/utils/DeepBump-7/cli.py {normal_path} {height_path} normals_to_height --normals_to_height-seamless TRUE'
-    heightmap_start_time = time.time()
-    os.system(normal_to_height_command)
-    heightmap_end_time = time.time()
+    # normal_to_height_command = f'python {CWD}/utils/DeepBump-7/cli.py {normal_path} {height_path} normals_to_height --normals_to_height-seamless TRUE'
+    # heightmap_start_time = time.time()
+    # os.system(normal_to_height_command)
+    # heightmap_end_time = time.time()
 
-    print(f"Time to create height map: {heightmap_end_time-heightmap_start_time}")
+    # print(f"Time to create height map: {heightmap_end_time-heightmap_start_time}")
 
     return normal_path, height_path
 
@@ -738,6 +760,8 @@ if __name__ == "__main__":
         add_to_saved_renderings(render_path,textureparts_path)
     
     #####################################################
+
+
 
 
     print(f"Latest rendering ID: {LATEST_RENDER_ID}")

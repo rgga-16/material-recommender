@@ -2,6 +2,7 @@
     import Generate from "./GenerationModule/Generate.svelte";
     import SuggestMaterials from "./SuggestModule/SuggestMaterials.svelte";
     import SuggestColors from "./SuggestModule/SuggestColors.svelte";
+    import PresetMaterials from "./NewModules/PresetMaterials.svelte";
     import ChatBot from "./ChatBotModule/ChatBot.svelte";
     import {actions_panel_tab} from '../stores.js';
     import {use_chatgpt} from '../stores.js';
@@ -49,6 +50,9 @@
       {japanese ? "チャットボット" : "ChatBot"}
     </button>
     {/if}
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='mat_lib'} on:click={()=>switchTab('mat_lib')} id="matlib-btn">
+      {japanese ? "チャットボット" : "Material Library"}
+    </button>
     <!-- <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_materials'} on:click={()=>switchTab('suggest_materials')} id="suggest-materials-btn">Suggest Materials</button>
     <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_colors'} on:click={()=>switchTab('suggest_colors')} id="suggest-colors-btn">Suggest Colors</button> -->
   </div>
@@ -65,6 +69,11 @@
         generate.reset_page(); }}/>
     </div>
   {/if}
+
+  <div class='tab-content'  class:active={activeTab==='mat_lib'} id="mat_lib">
+    <PresetMaterials/>
+  </div> 
+
 
 </div>
       
