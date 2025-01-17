@@ -11,35 +11,33 @@ export const models_setup = writable({});
 export const chatbot_input_message = writable(""); //Keeps track of the input message in the chatbot
 
 export const design_brief = writable(`
-Design Brief for a Family Poolside Patio
+Design Brief: Bedroom Design for a Modern Urban Dweller
 
-Client Demographics: The clients are a family of four with two young children. They live in a coastal area in the Philippines and love spending time outdoors. They want to create a poolside patio that is both functional and stylish, where the whole family can relax and have fun.
+Demographics and Target Market: The client is a young professional in their late 20s, working in a creative industry. They have a busy lifestyle and value comfort, functionality, and aesthetics. The target market includes individuals who appreciate contemporary design and seek a peaceful retreat within their urban living space.
 
-Background: The family recently had a pool installed in their backyard and wants to create a poolside patio that complements the pool and provides them with a space to entertain guests and spend time as a family.
+Background of the Project: The project aims to create a stylish and functional bedroom that reflects the client's personality and provides a serene sanctuary amidst the bustling city life. The design should incorporate elements that cater to the client's needs and preferences while complementing their modern lifestyle.
 
-Preferred Design Style: The family prefers a coastal design style with natural textures, light colors, and a relaxed vibe. They want the design to be cohesive with their home's coastal interior design, which features a lot of white and blue hues.
+Preferred Design Style: The preferred design style for the bedroom is a blend of modern and minimalist aesthetics. Clean lines, sleek furniture, and a neutral color palette will be used to create a calming and sophisticated atmosphere.
 
-Desired Feel and Ambience: The family wants the poolside patio to have a fun and relaxed feel, with a touch of sophistication. They want the space to be perfect for both daytime and nighttime use, with soft lighting that creates a cozy and inviting atmosphere.
+Desired Feel and Ambience: The client desires a tranquil and cozy atmosphere in the bedroom. The space should evoke a sense of relaxation, allowing them to unwind after a long day. The ambience should be warm, inviting, and conducive to restful sleep.
 
-Colors, Materials, and Finishes: The family prefers a color scheme that is light and airy, with shades of blue and green to complement the pool. They want the materials and finishes to be durable and low-maintenance, while also being natural.
+Budget: The client has a moderate budget for the project, allowing for quality materials and furnishings without excessive extravagance.
 
-Budget: The budget for the project is moderate.
+Furniture and Accessories: The bedroom will include the following furniture and accessories:
+Bed: A queen-sized bed with pillows, a comfortable mattress, a cozy blanket, a throw blanket, a sleek bedframe, and a padded headboard. The bed will feature built-in sidetables on each side.
+Two closed drawers: These drawers will provide storage for clothing and personal items, maintaining a clutter-free environment.
+An open drawer: This drawer will serve as a display area for decorative items or books.
+TV: A wall-mounted TV will be positioned for comfortable viewing from the bed.
+Carpet: A plush, neutral-colored carpet will cover the bedroom floor, adding warmth and comfort.
+Curtains: Floor-to-ceiling curtains in a light fabric will be installed to control natural light and provide privacy.
+Shelves: Minimalist floating shelves will be mounted on the walls to showcase books, potted plants, and decorative accessories.
+Accessories: Potted plants, books, figurines, and headphones will be strategically placed to add personal touches and enhance the overall ambiance.
 
-Furniture:
-Four patio lounge chairs
-Two patio sidetables
-Two outdoor umbrellas
-An outdoor sofa
-Two outdoor sofa chairs
-A coffee table
-An outdoor pool
-Outdoor flooring
-An outdoor dining table
-Five outdoor dining chairs
+Planned Uses of the Bedroom: The bedroom will serve as a multifunctional space, primarily for relaxation, sleep, and personal rejuvenation. It will also provide a cozy reading nook, a small entertainment area for watching TV, and a display space for the client's favorite books and decorative items.
 
-Planned Uses: The poolside patio will be used for entertaining guests, lounging by the pool, and dining al fresco. The lounge chairs and umbrellas will be used for sunbathing and relaxing by the pool, while the outdoor sofa and chairs will be used for lounging and socializing. The dining table and chairs will be used for outdoor dining, and the coffee table will be used for drinks and snacks.
+Location: The bedroom is located in a modern urban apartment in a bustling city. The environment is vibrant and dynamic, and the design should create a peaceful oasis within this energetic setting. The city is fictional, allowing for creative freedom in designing the bedroom to suit various urban locations.
 
-Location: The poolside patio will be located in a coastal area in the Philippines. The environment will be tropical, with a lot of greenery and a warm climate. The design will take inspiration from the coastal surroundings, with natural textures and colors that blend in with the environment.
+Please note that the design brief is flexible and can be further refined based on the client's specific requirements and preferences.
 `); //Keeps track of the design brief
 
 // selected_objs_and_parts = [
