@@ -6,6 +6,8 @@ from openai import OpenAI
 import re , ast, json, time
 from datetime import datetime
 from langchain_community.tools import DuckDuckGoSearchResults
+from pydantic import BaseModel 
+from typing import List
 
 client = OpenAI()
 
@@ -250,7 +252,7 @@ def query(prompt,role="user", temp=temperature):
 
     try:
         response = client.chat.completions.create(
-            model=model_name,
+            model="gpt-4o",
             messages=message_history,
             temperature=temp
         )
@@ -391,6 +393,89 @@ def suggest_materials_2(prompt,role="user", use_internet=True, design_brief=None
         message_history=message_history[:-2]
         suggestions = {}
     return intro_text, suggestions
+
+def suggest_materials_3(prompt,role="user", resources="", design_brief=None,n=5):
+    refined_prompt = f"{prompt}"
+
+    if design_brief:
+        refined_prompt+= f''' 
+        Additionally, I want you to consider the following design brief for context: 
+        ==========================
+        {design_brief}.
+        ==========================
+        Some parts of the design brief may be relevant to the question or instruction, while others may not be relevant.
+        '''
+
+        if resources not in ["", None]:
+            # refined_prompt+= '''
+            # Also, provided here are excerpts from textbook sources that could be relevant to the query. 
+            # If you will use these excerpts, not only should you cite their page number and textbook title, but please do not give the full answer to the question or instruction. 
+            # Instead, give a small part of the answer, and then encourage the user to refer to the cited textbooks and their page numbers for the full answer. 
+            # The point of providing these excerpts is to educate the user and help them improve their knowledge.
+            # Make sure that you answer the question or fulfill the instruction by both using these excerpts from textbooks and also in the context of the design brief.
+            # '''
+            refined_prompt+= '''
+            Also, provided here are excerpts from textbook sources that could be relevant to the query. 
+            If you will use these excerpts, not only should you cite their page number and textbook title, but please do not give the answer to the question or instruction. 
+            Instead, then encourage the user to refer to the cited textbooks and their page numbers for the full answer. 
+            The point of providing these excerpts is to educate the user and help them improve their knowledge.
+            '''
+        else: 
+            refined_prompt+=  '''
+            Make sure that you answer the question or fulfill the instruction in the context of the design brief.
+            '''
+    
+    if resources not in ["", None]: 
+        refined_prompt+= f'''Lastly, answer the suggested materials and their detailed reasons as a Python dictionary. 
+        The keys are the names of the suggested materials, and the values are the detailed reasons. 
+        The detailed reasons should be written using Markdown AND should not tell the answer but encourage the user to refer to the cited textbooks and their page numbers for the full answer.
+        Make sure the reasons are the same as the ones in the previous response.'''
+    else: 
+        refined_prompt+= '''
+        Lastly, answer the suggested materials and their detailed reasons as a Python dictionary. 
+        The keys are the names of the suggested materials, and the values are the detailed reasons. The detailed reasons should be written using Markdown.
+        Make sure the reasons are the same as the ones in the previous response.'''
+        
+
+    dict_template = {
+        "material 1": "Reason 1",
+        "material 2": "Reason 2",
+        "material 3": "Reason 3",
+        "material 4": "Reason 4",
+    }
+    dict_template_str = json.dumps(dict_template, indent=4)
+
+    refined_prompt+=f"Here is an example of the said Python dictionary: {dict_template_str}"
+
+    refined_prompt+= '''Do not respond anything else apart from the dictionary.
+    Do not respond anything else apart from the dictionary.
+    Do not respond anything else apart from the dictionary.'''
+
+    python_dict_response_str = query(refined_prompt,role).strip()
+    end_time = time.time()
+
+    # Remove text before and after the Python list
+    start_index = python_dict_response_str.find('{')
+    if start_index>0:
+        print("Removing text before the Python list.")
+        python_dict_response_str = python_dict_response_str[start_index:].strip()
+    end_index = python_dict_response_str.rfind('}')
+    if end_index<len(python_dict_response_str)-1:
+        print("Removing text after the Python list.")
+        python_dict_response_str = python_dict_response_str[:end_index+1].strip()
+
+    python_dict_response_str = python_dict_response_str.strip()
+
+    try:
+        suggestions = ast.literal_eval(python_dict_response_str)
+        intro_text=''
+    except SyntaxError as e:
+        intro_text = f"Sorry, please try again. We got the following error: {e}."
+        global message_history
+        message_history=message_history[:-2]
+        suggestions = {}
+    return intro_text, suggestions
+
 
 
 def suggest_color_palettes(prompt, role="user", use_internet=True, design_brief=None):
@@ -539,6 +624,7 @@ def brainstorm_material_queries():
 
 materials_feedbacks = []
 def provide_material_feedback2(material_name, object_name, part_name, use_internet=False, attached_parts=None, design_brief=None):
+
     
     # feedback_model = "gpt-3.5-turbo-16k"
     feedback_model = "gpt-4"
@@ -673,3 +759,163 @@ def provide_material_feedback2(material_name, object_name, part_name, use_intern
     unformatted_response = ""
     intro_text = ""
     return intro_text, unformatted_response, suggestions_dict, references
+
+class TexturePromptList(BaseModel):
+    texture_prompts: List[str]
+    reasons: List[str]
+
+class MaterialSuggestionPromptList(BaseModel):
+    suggested_materials: List[str]
+    explanations: List[str]
+    texture_prompts: List[str]
+
+
+def suggest_materials_texturebased(material_name, prompt, n, texture_image, design_brief, interior_state=None):
+    priors = "specified material" 
+    
+    background = f'''Here is the material, {material_name}. The attached image is its texture map for your reference.'''
+    
+    if design_brief not in ["", None]:
+        background += f'''
+        Additionally, here is a design brief for context on how the material may be used. It may be used on a 3D model of an element in the space.
+        ==========================
+        {design_brief}
+        ==========================
+        '''
+        priors += " and contents of the design brief"
+    
+    if interior_state not in ["", None]:
+        background += f''' 
+            Moreover, there is another picture showing the current state of the interior space which includes a visual on the materials and colors being used. 
+        '''
+        priors += " and the current state of the interior space"
+
+    instruction = f'''
+        Based on the {priors}, please suggest {n} materials that are similar to {material_name} material and that also address the following query (if any, ignore if none): {prompt}. 
+        If the material name is generic (e.g., wood, metal), you can suggest specific materials that are within the same category.
+        Moreover, please also provide a short and concise explanation, as well as a detailed texture map prompt for each material. 
+        If a design brief is included, please consider it when suggesting the similar materials and making the reasons.
+        If there is a design brief included, don't explicitly include details about the design brief in the texture map prompts. 
+        If there is a picture of the current state of the interior space included, please consider it in order to suggest materials and colors that would complement the current state of the interior space.
+    '''
+
+    full_prompt = f'''{background} 
+    {instruction}
+    '''
+    global init_history
+
+    init_history_clone = copy.deepcopy(init_history)
+
+    message = {
+        "role":"user",
+        "content": [
+            {"type": "text", "text": full_prompt},
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/jpeg;base64,{texture_image}"},
+            }
+        ]
+    }
+
+    if interior_state not in ["", None]:
+        message["content"].append(
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/jpeg;base64,{interior_state}"},
+            }
+        )
+
+    init_history_clone.append(message)
+
+    # Use messages
+    response = client.beta.chat.completions.parse(
+        model="gpt-4o",
+        messages=init_history_clone,
+        max_tokens=5000,
+        response_format=MaterialSuggestionPromptList  # Use the Pydantic model as the response format
+    )
+
+    structured_response = response.choices[0].message.parsed
+
+    return structured_response.suggested_materials, structured_response.explanations, structured_response.texture_prompts
+
+
+
+def suggest_texture_prompts(prompt,n, image, design_brief=None, interior_state=None):
+    priors = "image"
+    
+    background = f'''Attached is an image of a texture map.'''
+
+    if design_brief not in ["", None]:
+        background += f'''
+        Additionally, here is a design brief for context on how the texture map may be used. It may be used on a 3D model of an element in the space.:
+        ==========================
+        {design_brief}
+        ==========================
+        '''
+        priors += " and contents of the design brief"
+    
+    if interior_state not in ["", None]:
+        background += f''' 
+            Moreover, there is another picture showing the current state of the interior space which includes a visual on the materials and colors being used. 
+        '''
+        priors += " and the current state of the interior space"
+
+    instruction = f'''
+        Based on the {priors}, please make {n} varying prompts that can be inputted in a text-to-image generator to create detailed flat texture map images of the material in the image.
+        If there is a design brief included, don't explicitly include details about the design brief in the texture map prompts. 
+        If there is a picture of the current state of the interior space included, please consider it in order to suggest materials and colors that would complement the current state of the interior space.
+    '''
+
+    if prompt not in ["", None]:
+        background += f'''
+        Additionally, here is a prompt provided that gives instructions on how to formulate the prompts:
+        {prompt}
+        '''
+
+        instruction = f'''
+        Based on the {priors}, please make {n} varying texture map prompts that can be inputted in a text-to-image generator to create detailed flat texture map images of the material in the image.
+        If there is a design brief included, don't explicitly include details about the design brief in the texture map prompts.
+        Moreover, make sure that the texture map prompts are also based on the prompt provided above.
+        If there is a picture of the current state of the interior space included, please consider it in order to suggest materials and colors that would complement the current state of the interior space.
+        '''
+    
+    full_prompt = f'''{background} 
+    {instruction}
+    '''
+
+    global init_history
+
+    init_history_clone = copy.deepcopy(init_history)
+
+    message = {
+        "role":"user",
+        "content": [
+            {"type": "text", "text": full_prompt},
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/jpeg;base64,{image}"},
+            }
+        ]
+    }
+
+    if interior_state not in ["", None]:
+        message["content"].append(
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/jpeg;base64,{interior_state}"},
+            }
+        )
+
+    init_history_clone.append(message)
+
+    # Use messages
+    response = client.beta.chat.completions.parse(
+        model="gpt-4o",
+        messages=init_history_clone,
+        max_tokens=5000,
+        response_format=TexturePromptList  # Use the Pydantic model as the response format
+    )
+
+    structured_response = response.choices[0].message.parsed
+    return structured_response.texture_prompts

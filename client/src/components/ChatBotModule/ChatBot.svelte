@@ -75,7 +75,8 @@
             context = get(design_brief);
         }
 
-        const response = await fetch("/suggest_materials", {
+        // const response = await fetch("/suggest_materials", {
+        const response = await fetch("/suggest_materials_education", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({

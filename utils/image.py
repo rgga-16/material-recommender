@@ -31,6 +31,10 @@ def b64_2_img(data):
     buff = BytesIO(base64.b64decode(data))
     return Image.open(buff)
 
+def impath_2_b64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
+
 def degrees_to_radians(degree):
     return math.radians(degree)
 
