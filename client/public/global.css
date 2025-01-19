@@ -77,3 +77,10 @@ button:focus {
 	align-items: center;
 }
 
+.padded {
+	padding:5px;
+}
+
+.spaced {
+	gap: 5px;
+}

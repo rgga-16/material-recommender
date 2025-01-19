@@ -3,9 +3,11 @@ import random, requests, json, copy, shutil, os, base64, io, time, deepl
 from PIL import Image
 from texture_transfer_3d import DALLE2, text2texture_similar
 from configs import *
+import embedding as e
+import pandas as pd
 
 
-from utils.image import makedir, emptydir, degrees_to_radians, im_2_b64, is_b64
+from utils.image import makedir, emptydir, degrees_to_radians, im_2_b64, is_b64, impath_2_b64
 
 import models.llm.gpt3 as gpt3
 
@@ -192,6 +194,46 @@ def transfer_texture():
         "height_url":height_dest_url
     })
 
+@app.route("/get_texture_prompts", methods=['POST'])
+def get_texture_prompts():
+    form_data = request.get_json()
+    prompt = form_data["prompt"]
+    n = form_data["n"]
+    image_path = form_data["image_path"]
+    design_brief = form_data["design_brief"]
+
+    hardcoded_interior_state_path = os.path.join(SERVER_PRESET_IMDIR,"visual_context.png")
+    hardcoded_interior_state_b64 = impath_2_b64(hardcoded_interior_state_path)
+
+    # Convert image_path to b64
+    image_b64 = impath_2_b64(image_path) 
+    texture_prompts = gpt3.suggest_texture_prompts(prompt,n, image_b64, design_brief, interior_state=hardcoded_interior_state_b64)
+    return jsonify({"texture_prompts":texture_prompts})
+
+@app.route("/get_materials", methods=['POST'])
+def get_materials():
+    form_data = request.get_json()
+    prompt = form_data["prompt"]
+    n = form_data["n"]
+    design_brief = form_data["design_brief"]
+    material_name = form_data["material_name"]
+    image_path = form_data["image_path"]
+
+    hardcoded_interior_state_path = os.path.join(SERVER_PRESET_IMDIR,"visual_context.png")
+    hardcoded_interior_state_b64 = impath_2_b64(hardcoded_interior_state_path)
+
+    # Convert image_path to b64
+    texture_image = impath_2_b64(image_path) 
+
+
+    materials, explanations, prompts = gpt3.suggest_materials_texturebased(material_name, prompt, n, texture_image, design_brief, interior_state=hardcoded_interior_state_b64)
+    return jsonify({
+        "materials":materials,
+        "explanations":explanations,
+        "prompts":prompts
+    })
+
+
 @app.route("/feedback_materials", methods=['POST'])
 def feedback_materials():
     material_feedback_start_time=time.time()
@@ -259,6 +301,45 @@ def feedback_materials():
         "references":references_str,
         "role":"assistant"
     })
+
+@app.route("/suggest_materials_education", methods=['POST'])
+def suggest_materials_education():
+    form_data = request.get_json()
+    context = form_data["context"]
+
+    document_db = pd.read_pickle("./document_db.pickle")
+
+    n_rows_documents = document_db.shape[0]
+    top_n_documents = int(10)
+    document_excerpts, relatednesses = e.strings_ranked_by_relatedness(
+        form_data["prompt"], 
+        document_db,
+        top_n=top_n_documents
+    )
+    document_excerpts_string = "\n".join(document_excerpts)
+
+    intro_text, suggested_materials_dict = gpt3.suggest_materials_3(form_data["prompt"],role=form_data["role"],resources=document_excerpts_string,design_brief=context)
+    suggested_materials = []
+
+    for sm in suggested_materials_dict:
+        texture_prompt = f"{sm}, texture map, seamless, 4k"
+        images, filenames = generate_textures(texture_prompt,n=1, imsize=256); 
+        image=images[0]; filename=filenames[0]
+        filename = filename.replace(" ","_"); filename = filename.replace("/","_")
+        filenames[0] = filename
+        savepath = os.path.join(SERVER_IMDIR,"suggested",filename)
+        image.save(savepath)
+
+        normal_path, height_path = generate_normal_and_heightmap(savepath)
+
+        suggested_materials.append({
+            "name":sm,
+            "reason":suggested_materials_dict[sm],
+            "filepath":savepath
+        })
+
+    return jsonify({"intro_text":intro_text,"role":"assistant","suggested_materials":suggested_materials})
+
 
 @app.route("/suggest_materials", methods=['POST'])
 def suggest_materials():
@@ -733,7 +814,7 @@ if __name__ == "__main__":
         "regular_bathroom",
     ]
 
-    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[3]) #Dir where the 3D scene (information, models, textures, renderings) is stored
+    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[1]) #Dir where the 3D scene (information, models, textures, renderings) is stored
     RENDER_DIR = os.path.join(DATA_DIR,"renderings")
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 
