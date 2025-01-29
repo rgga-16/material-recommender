@@ -278,12 +278,12 @@ def feedback_materials():
                 suggestion.append(b64_url.decode('utf-8'))
                 attachment_creation_end_time = time.time()
                 print(f"Time to create suggested attachment: {attachment_creation_end_time-attachment_creation_start_time}")
-            elif type=="finish": 
-                finish_creation_start_time = time.time()
-                suggested_finish_settings = gpt3.suggest_finish_settings(name, material_name, object_name, part_name)
-                suggestion.append(suggested_finish_settings)
-                finish_creation_end_time = time.time()
-                print(f"Time to create suggested finish: {finish_creation_end_time-finish_creation_start_time}")
+            # elif type=="finish": 
+            #     finish_creation_start_time = time.time()
+            #     suggested_finish_settings = gpt3.suggest_finish_settings(name, material_name, object_name, part_name)
+            #     suggestion.append(suggested_finish_settings)
+            #     finish_creation_end_time = time.time()
+            #     print(f"Time to create suggested finish: {finish_creation_end_time-finish_creation_start_time}")
             else: 
                 texture_prompt = f"{name}, photorealistic, 4k"
                 image, _ = generate_textures(texture_prompt,n=1, imsize=256, generator=texture_generator); image=image[0]
@@ -380,8 +380,10 @@ def suggest_colors():
 def brainstorm_prompt_keywords():
     form_data = request.get_json()
     material_prompt = form_data["texture_string"]
+    design_brief = form_data["design_brief"]
 
-    brainstormed_prompt_keywords = gpt3.brainstorm_prompt_keywords(material_prompt)
+    brainstormed_prompt_keywords = gpt3.brainstorm_prompt_keywords(material_prompt,design_brief)
+    # brainstormed_prompt_keywords = gpt3.brainstorm_prompt_keywords(material_prompt,None)
     return jsonify({"brainstormed_prompt_keywords":brainstormed_prompt_keywords,"role":"assistant"})
 
 
@@ -523,10 +525,10 @@ def generate_normal_and_heightmap(texture_filepath):
 
     # Normal to Height Map. Create height map from normal map
     height_path = os.path.join(dir, f"{filename_noext}_height.png")
-    # normal_to_height_command = f'python {CWD}/utils/DeepBump-7/cli.py {normal_path} {height_path} normals_to_height --normals_to_height-seamless TRUE'
-    # heightmap_start_time = time.time()
-    # os.system(normal_to_height_command)
-    # heightmap_end_time = time.time()
+    normal_to_height_command = f'python {CWD}/utils/DeepBump-7/cli.py {normal_path} {height_path} normals_to_height --normals_to_height-seamless TRUE'
+    heightmap_start_time = time.time()
+    os.system(normal_to_height_command)
+    heightmap_end_time = time.time()
 
     # print(f"Time to create height map: {heightmap_end_time-heightmap_start_time}")
 
@@ -814,7 +816,7 @@ if __name__ == "__main__":
         "regular_bathroom",
     ]
 
-    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[1]) #Dir where the 3D scene (information, models, textures, renderings) is stored
+    DATA_DIR = os.path.join(os.getcwd(),"data","3d_models",products[3]) #Dir where the 3D scene (information, models, textures, renderings) is stored
     RENDER_DIR = os.path.join(DATA_DIR,"renderings")
     rendering_setup_path = os.path.join(DATA_DIR,"rendering_setup.json")
 

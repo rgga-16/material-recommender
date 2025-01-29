@@ -477,6 +477,13 @@ def suggest_materials_3(prompt,role="user", resources="", design_brief=None,n=5)
     return intro_text, suggestions
 
 
+class ColorPalette(BaseModel):
+    name: str
+    description: str
+    codes: List[str]
+
+class ColorPalettes(BaseModel):
+    color_palettes: List[ColorPalette]
 
 def suggest_color_palettes(prompt, role="user", use_internet=True, design_brief=None):
     refined_prompt = f"{prompt}. Suggest color palettes."
@@ -526,7 +533,6 @@ def suggest_color_palettes(prompt, role="user", use_internet=True, design_brief=
     
     refined_prompt = refined_prompt.strip()
     
-    
     example = [
         {
             "name": "Bright and Bold",
@@ -536,60 +542,88 @@ def suggest_color_palettes(prompt, role="user", use_internet=True, design_brief=
     ]
     refined_prompt+=f"Here is an example of the said Python list: {example}"
 
-    # initial_response = query(refined_prompt,role)
-    # intro_text = initial_response.split('\n')[0].strip()
+    global message_history
+    message_history.append({"role":role, "content":refined_prompt})
 
-    python_list_response = query(refined_prompt,role).strip()
-    orig_python_list_response = copy.deepcopy(python_list_response)
-    intro_text = ""
+    response=client.beta.chat.completions.parse(
+        model="gpt-4o",
+        messages=message_history,
+        response_format=ColorPalettes
+    )
 
-    # Remove text before and after the Python list
-    start_index = python_list_response.find('[{')
-    if start_index>0:
-        print("Removing text before the Python list.")
-        python_list_response = python_list_response[start_index:].strip()
+    color_palettes = response.choices[0].message.parsed.color_palettes
+    formatted_color_palettes = []
+    for cp in color_palettes:
+        formatted_color_palettes.append({
+            "name": cp.name,
+            "description": cp.description,
+            "codes": cp.codes
+        })
+
+    intro_text=''
+    return intro_text, formatted_color_palettes
+
+    # python_list_response = query(refined_prompt,role).strip()
+    # orig_python_list_response = copy.deepcopy(python_list_response)
+    # intro_text = ""
+
+    # # Remove text before and after the Python list
+    # start_index = python_list_response.find('[{')
+    # if start_index>0:
+    #     print("Removing text before the Python list.")
+    #     python_list_response = python_list_response[start_index:].strip()
     
-    end_index = python_list_response.rfind('}]')
-    if end_index<len(python_list_response)-2:
-        print("Removing text after the Python list.")
-        python_list_response = python_list_response[:end_index+2].strip()
-    python_list_response = python_list_response.strip()
+    # end_index = python_list_response.rfind('}]')
+    # if end_index<len(python_list_response)-2:
+    #     print("Removing text after the Python list.")
+    #     python_list_response = python_list_response[:end_index+2].strip()
+    # python_list_response = python_list_response.strip()
 
     
-    try:
-        suggestions = ast.literal_eval(python_list_response)
-        # intro_text=''
-    except SyntaxError as e:
-        intro_text = f"Sorry, please try again. We got the following error: {e}."
-        global message_history
-        message_history=message_history[:-2]
-        suggestions = []
+    # try:
+    #     suggestions = ast.literal_eval(python_list_response)
+    #     # intro_text=''
+    # except SyntaxError as e:
+    #     intro_text = f"Sorry, please try again. We got the following error: {e}."
+    #     global message_history
+    #     message_history=message_history[:-2]
+    #     suggestions = []
     
-    return intro_text, suggestions
+    # return intro_text, suggestions
 
-def brainstorm_prompt_keywords(material):
+
+class TextureMapKeywords(BaseModel):
+    keywords: List[str]
+
+
+def brainstorm_prompt_keywords(material, design_brief=None):
+
+    
     texture_map_keywords_prompt = f'''
-        I am using DALL-E to create an image of a {material} texture map by typing in a textual description.
-        Brainstorm example keywords I can append to the textual description to make a detailed and more accurate image of a {material} texture map. 
-        I want you to answer only as a Python list. I want you to answer only as a Python list. I want you to answer only as a Python list. 
-        Do not say anything else apart from the Python list.
+        I am using DALL-E 3 to create an image of a {material} texture map by typing in a text prompt.
+        Brainstorm example keywords I can append to the textual description to make a detailed and more accurate image of a {material} texture map.
     '''
+    if design_brief: 
+        texture_map_keywords_prompt = f'''
+            I am using DALL-E 3 to create an image of a {material} texture map by typing in a text prompt.
+            I'm trying to make a texture map that best aligns with the contents of the following design brief:
+            ==========================
+            {design_brief}
+            ==========================
+            Based on these priors, this is my instruction: Brainstorm example keywords I can append to the text prompt to make a detailed and more accurate image of a {material} texture map. 
+        '''
+
     global init_history
     init_history_clone = copy.deepcopy(init_history)
     init_history_clone.append({"role":"user", "content":texture_map_keywords_prompt})
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+
+    response=client.beta.chat.completions.parse(
+        model="gpt-4o",
         messages=init_history_clone,
-        temperature=0.8
+        response_format=TextureMapKeywords
     )
 
-    try: 
-        keywords = ast.literal_eval(response.choices[0].message.content)
-    except SyntaxError as e:
-        keywords = [["Error. Please try again."]]
-        print(f"Sorry, please try again. We got the following error: {e}.")
-
-
+    keywords = response.choices[0].message.parsed.keywords
     return keywords
 
 def brainstorm_material_queries(): 
@@ -621,11 +655,14 @@ def brainstorm_material_queries():
 
     return prompts
 
+class GeneratedFeedback(BaseModel):
+    aspect: str
+    feedback: str
+    suggestions: List[List[str]]
+
 
 materials_feedbacks = []
 def provide_material_feedback2(material_name, object_name, part_name, use_internet=False, attached_parts=None, design_brief=None):
-
-    
     # feedback_model = "gpt-3.5-turbo-16k"
     feedback_model = "gpt-4"
     aspects = ["durability", "maintenance", "sustainability", "assembly", "cost", "availability"]

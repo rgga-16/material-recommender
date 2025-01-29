@@ -21,6 +21,7 @@
     import {translate} from '../../main.js';
     import {getImage} from '../../main.js';
     import {isDict, dictToString} from '../../main.js';
+    import {design_brief} from '../../stores.js';
 
     let history; 
     action_history.subscribe(value => {
@@ -271,6 +272,7 @@
             alert(japanese ? "素材を入力してください。" : "Please type in a material.");
             return;
         }
+
         brainstormed_prompt_keywords=[];
         selected_prompt_keywords=[];
         is_loading_keywords=true;
@@ -279,6 +281,7 @@
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 "texture_string": input_material,
+                "design_brief":get(design_brief),
             }),
         });
         const json = await response.json();

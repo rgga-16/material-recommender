@@ -608,7 +608,7 @@
   </div>
 
   <div class="card tab-content" class:active={activeTab==='adjust-finish'}>
-    <h5><b> {japanese ? "素材仕上げの調整" : "Adjust Material Finish"}</b></h5> 
+    <h2><b> {japanese ? "素材仕上げの調整" : "Adjust Material Finish"}</b></h2> 
     <div class="control">
       <img src="./logos/opacity-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="opacity">
       <span> {japanese ? "透明度：" : "Opacity:"}   </span>
@@ -648,13 +648,13 @@
   </div>
 
   <div class="card tab-content " class:active={activeTab==='adjust-texture-map'}>
-    <h5><b> {japanese ? "テクスチャマップを調整する": "Adjust Texture Map"} </b></h5>
+    <h2><b> {japanese ? "テクスチャマップを調整する": "Adjust Texture Map"} </b></h2>
     <div class="control" style = "align-items:flex-start;  height:100%;">
 
       <div class="card ">
         <div class="control"> 
           <img src="./logos/move-alt-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="translate">
-          <h6> <b> {japanese ? "平行移動": "Translation"} </b></h6>
+          <h3> <b> {japanese ? "平行移動": "Translation"} </b></h3>
         </div>  
         <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false;changeProperty("offsetX", translationX, 0.0)}}>
           <span>X:</span>
@@ -669,7 +669,7 @@
       <div class="card ">
         <div class="control"> 
           <img src="./logos/rotate-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="rotate">
-          <h6> <b> {japanese ? "回転": "Rotation"} </b></h6>
+          <h3> <b> {japanese ? "回転": "Rotation"} </b></h3>
         </div>
         <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("rotation",rotation,0)}}>
           <span>Z: </span>
@@ -680,7 +680,7 @@
       <div class="card ">
         <div class="control"> 
           <img src="./logos/scale-svgrepo-com.svg" style="width:20px; height:20px; align-items: center; justify-content: center;" alt="scale">
-          <h6> <b> {japanese ? "スケール": "Scale"}  </b></h6>
+          <h3> <b> {japanese ? "スケール": "Scale"}  </b></h3>
         </div>
         <div class="control" on:mousedown={() => isMouseDown=true} on:mouseup = {() => {isMouseDown=false; changeProperty("scaleX",scaleX,1); changeProperty("scaleY",scaleY,1)}}>
           <span>X & Y: </span>
@@ -710,7 +710,7 @@
   </div>
 
   <div class="card tab-content" class:active={activeTab==='adjust-color'}>
-    <h5> <b> {japanese ? "カラー仕上げの調整": "Adjust Color Finish"}  </b></h5>
+    <h2> <b> {japanese ? "カラー仕上げの調整": "Adjust Color Finish"}  </b></h2>
 
     <div class="control container" id="color-palette-header">
       <!-- No Colors Swatch Option -->
@@ -772,12 +772,12 @@
 
   <div class="card tab-content" class:active={activeTab==='attached-parts'}>
     {#if parents.length > 0}
-      <h5> <b> {japanese ? "付属部品" : "Attached Parts"} </b></h5>
+      <h2> <b> {japanese ? "付属部品" : "Attached Parts"} </b></h2>
       {#each parents as p}
         <div class="control container">
           <div class="card">
-            <h6> <b> {japanese ? "オブジェクト：" : "Object:"}  {p[0]}  </b></h6>
-            <h6> <b> {japanese ? "パート" : "Part:"}  {p[1]} </b></h6>
+            <h3> <b> {japanese ? "オブジェクト：" : "Object:"}  {p[0]}  </b></h3>
+            <h3> <b> {japanese ? "パート" : "Part:"}  {p[1]} </b></h3>
           </div>
           <DynamicImage imagepath={current_texture_parts[p[0]][p[1]]["mat_image_texture"]} alt={current_texture_parts[p[0]][p[1]]["mat_name"]} size={"100px"}/>
         </div>
@@ -789,7 +789,7 @@
 
   {#if get(use_chatgpt)}
     <div class="card tab-content" class:active={activeTab==='view-feedback'} style="flex-wrap:wrap;">
-      <h5> <b> {japanese ?  "フィードバック" : "Feedback"}</b></h5>
+      <h2> <b> {japanese ?  "フィードバック" : "Feedback"}</b></h2>
         {#if formatted_feedback || japanese_formatted_feedback}
           <SvelteMarkdown source={intro_text} />
           <div class="w3-bar w3-grey tabs">
@@ -806,13 +806,13 @@
 
           {#each Object.keys(formatted_feedback) as aspect}
             <div class="card container tab-content" class:active={activeAspect===aspect}>
-              <p>
+              <p class="feedback-text" >
                 {japanese ? japanese_formatted_feedback[aspect]['feedback'] : formatted_feedback[aspect]['feedback']}
               </p>
               <!-- <SvelteMarkdown source={japanese ? japanese_formatted_feedback[aspect]['feedback'] : formatted_feedback[aspect]['feedback']} /> -->
               
               <div class="card container">
-                <h6> <b> <u>{japanese ? "ご提案": "Suggestions" }</u>  </b></h6>
+                <h3> <b> <u>{japanese ? "ご提案": "Suggestions" }</u>  </b></h3>
                 <div class="control" style="justify-content:space-between;">
                   {#if formatted_feedback[aspect]['suggestions'].length <= 0}
                     <p> {japanese ? "提案はない。" : "No suggestions provided."}  </p>
@@ -831,7 +831,7 @@
                           <span> <b> {japanese ? japanese_formatted_feedback[aspect]['suggestions'][i][0] : suggestion[0]} </b></span>
                           <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"100px"}/>
                           <span><b> {japanese ? "添付ファイル" : suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)}</b></span>
-                        {:else if suggestion[1] === "finish" && suggestion.length===3}
+                        <!-- {:else if suggestion[1] === "finish" && suggestion.length===3}
                           <span> <b> {japanese ? japanese_formatted_feedback[aspect]['suggestions'][i][0] : suggestion[0]} </b></span>
                           <div class="card container">
                             <span> {japanese ? "透明度：" : "Opacity:"} {suggestion[2]["opacity"]}</span>
@@ -839,7 +839,7 @@
                             <span> {japanese ? "金属度：": "Metalness:"}  {suggestion[2]["metallic"]}</span>
                           </div>
                           <span><b> {japanese ? "素材仕上げ" : suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
-                          <button  on:click={() => {applyFinishSuggestion(suggestion[0], suggestion[2])}}> {japanese ? "仕上げを施す" : "Apply Finish"}  </button>
+                          <button  on:click={() => {applyFinishSuggestion(suggestion[0], suggestion[2])}}> {japanese ? "仕上げを施す" : "Apply Finish"}  </button> -->
                         {:else}
                           <span> <b> {japanese ? japanese_formatted_feedback[aspect]['suggestions'][i][0] : suggestion[0]} </b></span>
                           <span><b> {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)} </b></span>
@@ -854,7 +854,7 @@
             </div>
           {/each}
           
-          <h6> <b> <u> {japanese ? "参考文献" : "References"}</u>  </b></h6>
+          <h3> <b> <u> {japanese ? "参考文献" : "References"}</u>  </b></h3>
           <SvelteMarkdown source={references} />
         {:else if is_loading_feedback}
           <div class="images-placeholder">
@@ -915,7 +915,6 @@
       justify-content: center;
       align-content:center;
       align-items: center;
-      font-size: 0.8rem;
     }
 
 
@@ -1024,6 +1023,14 @@
         align-items: center;
         justify-content: center;
         text-align: center;
+    }
+
+    .feedback-text{
+      font-size: 1.1em;
+    }
+
+    span{
+      font-size: 1.1em;
     }
 
 
