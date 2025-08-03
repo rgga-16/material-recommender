@@ -75,8 +75,8 @@
             context = get(design_brief);
         }
 
-        // const response = await fetch("/suggest_materials", {
-        const response = await fetch("/suggest_materials_education", {
+        const response = await fetch("/suggest_materials", {
+        // const response = await fetch("/suggest_materials_education", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
@@ -391,12 +391,17 @@
         overflow-y: scroll;
         padding: 10px;
     }
+    .message{
+        font-size: 1.5rem;
+    }
     .user {
 		background-color: white;
 		
 	}
 	.assistant {
 		background-color: lightgray;
+        display:flex; 
+        flex-direction: column;
 	}
 
     .suggested_materials {

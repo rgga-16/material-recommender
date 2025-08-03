@@ -50,11 +50,9 @@
       {japanese ? "チャットボット" : "ChatBot"}
     </button>
     {/if}
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='mat_lib'} on:click={()=>switchTab('mat_lib')} id="matlib-btn">
+    <!-- <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='mat_lib'} on:click={()=>switchTab('mat_lib')} id="matlib-btn">
       {japanese ? "チャットボット" : "Material Library"}
-    </button>
-    <!-- <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_materials'} on:click={()=>switchTab('suggest_materials')} id="suggest-materials-btn">Suggest Materials</button>
-    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='suggest_colors'} on:click={()=>switchTab('suggest_colors')} id="suggest-colors-btn">Suggest Colors</button> -->
+    </button> -->
   </div>
   
   <div class='tab-content'  class:active={activeTab==='generate'} id="generate">
