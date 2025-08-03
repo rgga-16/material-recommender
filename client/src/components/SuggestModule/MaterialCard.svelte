@@ -66,6 +66,7 @@
     .card-body {
       display: flex;
       flex-wrap: wrap;
+      flex-direction: column;
     }
   
     .image-container {
