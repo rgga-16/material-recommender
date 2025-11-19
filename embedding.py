@@ -15,6 +15,7 @@ def cosine_similarity(a, b):
 
 EMBEDDING_MODEL = "text-embedding-3-small"
 
+
 def extract_lines_from_srt_string(content, diarized=False):
     result = []
     if diarized:

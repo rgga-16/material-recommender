@@ -61,6 +61,7 @@ def emptydir(dir,delete_dirs=False):
         except Exception as e:
             print(f'Failed to delete {file_path}. Reason: {e}')
 
+
 def makedir(dir_path):
     try:
         os.makedirs(dir_path)
