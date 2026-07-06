@@ -5,6 +5,8 @@ out
 tmp
 client/public/gen_images
 experiment_data
+data/scenes/
+client/node_modules/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
