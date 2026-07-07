@@ -3,7 +3,6 @@
     import { Circle } from 'svelte-loading-spinners';
     import NumberSpinner from "svelte-number-spinner";
     import {design_brief} from '../../stores.js';
-    import domtoimage from 'dom-to-image';
 
     import {curr_rendering_path} from '../../stores.js';
     import {curr_texture_parts} from '../../stores.js';
@@ -23,6 +22,7 @@
     import {translate} from '../../main.js';
     import {getImage} from '../../main.js';
     import {isDict, dictToString} from '../../main.js';
+    import {pollJob} from '../../main.js';
 
     import DynamicImage from "../DynamicImage.svelte";
 
@@ -38,20 +38,22 @@
     let n=4;
     let context=get(design_brief);
 
-    let screenshotDiv; // reference to the div we want to capture
-
-
-    let activeMaterialTab = 'wood'; 
+    let activeMaterialTab = 'wood';
     function setActiveMaterialTab(tab) {
         activeMaterialTab = tab;
     }
+
+    let japanese;
+    in_japanese.subscribe(value => {
+        japanese = value;
+    });
 
     async function loadPresetMaterials() {
         let response = await fetch('/get_preset_materials');
 		let data = await response.json();
 
-        
-        return data["preset_material_paths"];
+        // preset_materials is now: {name: {diffuse, normal, height}}
+        return data["preset_materials"];
     }
 
     onMount(async function () {
@@ -70,33 +72,14 @@
         } 
     }
 
-    async function screenshot3DView() {
-        const element = document.getElementById('3d-viewer');
-
-        if(!element) {
-            console.log("Element not found");
-            alert("3D view not found");
-            return;
-        } 
-
-        domtoimage.toPng(element).then((dataUrl) => {
-            const link = document.createElement('a');
-            link.href = dataUrl;
-            link.download = 'screenshot.png';
-            link.click();
-        });
-
-
-    }
-
     async function explore_materials() {
         toOutputGrid=false;
         suggestions=[];
         if (selected_material_name==="") {
-            alert("Please select a material first");
+            console.error(japanese ? "先に素材を選択してください" : "Please select a material first");
             return;
         }
-        selected_texture = preset_materials[selected_material_name];
+        selected_texture = preset_materials[selected_material_name]["diffuse"];
 
         let material_response = await fetch("/get_materials", {
             method: "POST",
@@ -131,16 +114,20 @@
                 }),
             });
             let results_json = await texture_response.json();
-            let result = results_json["results"][0];
+            let result_payload = results_json;
+            if (results_json && results_json["job_id"]) {
+                result_payload = await pollJob(results_json["job_id"]);
+            }
+            let result = result_payload["results"][0];
             let texture_map = result["texture"]
             suggestions.push({
                 "material": materials[i],
                 "texture_map": texture_map,
                 "explanation": explanations[i]
             });
-            suggestions=suggestions; 
+            suggestions=suggestions;
         }
-        
+
         console.log("Suggestions: ", suggestions);
 
     }
@@ -148,10 +135,10 @@
     async function explore_textures() {
         suggestions=[];
         if (selected_material_name==="") {
-            alert("Please select a material first");
+            console.error(japanese ? "先に素材を選択してください" : "Please select a material first");
             return;
         }
-        selected_texture = preset_materials[selected_material_name];
+        selected_texture = preset_materials[selected_material_name]["diffuse"];
         // Get n material prompts from chatgpt
         toOutputGrid=true;
         
@@ -187,12 +174,16 @@
                 }),
             });
             let results_json = await texture_response.json();
-            let result = results_json["results"][0];
+            let result_payload = results_json;
+            if (results_json && results_json["job_id"]) {
+                result_payload = await pollJob(results_json["job_id"]);
+            }
+            let result = result_payload["results"][0];
             let texture_map = result["texture"]
             suggestions.push({"texture_map": texture_map});
-            suggestions=suggestions; 
+            suggestions=suggestions;
         }
-        
+
         console.log("Suggestions: ", suggestions);
     }
 
@@ -202,13 +193,12 @@
 
     <div id="presets">
         <div class="image-grid">
-            {#each Object.entries(preset_materials) as [name,path]}
+            {#each Object.entries(preset_materials) as [name,maps]}
                 <label id="preset" class="column center" class:selected={selected_material_name===name}>
-                    <!-- <input type=radio bind:group={selected_texture} name="option" value={path} > -->
-                    <input type=radio bind:group={selected_material_name} name="option" value={name} 
+                    <input type=radio bind:group={selected_material_name} name="option" value={name}
                     on:click={() => {deselect(name);}} >
                     <strong> {name} </strong>
-                    <DynamicImage imagepath={path} size={"200px"} alt={name} is_draggable={true}/>
+                    <DynamicImage imagepath={maps.diffuse} size={"200px"} alt={name} is_draggable={true}/>
                 </label>
             {/each}
             <!-- <DynamicImage imagepath={"preset_materials/wood-01-1k/wood 01 Diffuse.jpg"} imagesource={"preset_materials/wood-01-1k/wood 01 Diffuse.jpg"} size={"175px"} alt={"wood_1"} is_draggable={false}/> -->
@@ -220,13 +210,13 @@
             <!-- <button style="width:25%;"> Similar Textures </button> -->
             <button style="width:25%;" on:click|preventDefault={()=>{
                 explore_textures();
-            }}> 
-                Explore Textures 
+            }}>
+                {japanese ? "テクスチャーを探す" : "Explore Textures"}
             </button>
             <button style="width:25%;" on:click|preventDefault={()=>{
                 explore_materials();
-            }}> 
-                Explore Materials 
+            }}>
+                {japanese ? "素材を探す" : "Explore Materials"}
             </button>
             <div class="column center">
                 <label for="n"> Number of Outputs: </label>

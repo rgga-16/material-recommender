@@ -128,3 +128,5 @@ export let action_history = writable({
 
 export let threed_display_global = writable(null); //Keeps track of the 3D display. Can call the functions in the 3D display module
 export let information_panel_global = writable(null); //Keeps track of the information panel. Can call the functions in the information panel module
+
+export const toasts = writable([]); //Keeps track of the currently displayed toast notifications

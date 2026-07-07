@@ -3,7 +3,61 @@ import App from './App.svelte';
 import {action_history, selected_objs_and_parts, information_panel_global} from './stores.js';
 import {curr_texture_parts, objects_3d} from './stores.js';
 import { threed_display_global } from './stores.js';
+import { toasts } from './stores.js';
 import {get} from 'svelte/store';
+
+let toast_id_counter = 0;
+
+/**
+ * Pushes a toast notification onto the toasts store and auto-removes it after `duration` ms.
+ * @param {string} message - The message to display.
+ * @param {'info'|'success'|'error'} type - The type of toast (controls color).
+ * @param {number} duration - How long (in ms) the toast stays visible before auto-dismissing.
+ */
+export function showToast(message, type = 'info', duration = 4000) {
+	const id = ++toast_id_counter;
+	toasts.update(current => [...current, { id, message, type }]);
+
+	if (duration > 0) {
+		setTimeout(() => {
+			toasts.update(current => current.filter(t => t.id !== id));
+		}, duration);
+	}
+
+	return id;
+}
+
+/**
+ * Polls GET /jobs/<job_id> until the job's status is 'done' or 'error'.
+ * @param {string} job_id
+ * @param {{interval?: number, onProgress?: (job: object) => void}} options
+ * @returns {Promise<any>} Resolves with job.result when status is 'done'. Rejects with an Error when status is 'error'.
+ */
+export function pollJob(job_id, { interval = 750, onProgress } = {}) {
+	return new Promise((resolve, reject) => {
+		async function tick() {
+			try {
+				const response = await fetch(`/jobs/${job_id}`);
+				const job = await response.json();
+
+				if (onProgress) {
+					onProgress(job);
+				}
+
+				if (job.status === 'done') {
+					resolve(job.result);
+				} else if (job.status === 'error') {
+					reject(new Error(job.error));
+				} else {
+					setTimeout(tick, interval);
+				}
+			} catch (error) {
+				reject(error);
+			}
+		}
+		tick();
+	});
+}
 
 
 // const DEEPL_AUTHKEY='2c0ea470-3cef-d714-4176-cde832a9b2f5:fx';

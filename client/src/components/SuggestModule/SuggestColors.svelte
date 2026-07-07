@@ -3,6 +3,7 @@
     import { Circle } from 'svelte-loading-spinners';
     import {saved_color_palettes} from '../../stores.js';
     import {get} from 'svelte/store';
+    import {showToast} from '../../main.js';
 
     const interior_design_styles = ['Modern', 'Traditional', 'Contemporary', 'Industrial', 'Transitional', 'Rustic', 'Bohemian', 'Minimalist', 'Hollywood Regency', 'Scandinavian']
 
@@ -41,7 +42,7 @@
     }
 
     function saveColorPalettes() {
-        if (selected_color_palettes.length <= 0) { alert("Please select at least 1 color palette"); return }
+        if (selected_color_palettes.length <= 0) { showToast("Please select at least 1 color palette", 'error'); return }
         saved_color_palettes.update(lst => lst.concat(selected_color_palettes));
     }
 

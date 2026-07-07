@@ -4,7 +4,23 @@
       "Bash(.venv/Scripts/python.exe -c ' *)",
       "Bash(.venv/Scripts/python.exe -m pip install --quiet torch --index-url https://download.pytorch.org/whl/cu124)",
       "Bash(.venv/Scripts/python.exe -m pip install --quiet diffusers transformers accelerate safetensors)",
-      "Bash(.venv/Scripts/python.exe -c \"import torch, diffusers; print\\('torch', torch.__version__, 'cuda', torch.cuda.is_available\\(\\), 'diffusers', diffusers.__version__\\)\")"
+      "Bash(.venv/Scripts/python.exe -c \"import torch, diffusers; print\\('torch', torch.__version__, 'cuda', torch.cuda.is_available\\(\\), 'diffusers', diffusers.__version__\\)\")",
+      "Bash(\".venv/Scripts/python.exe\" scripts/test_generation.py)",
+      "Bash(\"C:/Users/r-gal/OneDrive/Documents/Academics/PhD/exploring-textures-with-stablediffusion/.venv/Scripts/python.exe\" --version)",
+      "Bash(\".venv/Scripts/python.exe\" scripts/test_llm.py)",
+      "Bash(npm run *)",
+      "Bash(HF_TOKEN= HUGGING_FACE_HUB_TOKEN= \".venv/Scripts/python.exe\" scripts/test_generation.py)",
+      "Read(//c/Users/r-gal/.cache/huggingface/**)",
+      "Read(//c/Users/r-gal/.huggingface/**)",
+      "Bash(env)",
+      "Bash(unset HF_TOKEN)",
+      "Bash(unset HUGGING_FACE_HUB_TOKEN)",
+      "Bash(rm \"C:\\\\Users\\\\r-gal\\\\OneDrive\\\\Documents\\\\Academics\\\\PhD\\\\exploring-textures-with-stablediffusion\\\\scratch_ja.txt\")",
+      "Bash(\".venv/Scripts/python.exe\" -c \"from server import create_app; create_app\\(\\)\")",
+      "Bash(\".venv/Scripts/python.exe\" -c \"from server import create_app; create_app\\(\\); print\\('OK'\\)\")",
+      "Bash(find \"/c/Users/r-gal/.cache/huggingface/hub/models--stabilityai--sd-turbo/snapshots\" -maxdepth 3 2>&1)",
+      "Read(//c/Users/r-gal/.cache/huggingface/hub/models--stabilityai--sd-turbo/snapshots/**)",
+      "Bash(\".venv/Scripts/python.exe\" -c \"import diffusers, huggingface_hub; print\\(diffusers.__version__\\); print\\(huggingface_hub.__version__\\)\")"
     ]
   }
 }

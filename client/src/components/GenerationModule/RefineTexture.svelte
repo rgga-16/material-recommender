@@ -341,7 +341,7 @@
 
                     {#if isOpen}
                         <!-- Dropdown list of color palettes -->
-                        <div class="dropdown-list" style="position: absolute; top: 30px; left: 0; z-index=1;" >
+                        <div class="dropdown-list" style="position: absolute; top: 30px; left: 0; z-index:1;" >
                             {#each palettes as p, j}
                                 <label class="palette selectable" class:selected={selected_palette_idx===j}>
                                     {#each p["palette"] as swatch}

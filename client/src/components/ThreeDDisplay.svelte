@@ -16,6 +16,7 @@
     import {addToHistory} from '../main.js';
     import {getImage} from '../main.js';
     import {degreeToRadians} from '../main.js';
+    import {showToast} from '../main.js';
 
     import {isDraggingImage} from '../stores.js';
     import {generated_texture_name} from '../stores.js';
@@ -94,7 +95,7 @@
                 const textureheight_url = textureimg_url_noext + "_height." + ext;
 
                 if (dragged_texture_name===null || dragged_texture_name===null) {
-                    alert("Error in dragging and dropping texture. Please try again.");
+                    showToast("Error in dragging and dropping texture. Please try again.", 'error');
                     return;
                 }
 
@@ -146,9 +147,9 @@
             isDraggingImage.set(false);
 
             if(japanese) {
-                alert("選択されたオブジェクトがありません。先にオブジェクトを選択してください。")
+                showToast("選択されたオブジェクトがありません。先にオブジェクトを選択してください。", 'error')
             } else {
-                alert("No selected object. Please select an object first.");
+                showToast("No selected object. Please select an object first.", 'error');
             }
             
         }
@@ -290,12 +291,12 @@
             return;
         }
         raycaster.setFromCamera(pointer, camera);
-        let objects = model3d_infos.map(item => item.model);
-        const intersects = raycaster.intersectObjects(objects, true); 
+        let objects = model3d_infos.filter(item => item && item.model).map(item => item.model);
+        const intersects = raycaster.intersectObjects(objects, true);
 
         if (intersects.length > 0) {
             if(!(intersects.some(element => element ===undefined))) {
-                const clicked_object = intersects[0].object; //This is the object clicked on. 
+                const clicked_object = intersects[0].object; //This is the object clicked on.
                 console.log(clicked_object);
                 const index = SELECTEDS.indexOf(clicked_object);
                 if (index === -1) {//If clicked object hasn't been selected yet, select it.
@@ -303,23 +304,31 @@
                         if (shiftPressed) { //If shift is held, want to select multiple objects
                             SELECTEDS.push(clicked_object);
                             const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
-                            SELECTED_INFOS.push(model3d_infos[index]);
+                            if (index === -1) {
+                                SELECTEDS.pop();
+                            } else {
+                                SELECTED_INFOS.push(model3d_infos[index]);
+                            }
                             // console.log("Has not been selected yet. Appending it to selected objects.")
-                            SELECTEDS=SELECTEDS;    
+                            SELECTEDS=SELECTEDS;
                             SELECTED_INFOS=SELECTED_INFOS;
                             selected_objs_and_parts.set(SELECTED_INFOS);
                             // //information_panel.clearTexturePart();
-                        } else if(altPressed) { 
+                        } else if(altPressed) {
                             //If alt is held, this will select all of the objects that are the same as the clicked object.
                             //for example, clicking on a "backrest" will select all other objects that have "backrest" in the name.
                             SELECTEDS.push(clicked_object);
                             const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
-                            SELECTED_INFOS.push(model3d_infos[index]);
+                            if (index === -1) {
+                                SELECTEDS.pop();
+                            } else {
+                                SELECTED_INFOS.push(model3d_infos[index]);
+                            }
 
                             let clicked_object_name = clicked_object.model_name;
                             clicked_object_name = clicked_object_name.replace(/\d+/g, '');
                             console.log(clicked_object_name);
-                            
+
                             let clicked_object_parent = clicked_object.model_parent;
                             clicked_object_parent = clicked_object_parent.replace(/\d+/g, '');
                             console.log(clicked_object_parent);
@@ -346,8 +355,12 @@
                             // For example, if I hold ctrl and click on a bedframe, we also select the other components of the bed.
                             SELECTEDS.push(clicked_object);
                             const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
-                            SELECTED_INFOS.push(model3d_infos[index]);
-                            
+                            if (index === -1) {
+                                SELECTEDS.pop();
+                            } else {
+                                SELECTED_INFOS.push(model3d_infos[index]);
+                            }
+
                             let clicked_object_parent = clicked_object.model_parent;
                             console.log(clicked_object_parent);
 
@@ -375,7 +388,12 @@
                             // console.log(model3d_infos);
                             const index = model3d_infos.findIndex(item => item.name === clicked_object.model_name && item.parent === clicked_object.model_parent);
                             // console.log(get(curr_texture_parts));
-                            SELECTED_INFOS[0] = model3d_infos[index];
+                            if (index === -1) {
+                                SELECTEDS = [];
+                                SELECTED_INFOS = [];
+                            } else {
+                                SELECTED_INFOS[0] = model3d_infos[index];
+                            }
                             // console.log("Has not been selected yet. Selecting it.")
                             SELECTEDS=SELECTEDS;    
                             SELECTED_INFOS=SELECTED_INFOS;
@@ -477,10 +495,11 @@
 
     function getPointedObject() {
         raycaster.setFromCamera(pointer, camera);
-        let objects = model3d_infos.map(item => item.model);
-        
+        // Only raycast against models that have finished loading (item.model is set once the GLTF load callback runs).
+        let objects = model3d_infos.filter(item => item && item.model).map(item => item.model);
+
         // BUG: caught TypeError: Cannot read properties of undefined (reading 'layers') */
-        let intersects; 
+        let intersects;
         try {
             intersects = raycaster.intersectObjects(objects, true); //intersects is a list of objects pointed by the mouse
         } catch (error) {
@@ -573,7 +592,7 @@
         const index = model3d_infos.findIndex(item => item.name === part_name && item.parent === object_name);
         if(index === -1) {
             console.error("Error: Could not find the object in the model3d_infos array.");
-            alert("Error: Could not find the object in the model3d_infos array.");
+            showToast("Error: Could not find the object in the model3d_infos array.", 'error');
             return;
         }
         let model = model3d_infos[index]['model']['children'][0];
@@ -612,25 +631,24 @@
     }
 
     async function onPointerMove(event) {
-        if (isMouseOver3DScene) {
-            const rect = renderer.domElement.getBoundingClientRect();
-            pointer.x = ((event.clientX-rect.left) / width) * 2 - 1;
-            pointer.y = -((event.clientY-rect.top) / height) * 2 + 1;
-
-            if (mouseDown) {
-                if(dragging) {
-                    if (dragged_texture_url && dragged_textureimg_url && dragged_texture_name) { 
-                        fullTextureTransferAlgorithm();
-
-                    
-                    }
-                }
-
-            }
-        } else {
-            alert("improperly dragged");
+        if (!isMouseOver3DScene(event)) {
+            return;
         }
 
+        const rect = renderer.domElement.getBoundingClientRect();
+        pointer.x = ((event.clientX-rect.left) / width) * 2 - 1;
+        pointer.y = -((event.clientY-rect.top) / height) * 2 + 1;
+
+        if (mouseDown) {
+            if(dragging) {
+                if (dragged_texture_url && dragged_textureimg_url && dragged_texture_name) {
+                    fullTextureTransferAlgorithm();
+
+
+                }
+            }
+
+        }
     }
 
     function onMouseDown(event) {
@@ -666,8 +684,7 @@
                         real_mesh.material.color.setHex(hexNumber);
                         real_mesh.material.color_hex = hexNumber;
                     } else {
-                        const no_color = "0xffffff";
-                        const hexNumber = parseInt(color.substring(1), 16);
+                        const hexNumber = 0xffffff;
                         real_mesh.material.color.setHex(hexNumber);
                         real_mesh.material.color_hex = hexNumber;
                     }
@@ -762,7 +779,10 @@
                         mat.emissiveIntensity=0;
                     });
                 } else {
-                    // BUG ( TypeError: Cannot read properties of null (reading 'toArray')) is somewhere here
+                    // BUG ( TypeError: Cannot read properties of null (reading 'toArray')) was here:
+                    // material.color was being set to null further down, which crashes three.js internals
+                    // (e.g. Color.toArray()) the next time the material is rendered/updated. material.color
+                    // must always remain a valid THREE.Color instance, so we only ever call setHex/setRGB on it.
                     const texturemap = new THREE.TextureLoader().load(url);
                     const normalmap = new THREE.TextureLoader().load(normal_url);
                     const heightmap = new THREE.TextureLoader().load(height_url);
@@ -779,30 +799,33 @@
 
                     material.color.setHex(hexNumber);
                     material.emissive.setHex(0x000000);
-                    // material.color=null; //The bug is here in this lil crap
                     material.emissive.setRGB(0,0,0);
                     material.emissiveIntensity=0;
 
                     material.opacity=opacity;
                     material.roughness=roughness;
                     material.metalness=metalness;
-                    material.map.offset.x=translationX;
-                    material.map.offset.y=translationY;
-                    material.normalMap.offset.x=translationX;
-                    material.normalMap.offset.y=translationY;
-                    material.displacementMap.offset.x=translationX;
-                    material.displacementMap.offset.y=translationY;
-
-                    material.map.rotation=rotation;
-                    material.normalMap.rotation=rotation;
-                    material.displacementMap.rotation=rotation;
-
-                    material.map.scaleX=scaleX;
-                    material.map.scaleY=scaleY;
-                    material.normalMap.scaleX=scaleX;
-                    material.normalMap.scaleY=scaleY;
-                    material.displacementMap.scaleX=scaleX;
-                    material.displacementMap.scaleY = scaleY;
+                    if (material.map) {
+                        material.map.offset.x=translationX;
+                        material.map.offset.y=translationY;
+                        material.map.rotation=rotation;
+                        material.map.scaleX=scaleX;
+                        material.map.scaleY=scaleY;
+                    }
+                    if (material.normalMap) {
+                        material.normalMap.offset.x=translationX;
+                        material.normalMap.offset.y=translationY;
+                        material.normalMap.rotation=rotation;
+                        material.normalMap.scaleX=scaleX;
+                        material.normalMap.scaleY=scaleY;
+                    }
+                    if (material.displacementMap) {
+                        material.displacementMap.offset.x=translationX;
+                        material.displacementMap.offset.y=translationY;
+                        material.displacementMap.rotation=rotation;
+                        material.displacementMap.scaleX=scaleX;
+                        material.displacementMap.scaleY = scaleY;
+                    }
 
                     material.displacementScale = 0.00;
 

@@ -21,6 +21,7 @@
     import {translate} from '../../main.js';
     import {getImage} from '../../main.js';
     import {isDict, dictToString} from '../../main.js';
+    import {showToast, pollJob} from '../../main.js';
     import {design_brief} from '../../stores.js';
 
     let history; 
@@ -102,21 +103,37 @@
         input += ",  texture map, seamless, 4k";
         console.log(input);
 
-        const results_response = await fetch("/generate_similar_textures", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                "texture_string": input,
-                "n":n_textures,
-                "imsize":448,
-                "impath":selected_texture,
-            }),
-        });
-        selected_texture=null;
-        const results_json = await results_response.json();
-        generated_textures = results_json["results"];
-        is_loading=false;
-        generated_texture_name.set(material);
+        try {
+            const results_response = await fetch("/generate_similar_textures", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    "texture_string": input,
+                    "n":n_textures,
+                    "imsize":448,
+                    "impath":selected_texture,
+                }),
+            });
+            selected_texture=null;
+            const results_json = await results_response.json();
+
+            let result;
+            if (results_json && results_json["job_id"]) {
+                // Backend is async: poll the job until it's done, then use its result payload.
+                result = await pollJob(results_json["job_id"]);
+            } else {
+                // Backend responded synchronously with the results directly.
+                result = results_json;
+            }
+
+            generated_textures = result["results"];
+            generated_texture_name.set(material);
+        } catch (error) {
+            console.error(error);
+            showToast(japanese ? "テクスチャの生成中にエラーが発生しました。" : "An error occurred while generating textures.", 'error');
+        } finally {
+            is_loading=false;
+        }
     }
 
     export async function generate_textures(texture_str) {
@@ -153,26 +170,41 @@
         input += ",  texture map, seamless, 4k";
         console.log(input);
 
-        const results_response = await fetch("/generate_textures", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                "texture_string": input,
-                "n":n_textures,
-                "imsize":448,
-            }),
-        });
-        
-        const results_json = await results_response.json();
-        generated_textures = results_json["results"];
-        is_loading=false;
-        generated_texture_name.set(material);
+        try {
+            const results_response = await fetch("/generate_textures", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    "texture_string": input,
+                    "n":n_textures,
+                    "imsize":448,
+                }),
+            });
 
-        texture_history.append({
-            "texture_string": input,
-            "textures": generated_textures
-        })
-        
+            const results_json = await results_response.json();
+
+            let result;
+            if (results_json && results_json["job_id"]) {
+                // Backend is async: poll the job until it's done, then use its result payload.
+                result = await pollJob(results_json["job_id"]);
+            } else {
+                // Backend responded synchronously with the results directly.
+                result = results_json;
+            }
+
+            generated_textures = result["results"];
+            generated_texture_name.set(material);
+
+            texture_history.append({
+                "texture_string": input,
+                "textures": generated_textures
+            })
+        } catch (error) {
+            console.error(error);
+            showToast(japanese ? "テクスチャの生成中にエラーが発生しました。" : "An error occurred while generating textures.", 'error');
+        } finally {
+            is_loading=false;
+        }
     }
 
     
@@ -254,7 +286,7 @@
 
     function add_keyword(k) {
         if(k.trim() === '') {
-            alert(japanese ? "キーワードを入力してください。" :"Please type in a keyword.");
+            showToast(japanese ? "キーワードを入力してください。" :"Please type in a keyword.", 'error');
             return;
         }
         manual_prompt_keywords.push(k);
@@ -269,7 +301,7 @@
 
     async function brainstorm_prompt_keywords() {
         if (input_material.trim() === '') {
-            alert(japanese ? "素材を入力してください。" : "Please type in a material.");
+            showToast(japanese ? "素材を入力してください。" : "Please type in a material.", 'error');
             return;
         }
 

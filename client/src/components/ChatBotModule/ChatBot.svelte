@@ -15,6 +15,7 @@
     import SvelteMarkdown from 'svelte-markdown';
 
     import {translate} from '../../main.js';
+    import {showToast} from '../../main.js';
 
     let japanese;
     in_japanese.subscribe(value => {
@@ -59,7 +60,7 @@
 
     async function suggest_materials() {
         if (inputMessage.trim() === '') {
-            alert(japanese ? "クエリを入力してください。" : "Please enter a query.");
+            showToast(japanese ? "クエリを入力してください。" : "Please enter a query.", 'error');
             return;
         }
         messages.push({
@@ -113,7 +114,7 @@
 
     async function suggest_color_palettes() {
         if (inputMessage.trim() === '') {
-            alert(japanese ? "クエリを入力してください。" : "Please enter a query.");
+            showToast(japanese ? "クエリを入力してください。" : "Please enter a query.", 'error');
             return;
         }
 
@@ -166,7 +167,7 @@
             palette: color_palette["codes"]
         }
         saved_color_palettes.update(lst => lst.concat(dict));
-        alert(japanese ? "カラーパレットが保存されました！" :"Color palette saved!");
+        showToast(japanese ? "カラーパレットが保存されました！" :"Color palette saved!", 'success');
     }
 
     async function query() {

@@ -5,6 +5,7 @@
 	import ThreeDDisplay from './components/ThreeDDisplay.svelte';
 	import DynamicImage from "./components/DynamicImage.svelte";
 	import Information from "./components/InformationPanel.svelte";
+	import Toast from "./components/Toast.svelte";
 	import {curr_rendering_path} from './stores.js';
 	import {curr_texture_parts} from './stores.js';
 	import {curr_textureparts_path} from './stores.js';
@@ -26,6 +27,7 @@
 	import {undoAction} from './main.js';
 	import {redoAction} from './main.js';
 	import {translate} from './main.js';
+	import {showToast} from './main.js';
 
 	import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 	let japanese;
@@ -301,9 +303,9 @@
 		console.log(get(threed_display_global))
 		if(get(threed_display_global)==null || get(threed_display_global)==undefined) {
 			if(japanese) {
-				alert("3Dビューアが読み込まれていません!ページを更新してください。");
+				showToast("3Dビューアが読み込まれていません!ページを更新してください。", 'error');
 			} else {
-				alert("3D viewer is not loaded! please refresh the page.");
+				showToast("3D viewer is not loaded! please refresh the page.", 'error');
 			}
 		}
 
@@ -342,6 +344,7 @@
 </script>
 
 <main>
+	<Toast />
 
 	<div class="container">
 		<!-- Left Section -->
@@ -653,7 +656,7 @@
 		position: absolute;
 		z-index: 9998;
 		top: 0;
-		right: 50;
+		right: 50px;
 		display:flex;
 		flex-direction: row;
 	}

@@ -731,7 +731,7 @@
 
           {#if isOpen}
           <!-- Dropdown list of color palettes -->
-            <div class="dropdown-list" style="position: absolute; top: 30px; left: 170px; z-index=1;">
+            <div class="dropdown-list" style="position: absolute; top: 30px; left: 170px; z-index:1;">
                 <!-- Create a palette for the current material's color. -->   
                   {#each palettes as p,j}
                     <label class="control container palette selectable" class:selected={selected_palette_idx===j}>

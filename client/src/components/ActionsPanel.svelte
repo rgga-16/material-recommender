@@ -50,9 +50,9 @@
       {japanese ? "チャットボット" : "ChatBot"}
     </button>
     {/if}
-    <!-- <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='mat_lib'} on:click={()=>switchTab('mat_lib')} id="matlib-btn">
-      {japanese ? "チャットボット" : "Material Library"}
-    </button> -->
+    <button class='w3-bar-item w3-button tab-btn' class:active={activeTab==='mat_lib'} on:click={()=>switchTab('mat_lib')} id="matlib-btn">
+      {japanese ? "素材ライブラリ" : "Material Library"}
+    </button>
   </div>
   
   <div class='tab-content'  class:active={activeTab==='generate'} id="generate">

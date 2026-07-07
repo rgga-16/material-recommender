@@ -28,9 +28,17 @@ def generate_and_save(texture_string, n, imsize):
 @bp.route("/generate_textures", methods=["POST"])
 def generate_textures_route():
     form_data = request.get_json()
-    # TEMPORARY synchronous path; Phase 3B submits via jobs and returns job_id.
-    return generate_and_save(form_data["texture_string"], form_data["n"],
-                             form_data["imsize"])
+    job_id = jobs.submit(generate_and_save, form_data["texture_string"],
+                         form_data["n"], form_data["imsize"])
+    return jsonify({"job_id": job_id})
+
+
+def generate_similar_and_save(texture_string, n, impath):
+    """Generate n-1 fresh textures + normal/height maps, then prepend the
+    original image; returns result payload."""
+    result = generate_and_save(texture_string, n - 1, 512)
+    result["results"].insert(0, {"rendering": None, "texture": impath})
+    return result
 
 
 @bp.route("/generate_similar_textures", methods=["POST"])
@@ -38,10 +46,10 @@ def generate_similar_textures():
     # DALL-E 2 image variations have no local equivalent; approximate with
     # fresh generations from the same prompt (frontend keeps working).
     form_data = request.get_json()
-    result = generate_and_save(form_data["texture_string"], form_data["n"] - 1, 512)
     impath = form_data["impath"].replace(" ", "_")
-    result["results"].insert(0, {"rendering": None, "texture": impath})
-    return result
+    job_id = jobs.submit(generate_similar_and_save, form_data["texture_string"],
+                         form_data["n"], impath)
+    return jsonify({"job_id": job_id})
 
 
 @bp.route("/jobs/<job_id>", methods=["GET"])
