@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(.venv/Scripts/python.exe -c ' *)"
+      "Bash(.venv/Scripts/python.exe -c ' *)",
+      "Bash(.venv/Scripts/python.exe -m pip install --quiet torch --index-url https://download.pytorch.org/whl/cu124)",
+      "Bash(.venv/Scripts/python.exe -m pip install --quiet diffusers transformers accelerate safetensors)",
+      "Bash(.venv/Scripts/python.exe -c \"import torch, diffusers; print\\('torch', torch.__version__, 'cuda', torch.cuda.is_available\\(\\), 'diffusers', diffusers.__version__\\)\")"
     ]
   }
 }

@@ -14,9 +14,10 @@ from server.config import STATIC_IMDIR
 def create_app():
     app = Flask(__name__, static_folder=STATIC_IMDIR)
 
-    from server.routes import assistant, scenes, static, textures
+    from server.routes import assistant, presets, scenes, static, textures
     app.register_blueprint(scenes.bp)
     app.register_blueprint(textures.bp)
+    app.register_blueprint(presets.bp)
     app.register_blueprint(assistant.bp)
     app.register_blueprint(static.bp)  # last: has the catch-all /<path>
 

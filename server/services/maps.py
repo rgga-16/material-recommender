@@ -12,12 +12,15 @@ import imageio.v3 as iio
 
 from server.config import CWD
 
+# DeepBump-7 contains its own utils.py which would shadow the repo's utils
+# package, so its dir goes on sys.path only for the duration of the import.
 _DEEPBUMP_DIR = os.path.join(CWD, "utils", "DeepBump-7")
-if _DEEPBUMP_DIR not in sys.path:
-    sys.path.insert(0, _DEEPBUMP_DIR)
-
-import module_color_to_normals  # noqa: E402
-import module_normals_to_height  # noqa: E402
+sys.path.insert(0, _DEEPBUMP_DIR)
+try:
+    import module_color_to_normals  # noqa: E402
+    import module_normals_to_height  # noqa: E402
+finally:
+    sys.path.remove(_DEEPBUMP_DIR)
 
 
 def _read_chw(path):
