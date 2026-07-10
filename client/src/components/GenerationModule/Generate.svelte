@@ -1,635 +1,560 @@
 <script>
-    import {onMount} from 'svelte';
-    import { Circle } from 'svelte-loading-spinners';
-    import NumberSpinner from "svelte-number-spinner";
-    import GeneratedTextures from './GeneratedTextures.svelte';
-    import {curr_rendering_path} from '../../stores.js';
-    import {curr_texture_parts} from '../../stores.js';
-	import {curr_textureparts_path} from '../../stores.js';
-    import {generate_tab_page} from '../../stores.js';
-    import {generated_texture_name} from '../../stores.js';
-    import { get } from 'svelte/store';
-    import {action_history} from '../../stores.js';
-    import { threed_display_global } from '../../stores.js';
+	import { onDestroy } from 'svelte';
+	import GeneratedTextures from './GeneratedTextures.svelte';
+	import { generate_tab_page } from '../../stores.js';
+	import { generated_texture_name } from '../../stores.js';
+	import { in_japanese } from '../../stores.js';
+	import { design_brief } from '../../stores.js';
 
-    import {transferred_texture_url} from '../../stores.js';
-    import {transferred_textureimg_url} from '../../stores.js';
-    import {transferred_texture_name} from '../../stores.js';
-    import {in_japanese} from '../../stores.js';
+	import { translate } from '../../lib/i18n.js';
+	import { isDict, dictToString } from '../../lib/utils.js';
+	import { showToast } from '../../lib/toast.js';
+	import { pollJob } from '../../lib/jobs.js';
 
-    import {addToHistory} from '../../main.js';
-    import {translate} from '../../main.js';
-    import {getImage} from '../../main.js';
-    import {isDict, dictToString} from '../../main.js';
-    import {showToast, pollJob} from '../../main.js';
-    import {design_brief} from '../../stores.js';
+	import { generator } from '../../lib/registry.js';
 
-    let history; 
-    action_history.subscribe(value => {
-        history = value;
-    });
+	import Button from '../../lib/ui/Button.svelte';
+	import Field from '../../lib/ui/Field.svelte';
+	import TextInput from '../../lib/ui/TextInput.svelte';
+	import NumberInput from '../../lib/ui/NumberInput.svelte';
+	import PanelSection from '../../lib/ui/PanelSection.svelte';
+	import Spinner from '../../lib/ui/Spinner.svelte';
 
-    let japanese;
-    in_japanese.subscribe(value => {
-        japanese = value;
-    });
+	import Sparkles from '@lucide/svelte/icons/sparkles';
+	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
+	import Lightbulb from '@lucide/svelte/icons/lightbulb';
+	import Plus from '@lucide/svelte/icons/plus';
+	import X from '@lucide/svelte/icons/x';
 
-    let three_display;
-    threed_display_global.subscribe(value => {
-        three_display = value;
-    });
+	onDestroy(generator.register({ generate_textures, reset_page, empty_keywordlists }));
 
-    export let onCallUpdateCurrentRendering
-    function callUpdateCurrentRendering() {
-        onCallUpdateCurrentRendering();
-    }
+	let { onCallUpdateCurrentRendering } = $props();
 
-    let input_material='';
+	let japanese = $derived($in_japanese);
 
-    let selected_object_parts=[]; 
-    let objs_and_parts = {}
-    let selected_obj_parts_dict = {}
+	let input_material = $state('');
 
-    let rendering_texture_pairs=[];
+	let is_loading = $state(false);
+	let progress_message = $state('');
+	let generated_textures = $state([]);
+	let selected_texture = $state(null);
 
-    let is_loading;
-    let texture_history = [];
-    let generated_textures = [];
-    let selected_textures = [];
-    let selected_texture;
+	let keywords_open = $state(false);
 
-    let is_collapsed_keywords = true;
+	let n_textures = $state(4);
 
-    let selected_index;
+	async function generate_similar_textures(texture_str) {
+		input_material = texture_str;
+		is_loading = true;
+		progress_message = '';
+		generated_textures = [];
 
-    let n_textures = 4;
-    
-    let activeTab = "generated";
+		let input = Object.assign('', texture_str);
+		let material = Object.assign('', texture_str);
+		if (isDict(input)) {
+			input = dictToString(input);
+		}
 
-    onMount(async () => {
-        // const obj_and_part_resp= await fetch('./get_objects_and_parts');
-        // const obj_and_part_json = await obj_and_part_resp.json(); 
-        // objs_and_parts = obj_and_part_json;
-    }); 
+		let keywords = Object.assign([], selected_prompt_keywords);
 
-    async function generate_similar_textures(texture_str) {
-        input_material = texture_str
-        is_loading=true; 
-        generated_textures=[];
+		if (keywords.length > 0) {
+			for (let i = 0; i < keywords.length; i++) {
+				let temp = keywords[i];
+				if (isDict(temp)) {
+					temp = dictToString(temp);
+					material = dictToString(material);
+				}
+				input += ', ' + temp;
+			}
+		}
+		if (japanese) {
+			console.log(input);
+			input = await translate('JA', 'EN-US', input);
+			material = await translate('JA', 'EN-US', material);
+		}
+		input += ',  texture map, seamless, 4k';
+		console.log(input);
 
-        let input = Object.assign("",texture_str);
-        let material = Object.assign("",texture_str);
-        if (isDict(input)) {
-            input = dictToString(input);
-        }
-        
-        let keywords = Object.assign([],selected_prompt_keywords);
+		try {
+			const results_response = await fetch('/generate_similar_textures', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					texture_string: input,
+					n: n_textures,
+					imsize: 448,
+					impath: selected_texture,
+				}),
+			});
+			selected_texture = null;
+			const results_json = await results_response.json();
 
-        if(keywords.length > 0) {
-            for (let i = 0; i < keywords.length; i++) {
-                let temp = keywords[i];
-                if(isDict(temp)) {
-                    temp = dictToString(temp);
-                    material = dictToString(material);
-                }
-                input += ", " + temp;
-            }
-        }
-        if(japanese) {
-            console.log(input);
-            input = await translate("JA", "EN-US", input);
-            material = await translate("JA", "EN-US", material);
-        }
-        input += ",  texture map, seamless, 4k";
-        console.log(input);
+			let result;
+			if (results_json && results_json['job_id']) {
+				// Backend is async: poll the job until it's done, then use its result payload.
+				result = await pollJob(results_json['job_id'], {
+					onProgress: (job) => {
+						progress_message = job.message || '';
+					},
+				});
+			} else {
+				// Backend responded synchronously with the results directly.
+				result = results_json;
+			}
 
-        try {
-            const results_response = await fetch("/generate_similar_textures", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    "texture_string": input,
-                    "n":n_textures,
-                    "imsize":448,
-                    "impath":selected_texture,
-                }),
-            });
-            selected_texture=null;
-            const results_json = await results_response.json();
+			generated_textures = result['results'];
+			generated_texture_name.set(material);
+		} catch (error) {
+			console.error(error);
+			showToast(japanese ? 'テクスチャの生成中にエラーが発生しました。' : 'An error occurred while generating textures.', 'error');
+		} finally {
+			is_loading = false;
+			progress_message = '';
+		}
+	}
 
-            let result;
-            if (results_json && results_json["job_id"]) {
-                // Backend is async: poll the job until it's done, then use its result payload.
-                result = await pollJob(results_json["job_id"]);
-            } else {
-                // Backend responded synchronously with the results directly.
-                result = results_json;
-            }
+	export async function generate_textures(texture_str) {
+		input_material = texture_str;
+		is_loading = true;
+		progress_message = '';
+		selected_texture = null;
+		generated_textures = [];
 
-            generated_textures = result["results"];
-            generated_texture_name.set(material);
-        } catch (error) {
-            console.error(error);
-            showToast(japanese ? "テクスチャの生成中にエラーが発生しました。" : "An error occurred while generating textures.", 'error');
-        } finally {
-            is_loading=false;
-        }
-    }
+		let input = Object.assign('', texture_str);
+		let material = Object.assign('', texture_str);
+		if (isDict(input)) {
+			input = dictToString(input);
+			material = dictToString(material);
+		}
 
-    export async function generate_textures(texture_str) {
-        input_material=texture_str;
-        is_loading=true; 
-        selected_texture=null;
-        generated_textures=[];
+		console.log(input);
+		let keywords = Object.assign([], selected_prompt_keywords);
 
-        let input = Object.assign("",texture_str);
-        let material = Object.assign("",texture_str);
-        if (isDict(input)) {
-            input = dictToString(input);
-            material = dictToString(material);
-        }
+		if (keywords.length > 0) {
+			for (let i = 0; i < keywords.length; i++) {
+				let temp = keywords[i];
+				if (isDict(temp)) {
+					temp = dictToString(temp);
+				}
+				input += ', ' + temp;
+			}
+		}
 
-        console.log(input);
-        let keywords = Object.assign([],selected_prompt_keywords);
+		if (japanese) {
+			console.log(input);
+			input = await translate('JA', 'EN-US', input);
+			material = await translate('JA', 'EN-US', material);
+		}
+		input += ',  texture map, seamless, 4k';
+		console.log(input);
 
-        if(keywords.length > 0) {
-            for (let i = 0; i < keywords.length; i++) {
-                let temp = keywords[i];
-                if(isDict(temp)) {
-                    temp = dictToString(temp);
-                }
-                input += ", " + temp;
-            }
-        }
+		try {
+			const results_response = await fetch('/generate_textures', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					texture_string: input,
+					n: n_textures,
+					imsize: 448,
+				}),
+			});
 
-        if(japanese) {
-            console.log(input);
-            input = await translate("JA", "EN-US", input);
-            material = await translate("JA", "EN-US", material);
-        }
-        input += ",  texture map, seamless, 4k";
-        console.log(input);
+			const results_json = await results_response.json();
 
-        try {
-            const results_response = await fetch("/generate_textures", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    "texture_string": input,
-                    "n":n_textures,
-                    "imsize":448,
-                }),
-            });
+			let result;
+			if (results_json && results_json['job_id']) {
+				// Backend is async: poll the job until it's done, then use its result payload.
+				result = await pollJob(results_json['job_id'], {
+					onProgress: (job) => {
+						progress_message = job.message || '';
+					},
+				});
+			} else {
+				// Backend responded synchronously with the results directly.
+				result = results_json;
+			}
 
-            const results_json = await results_response.json();
+			generated_textures = result['results'];
+			generated_texture_name.set(material);
+		} catch (error) {
+			console.error(error);
+			showToast(japanese ? 'テクスチャの生成中にエラーが発生しました。' : 'An error occurred while generating textures.', 'error');
+		} finally {
+			is_loading = false;
+			progress_message = '';
+		}
+	}
 
-            let result;
-            if (results_json && results_json["job_id"]) {
-                // Backend is async: poll the job until it's done, then use its result payload.
-                result = await pollJob(results_json["job_id"]);
-            } else {
-                // Backend responded synchronously with the results directly.
-                result = results_json;
-            }
+	// This function reverts back to the first page of the Generation module.
+	export function reset_page() {
+		generate_tab_page.set(0);
+		generated_textures = [];
+		selected_texture = null;
+	}
 
-            generated_textures = result["results"];
-            generated_texture_name.set(material);
+	let brainstormed_prompt_keywords = $state([]); // Keywords that are generated by the AI assistant
+	let manual_prompt_keywords = $state([]); // Keywords that the user manually added
 
-            texture_history.append({
-                "texture_string": input,
-                "textures": generated_textures
-            })
-        } catch (error) {
-            console.error(error);
-            showToast(japanese ? "テクスチャの生成中にエラーが発生しました。" : "An error occurred while generating textures.", 'error');
-        } finally {
-            is_loading=false;
-        }
-    }
+	let selected_prompt_keywords = $state([]);
+	let is_loading_keywords = $state(false);
 
-    
-    const n_pages = 4;
+	let keyword = $state('');
 
-    let current_page = 0;
-    generate_tab_page.subscribe(value=> {
-        current_page=value;
-    });
+	let keywords_title = $derived(
+		japanese
+			? `"${input_material.trim() !== '' ? input_material : ''}"にキーワードを追加`
+			: `Add keywords to "${input_material.trim() !== '' ? input_material : ''}"`
+	);
 
-    let active_obj_id=0;
-    function switchObjectTab(id) {
-        active_obj_id=id;
-    }
+	export function empty_keywordlists() {
+		keyword = '';
+		brainstormed_prompt_keywords = [];
+		manual_prompt_keywords = [];
+		selected_prompt_keywords = [];
+	}
 
-    //This function reverts back to the first page of the Generation module.
-    export function reset_page() {
-        current_page=0;
-        generate_tab_page.set(0);
-        switchTab("generated");
-        generated_textures=[];
-        rendering_texture_pairs=[];
-        selected_textures = [];
-        switchObjectTab(0);
-        selected_object_parts=[];
-        selected_index=undefined;
+	function toggle_keyword(word) {
+		if (selected_prompt_keywords.includes(word)) {
+			selected_prompt_keywords = selected_prompt_keywords.filter((k) => k !== word);
+		} else {
+			selected_prompt_keywords = [...selected_prompt_keywords, word];
+		}
+	}
 
-    }
+	function del_manual_keyword(index, word) {
+		manual_prompt_keywords.splice(index, 1);
+		selected_prompt_keywords = selected_prompt_keywords.filter((k) => k !== word);
+	}
 
-    function switchTab(tab) {
-        activeTab=tab;
-    }
+	function del_brainstormed_keyword(index, word) {
+		brainstormed_prompt_keywords.splice(index, 1);
+		selected_prompt_keywords = selected_prompt_keywords.filter((k) => k !== word);
+	}
 
-    let brainstormed_prompt_keywords = []; //Keywords that are generated by the AI assistant
-    let manual_prompt_keywords = []; //Keywords that the user manually added
-    // $: prompt_keywords = [...brainstormed_prompt_keywords, ...manual_prompt_keywords];
+	function add_keyword(k) {
+		if (k.trim() === '') {
+			showToast(japanese ? 'キーワードを入力してください。' : 'Please type in a keyword.', 'error');
+			return;
+		}
+		manual_prompt_keywords.push(k);
+		selected_prompt_keywords.push(k);
 
-    let selected_prompt_keywords = [];
-    let is_loading_keywords = false;
+		keyword = '';
+	}
 
-    let keyword="";
+	async function brainstorm_prompt_keywords() {
+		if (input_material.trim() === '') {
+			showToast(japanese ? '素材を入力してください。' : 'Please type in a material.', 'error');
+			return;
+		}
 
-    export function empty_keywordlists() {
-        keyword="";
-        brainstormed_prompt_keywords = [];
-        manual_prompt_keywords = [];
-        selected_prompt_keywords = [];
-    }
+		brainstormed_prompt_keywords = [];
+		selected_prompt_keywords = [];
+		is_loading_keywords = true;
+		const response = await fetch('/brainstorm_prompt_keywords', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				texture_string: input_material,
+				design_brief: $design_brief,
+			}),
+		});
+		const json = await response.json();
 
-    function del_manual_keyword(index, keyword) {
-        manual_prompt_keywords.splice(index, 1);
-        manual_prompt_keywords=manual_prompt_keywords;
+		brainstormed_prompt_keywords = json['brainstormed_prompt_keywords'];
 
-        if (selected_prompt_keywords.includes(keyword)) {
-            let indices = selected_prompt_keywords.map((e,i) => e === keyword ? i : '').filter(String);
-
-            for (let i = 0; i < indices.length; i++) {
-                selected_prompt_keywords.splice(indices[i], 1);
-                selected_prompt_keywords=selected_prompt_keywords;
-            }
-        }
-
-    }
-
-    function del_brainstormed_keyword(index, keyword) {
-        brainstormed_prompt_keywords.splice(index, 1);
-        brainstormed_prompt_keywords=brainstormed_prompt_keywords;
-
-        if (selected_prompt_keywords.includes(keyword)) {
-            let indices = selected_prompt_keywords.map((e,i) => e === keyword ? i : '').filter(String);
-
-            for (let i = 0; i < indices.length; i++) {
-                selected_prompt_keywords.splice(indices[i], 1);
-                selected_prompt_keywords=selected_prompt_keywords;
-            }
-        }
-
-    }
-
-    function add_keyword(k) {
-        if(k.trim() === '') {
-            showToast(japanese ? "キーワードを入力してください。" :"Please type in a keyword.", 'error');
-            return;
-        }
-        manual_prompt_keywords.push(k);
-        manual_prompt_keywords=manual_prompt_keywords;
-
-        selected_prompt_keywords.push(k);
-        selected_prompt_keywords=selected_prompt_keywords;
-
-        keyword="";
-        
-    }
-
-    async function brainstorm_prompt_keywords() {
-        if (input_material.trim() === '') {
-            showToast(japanese ? "素材を入力してください。" : "Please type in a material.", 'error');
-            return;
-        }
-
-        brainstormed_prompt_keywords=[];
-        selected_prompt_keywords=[];
-        is_loading_keywords=true;
-        const response = await fetch("/brainstorm_prompt_keywords", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                "texture_string": input_material,
-                "design_brief":get(design_brief),
-            }),
-        });
-        const json = await response.json();
-        
-        brainstormed_prompt_keywords = json["brainstormed_prompt_keywords"];
-
-        if (japanese) {
-            for(let i = 0; i < brainstormed_prompt_keywords.length; i++) {
-                let k = brainstormed_prompt_keywords[i];
-                brainstormed_prompt_keywords[i] = await translate("EN","JA",k);
-            }
-        }
-        is_loading_keywords=false;
-    }
+		if (japanese) {
+			for (let i = 0; i < brainstormed_prompt_keywords.length; i++) {
+				brainstormed_prompt_keywords[i] = await translate('EN', 'JA', brainstormed_prompt_keywords[i]);
+			}
+		}
+		is_loading_keywords = false;
+	}
 </script>
 
-<div class="material_generator">
-    <h3> {japanese ? "素材ジェネレーター" : "Material Generator"}  </h3>
+<div class="generate-panel" class:hidden={$generate_tab_page !== 0}>
+	<h3 class="panel-title">{japanese ? '素材ジェネレーター' : 'Material Generator'}</h3>
 
-    <div class="page" class:hidden={current_page!=0} id="generate_materials">
-        <div class="row">
-            <input name="material_name" type="text" bind:value={input_material} 
-            on:keydown={(event) => {
-                if (event.key === 'Enter') {
-                    generate_textures(input_material);
-                }
-            }} 
-            placeholder={japanese ? "素材を入力してください..." : "Type in a material..."} required/>
-            <div class="column">
-                <span> {japanese ? "テクスチャマップの数：": "No. of texture maps:"}  </span>
-                <NumberSpinner bind:value={n_textures} min={1} max={10} step=1/>
-            </div>
-        </div>
+	<TextInput
+		bind:value={input_material}
+		onEnter={() => generate_textures(input_material)}
+		placeholder={japanese ? '素材を入力してください...' : 'Type in a material...'}
+	/>
 
-        <div class="column" id="prompt_keywords" style="border: solid 1px black;">
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <div class="row" id="keywords-header" on:click={() => {is_collapsed_keywords=!is_collapsed_keywords}} style="cursor:pointer;width:100%;"> 
-                {#if japanese} 
-                    "{input_material.trim() !== '' ? input_material : ''}"にキーワードを追加
-                {:else}
-                    Add keywords to "{input_material.trim() !== '' ? input_material : ''}"
-                {/if}
-                
-                
-                {#if is_collapsed_keywords===true}
-                    <img src="./logos/down-arrow-svgrepo-com.svg" style="width:25px; height: 25px;" alt="Expand">
-                {:else}
-                    <img src="./logos/up-arrow-svgrepo-com.svg" style="width:25px; height: 25px;" alt="Collapse">
-                {/if}
-            </div>
-                <div class="row" class:collapsed={is_collapsed_keywords===true}>
-                    <div class="column">
-                        <div class="row"> 
-                            <input type="text" style="width:65%;" bind:value={keyword} 
-                            on:keydown={(event)=> {
-                                if (event.key === 'Enter') {
-                                    add_keyword(keyword);
-                                }
-                            }} 
-                            placeholder={japanese ? "キーワードを入力してください..." : "Type in a keyword..."}> 
-                            <button on:click|preventDefault={()=>add_keyword(keyword)}>
-                                {japanese ? "追加" : "Add"}
-                                <img src="./logos/add-svgrepo-com.svg" style="width:18px; height:18px; align-items: center; justify-content: center;" alt="Add keyword">
-                            </button>
-                        </div>
-                        <div class="row">
-                            <button on:click|preventDefault={brainstorm_prompt_keywords} style="margin-right: 10px;"> 
-                                {#if japanese} 
-                                    "{input_material}"のキーワードをブレインストーミングする 
-                                {:else}
-                                    Brainstorm keywords for "{input_material}" 
-                                {/if}
-                            </button>
+	<Field label={japanese ? 'テクスチャマップの数：' : 'No. of texture maps:'} row>
+		<NumberInput bind:value={n_textures} min={1} max={10} step={1} />
+	</Field>
 
-                            <button on:click|preventDefault={()=>{empty_keywordlists();}}> 
-                                {japanese ? "キーワードをクリアする" : "Clear keywords"}
-                            </button>
-                        </div>
-                    </div>
-                    <div class="row" style="flex-wrap:wrap; overflow:auto;">
-                        {#if manual_prompt_keywords.length > 0}
-                            {#each manual_prompt_keywords as manual_keyword,i}
-                                <label class="tag" class:selected={selected_prompt_keywords.includes(manual_keyword)} >
-                                    <input type="checkbox" value={manual_keyword} bind:group={selected_prompt_keywords} />
-                                    +"{manual_keyword}"
-                                    <button on:click={()=>del_manual_keyword(i, manual_keyword)}>X</button>
-                                </label>
-                            {/each}
-                        {/if}
+	<PanelSection title={keywords_title} bind:open={keywords_open}>
+		<div class="keyword-input-row">
+			<TextInput
+				bind:value={keyword}
+				onEnter={() => add_keyword(keyword)}
+				placeholder={japanese ? 'キーワードを入力してください...' : 'Type in a keyword...'}
+			/>
+			<Button size="sm" onclick={() => add_keyword(keyword)}>
+				<Plus size={14} strokeWidth={1.75} />
+				{japanese ? '追加' : 'Add'}
+			</Button>
+		</div>
 
-                        {#if brainstormed_prompt_keywords.length > 0}
-                            {#each brainstormed_prompt_keywords  as keyword,j}
-                                <label class="tag" class:selected={selected_prompt_keywords.includes(keyword)}>
-                                    <input type="checkbox" value={keyword} bind:group={selected_prompt_keywords} />
-                                    +"{keyword}"
-                                    <button on:click={()=>del_brainstormed_keyword(j, keyword)}>X</button>
-                                </label>
-                            {/each}
-                        {:else if is_loading_keywords}
-                            <div class="images-placeholder" style="height:20%;">
-                                {japanese ? "キーワードを考える" : "Brainstorming keywords..."}
-                                <Circle size="30" color="#FF3E00" unit="px" duration="1s" />
-                            </div>
-                        {/if}
-                        {#if brainstormed_prompt_keywords.length <= 0 && manual_prompt_keywords.length <= 0}
-                            <p> 
-                                {japanese ? "キーワードは追加されていない。" : "No keywords added."}"
-                            </p>
-                        {/if}
-                    </div>
+		<div class="keyword-actions-row">
+			<Button size="sm" variant="secondary" onclick={brainstorm_prompt_keywords} disabled={is_loading_keywords}>
+				<Lightbulb size={14} strokeWidth={1.75} />
+				{#if japanese}
+					"{input_material}"のキーワードをブレインストーミングする
+				{:else}
+					Brainstorm keywords for "{input_material}"
+				{/if}
+			</Button>
 
-                </div>
-        </div>
+			<Button size="sm" variant="ghost" onclick={() => empty_keywordlists()}>
+				{japanese ? 'キーワードをクリアする' : 'Clear keywords'}
+			</Button>
+		</div>
 
-        <div class="row">
-            <button disabled={!selected_texture} on:click|preventDefault={() => generate_similar_textures(input_material)}> 
-                {japanese ? "類似素材テクスチャを生成する"  : "Generate Similar Textures"}
-            </button>
-            <button on:click|preventDefault={() => generate_textures(input_material)}> 
-                {japanese ? "素材テクスチャを生成する" : "Generate Textures"} 
-            </button>
-        </div>
+		<div class="keyword-tags">
+			{#each manual_prompt_keywords as manual_keyword, i}
+				<span class="tag" class:selected={selected_prompt_keywords.includes(manual_keyword)}>
+					<button type="button" class="tag-label" onclick={() => toggle_keyword(manual_keyword)}>
+						"{manual_keyword}"
+					</button>
+					<button
+						type="button"
+						class="tag-remove"
+						onclick={() => del_manual_keyword(i, manual_keyword)}
+						aria-label={japanese ? '削除' : 'Remove keyword'}
+					>
+						<X size={12} strokeWidth={2} />
+					</button>
+				</span>
+			{/each}
 
-        <div class="row">
-            <!-- <div class="w3-bar w3-grey tabs column" style="width:50px;height:500px;" >
-                <button class="w3-bar-item w3-button tab-btn" class:active={activeTab==='generated'} on:click={() => switchTab('generated')} id="generated-tabs">
-                    Generated
-                </button>
-                <button class="w3-bar-item w3-button tab-btn" class:active={activeTab==='history'} on:click={() => switchTab('history')} id="generated-tabs">
-                    History
-                </button>
-                <button class="w3-bar-item w3-button tab-btn" class:active={activeTab==='saved'} on:click={() => switchTab('saved')} id="generated-tabs">
-                    Saved
-                </button>
-            </div> -->
+			{#if brainstormed_prompt_keywords.length > 0}
+				{#each brainstormed_prompt_keywords as bkeyword, j}
+					<span class="tag" class:selected={selected_prompt_keywords.includes(bkeyword)}>
+						<button type="button" class="tag-label" onclick={() => toggle_keyword(bkeyword)}>
+							"{bkeyword}"
+						</button>
+						<button
+							type="button"
+							class="tag-remove"
+							onclick={() => del_brainstormed_keyword(j, bkeyword)}
+							aria-label={japanese ? '削除' : 'Remove keyword'}
+						>
+							<X size={12} strokeWidth={2} />
+						</button>
+					</span>
+				{/each}
+			{:else if is_loading_keywords}
+				<div class="keywords-loading">
+					<Spinner size={16} />
+					{japanese ? 'キーワードを考える' : 'Brainstorming keywords...'}
+				</div>
+			{/if}
 
-            <div class="column">
-                {#if generated_textures.length > 0}
-                    <p> 
-                        {#if japanese}
-                            {input_material}のテクスチャマップの結果
-                        {:else}
-                            Texture map results for: {input_material}
-                        {/if}
-                    </p>
-                    <GeneratedTextures pairs= {generated_textures} texture_name={get(generated_texture_name)} bind:selected_texture={selected_texture}/>
-                {:else if is_loading==true}
-                    <div class="images-placeholder">
-                        {japanese ? "テクスチャを生成しています。お待ちください。" : "Generating textures, please wait."}
-                        <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
-                    </div>
-                {:else}
-                    <div class="images-placeholder">
-                        <pre> {japanese ? "素材テクスチャはまだ生成されていない。" : "No material textures generated yet."} 
-                        </pre>
-                    </div>
-                {/if}
-            </div>
+			{#if brainstormed_prompt_keywords.length <= 0 && manual_prompt_keywords.length <= 0 && !is_loading_keywords}
+				<p class="empty-hint">{japanese ? 'キーワードは追加されていない。' : 'No keywords added.'}</p>
+			{/if}
+		</div>
+	</PanelSection>
 
+	<div class="actions-row">
+		<Button variant="secondary" disabled={!selected_texture} onclick={() => generate_similar_textures(input_material)}>
+			<RefreshCw size={14} strokeWidth={1.75} />
+			{japanese ? '類似素材テクスチャを生成する' : 'Generate Similar Textures'}
+		</Button>
+		<Button variant="primary" loading={is_loading} onclick={() => generate_textures(input_material)}>
+			<Sparkles size={14} strokeWidth={1.75} />
+			{japanese ? '素材テクスチャを生成する' : 'Generate Textures'}
+		</Button>
+	</div>
 
-        </div>
+	{#if is_loading && progress_message}
+		<div class="status-line">{progress_message}</div>
+	{/if}
 
-        
-
-
-    </div>
-
+	<div class="results">
+		{#if generated_textures.length > 0}
+			<p class="results-caption">
+				{#if japanese}
+					{input_material}のテクスチャマップの結果
+				{:else}
+					Texture map results for: {input_material}
+				{/if}
+			</p>
+			<GeneratedTextures pairs={generated_textures} texture_name={$generated_texture_name} bind:selected_texture />
+		{:else if is_loading}
+			<div class="empty-state">
+				<Spinner size={32} />
+				<span>{japanese ? 'テクスチャを生成しています。お待ちください。' : 'Generating textures, please wait.'}</span>
+			</div>
+		{:else}
+			<div class="empty-state">
+				<span>{japanese ? '素材テクスチャはまだ生成されていない。' : 'No material textures generated yet.'}</span>
+			</div>
+		{/if}
+	</div>
 </div>
 
 <style>
-
-    .tabs {
-        width:100%;
-        height: 100%;
-        align-content:center;
-        gap:0px;
-    }
-
-    .tab-btn {
-        width: auto;
-        height: 100%;
-    }
-
-	.tab-btn.active {
-		background-color: rgb(89, 185, 218);
+	.generate-panel {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-3);
+		width: 100%;
+		height: 100%;
+		min-height: 0;
 	}
 
-    .tab-btn.active:hover {
-		background-color: rgb(89, 185, 218);
-	}
-
-	.tab-content {
+	.generate-panel.hidden {
 		display: none;
 	}
 
-    #generated-tabs {
-        transform:rotate(270deg);
-    }
-
-    .tab-content.active {
-		display: flex;
-        flex-direction: row;
-        height: 100%;
-        width:100%;
-        padding: 5px;
-        overflow: auto;
+	.panel-title {
+		margin: 0;
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--text-primary);
 	}
 
-    .material_generator {
-        display: flex;
-        align-items:center;
-        justify-content:center;
-        flex-direction: column;
-        width:100%;
-        height: 100%; 
-        /* overflow: hidden; */
-        text-align: center;
-    }
+	.keyword-input-row {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+	}
 
-    .row {
-        display:flex; 
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-        padding: 5px;
-    }
+	.keyword-input-row > :global(.text-input) {
+		flex: 1;
+		min-width: 0;
+	}
 
-    .column {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-        padding: 5px;
-    }
+	.keyword-actions-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--sp-2);
+		margin-top: var(--sp-2);
+	}
 
-    
-    .material_generator div.page{
-        text-align: center;
-        align-items: center;
-        justify-content: center;
-        overflow:auto;
-        width:100%;
-        height: 100%; 
-    }   
+	.keyword-tags {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--sp-2);
+		margin-top: var(--sp-3);
+	}
 
-    .material_generator .page.hidden{
-        display:none;
-    }
+	.tag {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
+		height: 24px;
+		padding: 0 var(--sp-1) 0 var(--sp-3);
+		border-radius: var(--radius-full);
+		background: var(--bg-inset);
+		border: 1px solid var(--border-subtle);
+		color: var(--text-secondary);
+		transition:
+			border-color 120ms ease,
+			background 120ms ease,
+			color 120ms ease;
+	}
 
-    .material_generator .page .carousel-nav-btns {
-        padding:5px;
-    }
+	.tag:hover {
+		border-color: var(--border-strong);
+	}
 
+	.tag.selected {
+		border-color: var(--accent);
+		background: var(--accent-muted);
+		color: var(--text-primary);
+	}
 
-    input[type="radio"] {
-        display: none;
-    }
-    
-    label {
-        padding: 5px;
-    }
+	.tag-label {
+		background: transparent;
+		border: none;
+		padding: 0;
+		font-family: var(--font-sans);
+		font-size: var(--text-xs);
+		color: inherit;
+		cursor: pointer;
+	}
 
-    input[type="radio"]:checked + label {
-        background-color: white;
-    }
+	.tag-remove {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 18px;
+		height: 18px;
+		flex-shrink: 0;
+		border: none;
+		border-radius: var(--radius-full);
+		background: transparent;
+		color: var(--text-muted);
+		cursor: pointer;
+		transition:
+			background 120ms ease,
+			color 120ms ease;
+	}
 
-    .checkbox-group {
-        width:100%;
-        max-width:900px;
-        margin:0 auto;
-        text-align:left;
-    }
-    .checkbox-item {
-        display: inline-block;
-        margin:5px;
-        background-color:lightblue;
-    }
-    
-    .images-placeholder {
-        width: 100%;
-        height: 500px;
-        border: 1px dashed black;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
+	.tag-remove:hover {
+		background: var(--bg-hover);
+		color: var(--text-primary);
+	}
 
-    .tag {
-        background-color:lightgreen;
-    }
+	.empty-hint {
+		margin: 0;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+	}
 
-    .tag input[type="checkbox"] {
-        opacity: 0;
-        position: fixed;
-        width:0; 
-    } 
+	.keywords-loading {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+		font-size: var(--text-xs);
+		color: var(--text-secondary);
+	}
 
-    .selected {
-        border: 2.5px solid blue;
-    }
+	.actions-row {
+		display: flex;
+		gap: var(--sp-2);
+	}
 
-    .selected:hover {
-        border: 2.5px solid blue;
-    }
+	.actions-row > :global(.btn) {
+		flex: 1;
+	}
 
-    .tag:hover{
-        cursor:pointer;
-        border: 2px solid grey;
-    }
+	.status-line {
+		font-size: var(--text-xs);
+		color: var(--text-secondary);
+	}
 
-    .collapsed {
-        display:none;
-    }
+	.results {
+		flex: 1;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-2);
+		overflow: auto;
+	}
+
+	.results-caption {
+		margin: 0;
+		font-size: var(--text-xs);
+		color: var(--text-secondary);
+	}
+
+	.empty-state {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: var(--sp-2);
+		color: var(--text-muted);
+		font-size: var(--text-base);
+		text-align: center;
+	}
 </style>
-
-

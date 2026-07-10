@@ -1,54 +1,60 @@
 <script>
-    export let text;
-    import {curr_texture_parts, in_japanese} from '../stores.js';
-    import {get} from 'svelte/store';
-    import {onMount} from 'svelte';
+    import { curr_texture_parts, in_japanese } from '../stores.js';
+    import { get } from 'svelte/store';
+    import { onMount } from 'svelte';
 
-    let japanese;
-    in_japanese.subscribe(value => {
-        japanese = value;
-    });
+    import Button from '../lib/ui/Button.svelte';
+    import TextInput from '../lib/ui/TextInput.svelte';
 
-    let temp_val="";
+    let { text = $bindable() } = $props();
 
-    let is_editing=false;
-    
+    let japanese = $derived($in_japanese);
+
+    let temp_val = $state("");
+
+    let is_editing = $state(false);
+
     function edit() {
-        is_editing=true;
+        is_editing = true;
     }
 
     function save() {
         text = temp_val;
-        is_editing=false;
+        is_editing = false;
         console.log(get(curr_texture_parts));
     }
 
     function cancel() {
-        is_editing=false;
+        is_editing = false;
     }
 
     onMount(() => {
-        temp_val=text;
+        temp_val = text;
     });
 </script>
 
 <div class="container">
-    <input type="text" readonly={!is_editing ? "readonly" : ""} bind:value={temp_val} >
+    <TextInput bind:value={temp_val} readonly={!is_editing} />
     {#if is_editing}
-        <button on:click={cancel}> {japanese ? "キャンセル" : "Cancel"}</button> 
-        <button on:click={save}> {japanese ? "保存する"  : "Save"}</button>
+        <Button variant="secondary" size="sm" onclick={cancel}>{japanese ? "キャンセル" : "Cancel"}</Button>
+        <Button variant="primary" size="sm" onclick={save}>{japanese ? "保存する" : "Save"}</Button>
     {:else}
-        <button on:click={edit}> {japanese ? "編集" : "Edit"}</button>
+        <Button variant="secondary" size="sm" onclick={edit}>{japanese ? "編集" : "Edit"}</Button>
     {/if}
-    <!-- <button on:click={edit}> {is_editing ? "Save" : "Edit"} </button> -->
 </div>
 
 
 <style>
     .container {
-        display:flex;
+        display: flex;
         flex-direction: row;
-        padding: 5px;
+        align-items: center;
+        gap: var(--sp-1);
+        padding: var(--sp-1);
     }
 
+    .container :global(.text-input) {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
 </style>

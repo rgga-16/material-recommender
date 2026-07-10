@@ -1,57 +1,63 @@
 <script>
     // Based on https://codepen.io/marlasdaughter/pen/yGZZLp
-    
-    export let color_codes; 
-    export let name;
+
+    let { color_codes, name } = $props();
 
     let palette;
 
 </script>
 
-    {name}
+<div class="palette-container">
+    <div class="palette-name">{name}</div>
     <div bind:this={palette} class="color-palette">
         {#each color_codes as cc, i}
-            <!-- <div class="box" style="background-color: {cc}"> -->
-                <input type="color" bind:value={cc} />
-            <!-- </div> -->
+            <input type="color" bind:value={color_codes[i]} title={cc} />
         {/each}
     </div>
+</div>
 
 <style>
-    .color-palette {
-        display:flex; 
-        flex-direction:row; 
-        justify-content: left;
-        width: 100%; 
-        height: 100%;
+    .palette-container {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-1);
     }
-/* 
-    .box {
-        width: 100%;
-        height: 100%;
-    } */
 
+    .palette-name {
+        font-size: var(--text-sm);
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .color-palette {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: var(--sp-1);
+    }
 
     input[type="color"] {
-        /* opacity: 0;
-        position: fixed;
-        width:0;  */
-        width: 100px;
-        height: 100px;
-        padding: 0; 
-        border: none;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm);
+        background: none;
+        transition: border-color 120ms ease;
     }
 
     input[type="color"]::-webkit-color-swatch-wrapper {
         padding: 0;
     }
+
     input[type="color"]::-webkit-color-swatch {
         border: none;
+        border-radius: var(--radius-sm);
     }
 
     input[type="color"]:hover {
-        cursor:pointer;
+        cursor: pointer;
+        border-color: var(--border-strong);
     }
-
-
 </style>

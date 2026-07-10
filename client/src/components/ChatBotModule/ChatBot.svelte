@@ -1,33 +1,44 @@
 <script>
-    import {onMount} from 'svelte';
-    import { Circle } from 'svelte-loading-spinners';
+    import { onMount } from 'svelte';
+    import { createEventDispatcher } from 'svelte';
+    import { get } from 'svelte/store';
+    import SvelteMarkdown from '@humanspeak/svelte-markdown';
+
     import MaterialCard from '../SuggestModule/MaterialCard.svelte';
     import ColorPalette from '../SuggestModule/ColorPalette.svelte';
-    import {saved_color_palettes} from '../../stores.js';
-    import {chatbot_input_message} from '../../stores.js';
-    import {design_brief} from '../../stores.js';
 
-    import {actions_panel_tab} from '../../stores.js';
-    import {generate_tab_page} from '../../stores.js';
-    import {in_japanese} from '../../stores.js';
-    import {createEventDispatcher} from 'svelte';
-    import {get} from 'svelte/store';
-    import SvelteMarkdown from 'svelte-markdown';
+    import Spinner from '../../lib/ui/Spinner.svelte';
+    import TextInput from '../../lib/ui/TextInput.svelte';
+    import IconButton from '../../lib/ui/IconButton.svelte';
+    import Button from '../../lib/ui/Button.svelte';
+    import Switch from '../../lib/ui/Switch.svelte';
 
-    import {translate} from '../../main.js';
-    import {showToast} from '../../main.js';
+    import Send from '@lucide/svelte/icons/send';
+    import Palette from '@lucide/svelte/icons/palette';
+    import Bookmark from '@lucide/svelte/icons/bookmark';
+    import WandSparkles from '@lucide/svelte/icons/wand-sparkles';
+    import RefreshCw from '@lucide/svelte/icons/refresh-cw';
+    import ChevronDown from '@lucide/svelte/icons/chevron-down';
+    import ChevronUp from '@lucide/svelte/icons/chevron-up';
 
-    let japanese;
-    in_japanese.subscribe(value => {
-        japanese = value;
-    });
+    import { saved_color_palettes } from '../../stores.js';
+    import { chatbot_input_message } from '../../stores.js';
+    import { design_brief } from '../../stores.js';
+    import { actions_panel_tab } from '../../stores.js';
+    import { generate_tab_page } from '../../stores.js';
+    import { in_japanese } from '../../stores.js';
+
+    import { translate } from '../../lib/i18n.js';
+    import { showToast } from '../../lib/toast.js';
+
+    let japanese = $derived($in_japanese);
 
     const dispatch = createEventDispatcher();
 
-    let inputMessage = '';
-    let use_internet=false;
-    
-    let messages = [];
+    let inputMessage = $state('');
+    let use_internet = $state(false);
+
+    let messages = $state([]);
     /*
     Let the message dictionary format be:
     {
@@ -38,25 +49,38 @@
     }
     */
 
-    let suggested_material_queries = [
+    let suggested_material_queries = $state([
         "What are some wood materials that are generally low-cost?",
         "What materials would you suggest that are eco-friendly and sustainable?",
         "What materials do you recommend for a modern-style interior bedroom?",
         "Can you suggest materials that are durable in a high-traffic commercial space?",
         "Can you suggest materials that can be locally sourced in [location]?"
-    ];
+    ]);
 
-    let expanded_suggested_questions=false;
+    let expanded_suggested_questions = $state(false);
     function expand() {
         expanded_suggested_questions = !expanded_suggested_questions;
     }
 
-    let use_design_brief = false;
+    let use_design_brief = $state(false);
 
+    let is_loading_response = $state(false);
+    let is_loading_material_queries = $state(false);
 
-    let is_loading_response=false;
-    let is_loading_material_queries=false;
-    let is_loading_color_queries=false;
+    // Shared fetch helper: surfaces the backend's LLM-unavailable response
+    // (503 with a JSON {error} body) as a toast, and rethrows so callers can
+    // stop their own loading state in a finally block.
+    async function fetchJson(url, options) {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            const err_json = await response.json().catch(() => ({}));
+            const message = err_json.error
+                || (japanese ? `リクエストに失敗しました（${response.status}）。` : `Request failed (${response.status}).`);
+            showToast(message, 'error');
+            throw new Error(message);
+        }
+        return response.json();
+    }
 
     async function suggest_materials() {
         if (inputMessage.trim() === '') {
@@ -69,47 +93,45 @@
             "type": "regular"
         });
         messages = messages;
-        is_loading_response=true;
+        is_loading_response = true;
 
         let context = null;
-        if(use_design_brief) {
+        if (use_design_brief) {
             context = get(design_brief);
         }
 
-        const response = await fetch("/suggest_materials", {
-        // const response = await fetch("/suggest_materials_education", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                "prompt": japanese ? await translate("JA","EN-US",inputMessage) : inputMessage,
-                "role":"user",
-                "use_internet": use_internet,
-                "context": context
-            }),
-        });
-        const json = await response.json();
-        
-        inputMessage = '';
+        try {
+            const json = await fetchJson("/suggest_materials", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    "prompt": japanese ? await translate("JA", "EN-US", inputMessage) : inputMessage,
+                    "role": "user",
+                    "use_internet": use_internet,
+                    "context": context
+                }),
+            });
 
-        let intro_text = json["intro_text"];
-        let role = json["role"];
-        let suggested_materials = json["suggested_materials"];
-        console.log(suggested_materials);
+            inputMessage = '';
 
-        // if(get(in_japanese)) {
-        //     intro_text = await translate("EN","JA",intro_text);
-        // }
+            let intro_text = json["intro_text"];
+            let role = json["role"];
+            let suggested_materials = json["suggested_materials"];
+            console.log(suggested_materials);
 
-        let message_type = "suggested_materials";
-        messages.push({
-            "message": intro_text,
-            "role": role,
-            "type": message_type,
-            "content": suggested_materials
-        });
-        is_loading_response=false;
-
-        messages = messages;
+            let message_type = "suggested_materials";
+            messages.push({
+                "message": intro_text,
+                "role": role,
+                "type": message_type,
+                "content": suggested_materials
+            });
+            messages = messages;
+        } catch (error) {
+            console.error(error);
+        } finally {
+            is_loading_response = false;
+        }
     }
 
     async function suggest_color_palettes() {
@@ -124,41 +146,45 @@
             "type": "regular"
         });
         messages = messages;
-        is_loading_response=true;
-        const response = await fetch("/suggest_colors", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                "prompt": inputMessage,
-                "role":"user",
-                "use_internet": use_internet
-            }),
-        });
-        const json = await response.json();
-        
-        inputMessage = '';
+        is_loading_response = true;
 
-        let intro_text = json["intro_text"];
-        let role = json["role"];
-        let suggested_color_palettes = json["suggested_color_palettes"];
+        try {
+            const json = await fetchJson("/suggest_colors", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    "prompt": inputMessage,
+                    "role": "user",
+                    "use_internet": use_internet
+                }),
+            });
 
-        if(japanese) {
-            // intro_text = await translate("EN","JA",intro_text);
-            for(let i=0;i<suggested_color_palettes.length;i++) {
-                suggested_color_palettes[i]["name"] = await translate("EN","JA",suggested_color_palettes[i]["name"]);
-                suggested_color_palettes[i]["description"] = await translate("EN","JA",suggested_color_palettes[i]["description"]);
+            inputMessage = '';
+
+            let intro_text = json["intro_text"];
+            let role = json["role"];
+            let suggested_color_palettes = json["suggested_color_palettes"];
+
+            if (japanese) {
+                for (let i = 0; i < suggested_color_palettes.length; i++) {
+                    suggested_color_palettes[i]["name"] = await translate("EN", "JA", suggested_color_palettes[i]["name"]);
+                    suggested_color_palettes[i]["description"] = await translate("EN", "JA", suggested_color_palettes[i]["description"]);
+                }
             }
-        }
 
-        let message_type = "suggested_color_palettes";
-        messages.push({
-            "message": intro_text,
-            "role": role,
-            "type": message_type,
-            "content": suggested_color_palettes
-        });
-        messages = messages;
-        is_loading_response=false;
+            let message_type = "suggested_color_palettes";
+            messages.push({
+                "message": intro_text,
+                "role": role,
+                "type": message_type,
+                "content": suggested_color_palettes
+            });
+            messages = messages;
+        } catch (error) {
+            console.error(error);
+        } finally {
+            is_loading_response = false;
+        }
     }
 
     function saveColorPalette(color_palette) {
@@ -167,11 +193,10 @@
             palette: color_palette["codes"]
         }
         saved_color_palettes.update(lst => lst.concat(dict));
-        showToast(japanese ? "カラーパレットが保存されました！" :"Color palette saved!", 'success');
+        showToast(japanese ? "カラーパレットが保存されました！" : "Color palette saved!", 'success');
     }
 
     async function query() {
-
         if (inputMessage.trim() === '') {
             return;
         }
@@ -182,331 +207,404 @@
         });
         messages = messages;
 
-        const response = await fetch("/query", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                "prompt": inputMessage,
-                "role":"user",
-            }),
-        });
-        const json = await response.json();
+        try {
+            const json = await fetchJson("/query", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    "prompt": inputMessage,
+                    "role": "user",
+                }),
+            });
 
-        let message= json["response"];
-        let role = json["role"];
+            let message = json["response"];
+            let role = json["role"];
 
-        messages.push({
-            "message": message,
-            "role": role
-        });
-        messages = messages;
+            messages.push({
+                "message": message,
+                "role": role
+            });
+            messages = messages;
 
-        // console.log(messages);
-        inputMessage = '';
-
+            inputMessage = '';
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     async function init_query() {
-        is_loading_response=true;
-        const response = await fetch('./init_query');
-        const json = await response.json();
-        
+        is_loading_response = true;
+        try {
+            const json = await fetchJson('./init_query');
 
-        let message = json["response"];
-        let role = json["role"];
+            let message = json["response"];
+            let role = json["role"];
 
-        if(japanese) {
-            message = await translate("EN","JA",message);
+            if (japanese) {
+                message = await translate("EN", "JA", message);
+            }
+
+            messages.push({
+                "message": message,
+                "role": role
+            });
+            messages = messages;
+        } catch (error) {
+            console.error(error);
+        } finally {
+            is_loading_response = false;
         }
-        is_loading_response=false;
-        // message = "\""+ message +"\"";
-
-        messages.push({
-            "message": message,
-            "role": role
-        });
-        messages = messages;
-        // console.log(messages);
     }
 
-    function handleInput(event) {
-        inputMessage = event.target.innerText;
-        const textarea = document.getElementById("textarea");
-        textarea.value=event.target.innerText;
-    }
-    
     async function brainstorm_material_queries() {
-        suggested_material_queries=[];
-        is_loading_material_queries=true;
-        const response = await fetch('./brainstorm_material_queries');
-        const json = await response.json(); 
-        is_loading_material_queries=false;
-        suggested_material_queries = json['prompts']
-        // console.log(suggested_material_queries)
+        suggested_material_queries = [];
+        is_loading_material_queries = true;
+        try {
+            const json = await fetchJson('./brainstorm_material_queries');
+            suggested_material_queries = json['prompts'];
+        } catch (error) {
+            console.error(error);
+        } finally {
+            is_loading_material_queries = false;
+        }
     }
 
     function generate(material_name) {
         actions_panel_tab.set("generate");
         generate_tab_page.set(0);
-        dispatch('proceedToGenerate',material_name)
+        dispatch('proceedToGenerate', material_name);
     }
 
-    onMount(async () => { 
-        await init_query(); //COMMENT IF YOU DON'T WANT TO USE THE CHATBOT
-        // If the chatbot_input_message, a global store, is updated, update the inputMessage variable and the text in the textbox message area.
-        chatbot_input_message.subscribe(value => {
-            inputMessage = value;
-            const textarea = document.getElementById("textarea");
-            textarea.innerHTML='';
-            textarea.value=inputMessage;
-        });
+    $effect(() => {
+        // If the chatbot_input_message global store is updated (e.g. by
+        // another module composing a query for the chatbot), mirror it into
+        // the composer's input.
+        inputMessage = $chatbot_input_message;
+    });
+
+    onMount(async () => {
+        await init_query(); // COMMENT IF YOU DON'T WANT TO USE THE CHATBOT
     });
 
 </script>
 
-<div class="messages">
-    {#each messages as message}
-        <div class="message">
-            <div class="{message.role}">
-                <strong>
-                    {#if japanese} 
-                        {#if message.role == "user"}
-                            あなた: 
-                        {:else if message.role=="assistant"}
-                            アシスタント: 
+<div class="chatbot">
+    <div class="messages">
+        {#each messages as message}
+            <div class="message-row {message.role}">
+                <div class="bubble {message.role}">
+                    <div class="bubble-role">
+                        {#if japanese}
+                            {#if message.role == "user"}
+                                あなた
+                            {:else if message.role == "assistant"}
+                                アシスタント
+                            {/if}
+                        {:else}
+                            {message.role}
                         {/if}
-                    {:else}
-                        {message.role}: 
-                    {/if}
-                    
-                </strong>
-                <SvelteMarkdown source={message.message} />
-                {#if message.type == "suggested_materials"}
-                    {#each message.content as m, i}
-                            <MaterialCard material_path={m["filepath"]} material_name={m["name"]} material_info={m["reason"]} index={i}/>
-                            <button 
-                            on:click|preventDefault={()=> generate(m["name"])}
-                            style="align-items: center; justify-content: center; cursor: pointer;"
-                            >
-                                {japanese ? "もっと生み出せ！" : "Generate more!"}"
-                                <img src="./logos/magic-wand-svgrepo-com.svg" style="width:25px; height:25px; align-items: center; justify-content: center;" alt="Generate">
-                            </button>
-                    {/each}
-                {:else if message.type=="suggested_color_palettes"}
-                    <ol>
-                        {#each message.content as m,i}
-                            <li> 
-                                <div class="color-card">
+                    </div>
+                    <div class="markdown-content">
+                        <SvelteMarkdown source={message.message} />
+                    </div>
+                    {#if message.type == "suggested_materials"}
+                        <div class="material-suggestions">
+                            {#each message.content as m, i}
+                                <MaterialCard material_path={m["filepath"]} material_name={m["name"]} material_info={m["reason"]} index={i} />
+                                <Button variant="ghost" size="sm" onclick={() => generate(m["name"])}>
+                                    <WandSparkles size={14} strokeWidth={1.75} />
+                                    {japanese ? "もっと生み出せ！" : "Generate more!"}
+                                </Button>
+                            {/each}
+                        </div>
+                    {:else if message.type == "suggested_color_palettes"}
+                        <div class="color-suggestions">
+                            {#each message.content as m}
+                                <div class="color-suggestion-card">
                                     <ColorPalette name={m["name"]} color_codes={m["codes"]} />
+                                    <Button variant="ghost" size="sm" onclick={() => saveColorPalette(m)}>
+                                        <Bookmark size={14} strokeWidth={1.75} />
+                                        {japanese ? "パレットを保存する" : "Save Palette"}
+                                    </Button>
+                                    <div class="markdown-content">
+                                        <SvelteMarkdown source={m["description"]} />
+                                    </div>
                                 </div>
-                                <button on:click={()=>saveColorPalette(m)}> 
-                                    {japanese ? "パレットを保存する" : "Save Palette"} 
-                                </button>
-                                <SvelteMarkdown source={m["description"]} />
-                            </li>
-                        {/each}
-                    </ol>
-                {/if}
+                            {/each}
+                        </div>
+                    {/if}
+                </div>
             </div>
-        </div>
-    {/each}
-    
-    {#if is_loading_response}
-        <div class="assistant" style="position:relative; min-height: 20%;">
-            <strong>
-                {japanese ? "アシスタント:" : "assistant:"}
-            </strong> 
-            <div class="images-placeholder" style="position:absolute; top:0; left:0; z-index:2; width:100%; height:100%;">
-                {japanese ? "応答を読み込んでいます。しばらくお待ちください。" : "Loading response, please wait. This may take a while."}"
-                <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
+        {/each}
+
+        {#if is_loading_response}
+            <div class="message-row assistant">
+                <div class="bubble assistant loading">
+                    <Spinner size={18} />
+                    <span>
+                        {japanese ? "応答を読み込んでいます。しばらくお待ちください。" : "Loading response, please wait. This may take a while."}
+                    </span>
+                </div>
             </div>
-        </div>
-    {/if}
-
-    <div style="height: 200px; width: 100%; background-color:white; color:white;"> 
-        <p>Lorem ipsum dolor sit amet. Eos libero voluptatem sit excepturi rerum vel porro odio est eligendi voluptatibus. At mollitia quam ea dolorum quae aut nemo ipsum est asperiores quibusdam est voluptatem accusamus. Ut eligendi porro quo autem illum non voluptatem rerum et nobis nisi est molestiae facilis quo magni perferendis.
-        Ea Quis molestiae cum minus consequatur At velit internos et omnis neque qui nihil consequatur et acc</p>
-    </div> <!-- Filler div  -->
-</div>
-
-
-
-<div class="message-input">
-    <textarea style="width:100%;height:100%;" bind:value="{inputMessage}" on:keydown="{e => e.key === 'Enter' && suggest_materials()}" placeholder={japanese ? "ここに資料やカラーパレットに関するお問い合わせを入力してください。" : "Type your queries for materials or color palettes here.."} id="textarea"></textarea>
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;align-content:center;">
-        <label>
-            <input type="checkbox" bind:checked={use_internet} >
-            {japanese ? "ウェブ検索" : "Web search"}
-        </label>
-        <label>
-            <input type="checkbox" bind:checked={use_design_brief} >
-            {japanese ? "デザイン・ブリーフ": "Design brief"}
-        </label>
+        {/if}
     </div>
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;align-content:center;">
-        <button on:click|preventDefault={()=>suggest_materials()}>
-            {japanese? "素材を提案する": "Suggest Materials"}
-        </button>    
-        <button on:click|preventDefault={()=>suggest_color_palettes()}>
-            {japanese ? "色を提案する": "Suggest Colors"}
-        </button>   
+
+    <div class="composer">
+        <div class="starter-chips">
+            <div class="chips-row">
+                {#each (expanded_suggested_questions ? suggested_material_queries : suggested_material_queries.slice(0, 2)) as q}
+                    <button type="button" class="chip" onclick={() => (inputMessage = q)}>{q}</button>
+                {/each}
+            </div>
+            <div class="chips-actions">
+                {#if suggested_material_queries.length > 2}
+                    <IconButton
+                        size="sm"
+                        label={expanded_suggested_questions ? (japanese ? "折りたたむ" : "Show fewer") : (japanese ? "もっと見る" : "Show more")}
+                        onclick={expand}
+                    >
+                        {#if expanded_suggested_questions}
+                            <ChevronUp size={14} strokeWidth={1.75} />
+                        {:else}
+                            <ChevronDown size={14} strokeWidth={1.75} />
+                        {/if}
+                    </IconButton>
+                {/if}
+                <IconButton
+                    size="sm"
+                    label={japanese ? "新しい質問案を生成する" : "Brainstorm new prompts"}
+                    onclick={brainstorm_material_queries}
+                    disabled={is_loading_material_queries}
+                >
+                    {#if is_loading_material_queries}
+                        <Spinner size={14} />
+                    {:else}
+                        <RefreshCw size={14} strokeWidth={1.75} />
+                    {/if}
+                </IconButton>
+            </div>
+        </div>
+
+        <div class="composer-input-row">
+            <TextInput
+                bind:value={inputMessage}
+                placeholder={japanese ? "ここに資料やカラーパレットに関するお問い合わせを入力してください。" : "Type your queries for materials or color palettes here..."}
+                onEnter={() => suggest_materials()}
+            />
+            <IconButton label={japanese ? "送信" : "Send"} onclick={() => suggest_materials()}>
+                <Send size={16} strokeWidth={1.75} />
+            </IconButton>
+        </div>
+
+        <div class="composer-toolbar">
+            <div class="toggles">
+                <Switch bind:checked={use_internet} label={japanese ? "ウェブ検索" : "Web search"} />
+                <Switch bind:checked={use_design_brief} label={japanese ? "デザイン・ブリーフ" : "Design brief"} />
+            </div>
+            <Button variant="ghost" size="sm" onclick={() => suggest_color_palettes()}>
+                <Palette size={14} strokeWidth={1.75} />
+                {japanese ? "色を提案する" : "Suggest Colors"}
+            </Button>
+        </div>
     </div>
 </div>
 
 <style>
-    .floating-div {
-        padding: 10px;
-        position: absolute;
-        display:flex; 
-        flex-direction: column;
-        top: -160px;
-        right: 0;
-        left: 0;
-        bottom:0;
-        margin: auto;
-        width: 90%;
-        height: 60px;
-        background-color: white;
-        border: 1px solid #E0E0E0;
-        border-radius: 20px;
-        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-        z-index: 1;
-        gap: 5px;
-    }
-    .message-input {
-        position: relative;
+    .chatbot {
         display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
         width: 100%;
-        height: 18%;
+        gap: var(--sp-2);
     }
+
     .messages {
-        background-color: white;
+        flex: 1 1 auto;
+        min-height: 0;
         display: flex;
         flex-direction: column;
-        height: 82%;
+        gap: var(--sp-3);
+        overflow-y: auto;
+        padding: var(--sp-2) var(--sp-1);
+    }
+
+    .message-row {
+        display: flex;
         width: 100%;
-        overflow-y: scroll;
-        padding: 10px;
     }
-    .message{
-        font-size: 1.5rem;
-    }
-    .user {
-		background-color: white;
-		
-	}
-	.assistant {
-		background-color: lightgray;
-        display:flex; 
-        flex-direction: column;
-	}
 
-    .suggested_materials {
-        background-color: lightgray;
+    .message-row.user {
+        justify-content: flex-end;
+    }
+
+    .message-row.assistant {
+        justify-content: flex-start;
+    }
+
+    .bubble {
+        max-width: 88%;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        gap: 5px;
+        gap: var(--sp-1);
+        padding: var(--sp-2) var(--sp-3);
+        border-radius: var(--radius-lg);
+        font-size: var(--text-base);
+        line-height: 1.55;
+        color: var(--text-primary);
     }
 
-    .color-card {
-        border: 1px solid black;
-        padding: 5px;
-        height: 180%;
-        width: 100%;
-        margin-bottom: 5px;
+    .bubble.user {
+        background: var(--accent-muted);
     }
 
-    .images-placeholder {
-        width: 100%;
-        height: 100%;
-        /* border: 1px dashed black; */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
+    .bubble.assistant {
+        background: var(--bg-elevated);
     }
 
-    .floating-div .header {
-        display: flex;
+    .bubble.loading {
         flex-direction: row;
-        justify-content: space-between;
         align-items: center;
-        width: 100%;
-        /* height: 10%; */
+        gap: var(--sp-2);
+        color: var(--text-muted);
     }
 
-    .floating-div .body {
+    .bubble-role {
+        font-size: var(--text-xs);
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .markdown-content :global(p) {
+        margin: 0 0 var(--sp-2) 0;
+    }
+
+    .markdown-content :global(p:last-child) {
+        margin-bottom: 0;
+    }
+
+    .markdown-content :global(ul),
+    .markdown-content :global(ol) {
+        margin: 0 0 var(--sp-2) 0;
+        padding-left: var(--sp-4);
+    }
+
+    .markdown-content :global(li) {
+        margin-bottom: var(--sp-1);
+    }
+
+    .markdown-content :global(code) {
+        background: var(--bg-inset);
+        padding: 1px 4px;
+        border-radius: var(--radius-sm);
+        font-size: var(--text-sm);
+    }
+
+    .markdown-content :global(pre) {
+        background: var(--bg-inset);
+        padding: var(--sp-2);
+        border-radius: var(--radius-md);
+        overflow-x: auto;
+    }
+
+    .markdown-content :global(pre code) {
+        background: none;
+        padding: 0;
+    }
+
+    .markdown-content :global(a) {
+        color: var(--accent);
+    }
+
+    .markdown-content :global(strong) {
+        font-weight: 600;
+    }
+
+    .material-suggestions,
+    .color-suggestions {
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        height: 100%;
-        overflow-y: scroll;
+        gap: var(--sp-2);
     }
 
-    .body li:hover {
-        color: blue;
-    }
-
-    .floating-div .footer {
+    .color-suggestion-card {
         display: flex;
-        flex-direction: row;
-        justify-content: center;
+        flex-direction: column;
+        gap: var(--sp-1);
+        padding: var(--sp-2);
+        background: var(--bg-inset);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+    }
+
+    .composer {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-2);
+        padding-top: var(--sp-2);
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .starter-chips {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--sp-2);
+    }
+
+    .chips-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--sp-1);
+    }
+
+    .chips-actions {
+        display: flex;
         align-items: center;
+        gap: var(--sp-1);
+        flex-shrink: 0;
     }
 
-    .floating-div.expanded {
-        /* overflow-y: scroll; */
-        top: -360px;
-        height: 300%;
+    .chip {
+        font-family: var(--font-sans);
+        font-size: var(--text-xs);
+        color: var(--text-secondary);
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-full);
+        padding: var(--sp-1) var(--sp-2);
+        cursor: pointer;
+        transition:
+            background 120ms ease,
+            border-color 120ms ease,
+            color 120ms ease;
     }
 
+    .chip:hover {
+        background: var(--bg-hover);
+        border-color: var(--border-strong);
+        color: var(--text-primary);
+    }
+
+    .composer-input-row {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-2);
+    }
+
+    .composer-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--sp-2);
+    }
+
+    .toggles {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-4);
+    }
 </style>
-
-
-
-<!-- DUMP -->
-    <!-- <div class="floating-div" class:expanded={expanded_suggested_questions===true}>
-        <div class=header> 
-          
-            <strong on:click={() => expand()} style="cursor:pointer;"> Suggested Questions </strong> 
-            {#if expanded_suggested_questions===true}
-              
-                <img on:click={() => expand()}  src="./logos/down-arrow-svgrepo-com.svg" style="width:25px; height: 25px;cursor:pointer;" alt="Collapse">
-            {:else}
-              
-                <img on:click={() => expand()} src="./logos/up-arrow-svgrepo-com.svg" style="width:25px; height: 25px;cursor:pointer;" alt="Expand">
-            {/if}
-        </div>
-        {#if expanded_suggested_questions===false}
-                {suggested_material_queries[0].slice(0, 20)}... + {suggested_material_queries.length-1} more
-        {:else}
-            <div class="body">
-                <ul>
-                    {#each suggested_material_queries as query}
-                        svelte-ignore a11y-click-events-have-key-events 
-                        <li on:click={handleInput} style="cursor:pointer;"> {query} </li>
-                    {/each}
-                </ul>
-                {#if is_loading_material_queries}
-                    <div style="position:relative; min-height: 70%;">
-                        <div class="images-placeholder" style="position:absolute; top:0; left:0; z-index:2; width:100%; height:100%;">
-                            Brainstorming material queries...
-                            <Circle size="60" color="#FF3E00" unit="px" duration="1s" />
-                        </div>
-                    </div>
-                {/if}
-            </div>
-            <div class="footer">
-                <button on:click|preventDefault={()=>brainstorm_material_queries()}> Brainstorm questions! </button>
-            </div>
-        {/if}
-    </div> -->

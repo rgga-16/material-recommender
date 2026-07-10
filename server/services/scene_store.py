@@ -40,11 +40,32 @@ def _copy_image(src, dest_dir):
     return dest
 
 
+def get_transforms():
+    """Per-object placement transforms for the current scene (may be {})."""
+    path = os.path.join(SERVER_IMDIR, "renderings", "current", "transforms.json")
+    if os.path.isfile(path):
+        with open(path) as f:
+            return json.load(f)
+    return {}
+
+
+def set_transforms(transforms):
+    path = os.path.join(SERVER_IMDIR, "renderings", "current", "transforms.json")
+    with open(path, "w") as f:
+        json.dump(transforms, f, indent=4)
+
+
 def apply_to_current_rendering(renderpath, texture_parts_path):
     """Copy a scene's textures/models into the served current-scene dir."""
     curr_render_savedir = os.path.join(SERVER_IMDIR, "renderings", "current")
     curr_render_loaddir = os.path.join(CLIENT_IMDIR, "renderings", "current")
     makedir(curr_render_savedir)
+
+    src_transforms = os.path.join(os.path.dirname(texture_parts_path), "transforms.json")
+    if os.path.isfile(src_transforms) and \
+            os.path.abspath(src_transforms) != os.path.abspath(
+                os.path.join(curr_render_savedir, "transforms.json")):
+        shutil.copy(src_transforms, os.path.join(curr_render_savedir, "transforms.json"))
 
     curr_render_path = os.path.join(curr_render_savedir, "rendering.png")
     curr_textureparts_path = os.path.join(curr_render_savedir, "object_part_material.json")
@@ -75,13 +96,22 @@ def apply_to_current_rendering(renderpath, texture_parts_path):
     return curr_render_path, curr_textureparts_path
 
 
-def add_to_saved_renderings(renderpath, texture_parts_path, static_imdir):
-    """Snapshot a scene (textures, maps, models, manifest) into saved/<id>/."""
+def add_to_saved_renderings(renderpath, texture_parts_path, static_imdir,
+                            thumbnail_png=None):
+    """Snapshot a scene (textures, maps, models, manifest) into saved/<id>/.
+
+    thumbnail_png: optional raw PNG bytes (from the Three.js canvas) used as
+    the scene thumbnail instead of copying renderpath.
+    """
     render_id = _state["latest_render_id"]
     save_render_dir = os.path.join(SERVER_IMDIR, "renderings", "saved", str(render_id))
     save_render_path = os.path.join(save_render_dir, "rendering.png")
     save_textureparts_path = os.path.join(save_render_dir, "object_part_material.json")
     makedir(save_render_dir)
+
+    src_transforms = os.path.join(os.path.dirname(texture_parts_path), "transforms.json")
+    if os.path.isfile(src_transforms):
+        shutil.copy(src_transforms, os.path.join(save_render_dir, "transforms.json"))
 
     texture_parts = json.load(open(texture_parts_path))
     for obj in texture_parts:
@@ -108,7 +138,10 @@ def add_to_saved_renderings(renderpath, texture_parts_path, static_imdir):
 
     with open(save_textureparts_path, "w") as f:
         json.dump(texture_parts, f, indent=4)
-    if renderpath and os.path.isfile(renderpath):
+    if thumbnail_png:
+        with open(save_render_path, "wb") as f:
+            f.write(thumbnail_png)
+    elif renderpath and os.path.isfile(renderpath):
         shutil.copy(renderpath, save_render_path)
     _state["latest_render_id"] += 1
     return save_render_path, save_textureparts_path
@@ -139,7 +172,36 @@ def get_current_rendering():
         "rendering_path": os.path.join(curr_render_savedir, "rendering.png"),
         "texture_parts": texture_parts,
         "textureparts_path": current_textureparts_path,
+        "transforms": get_transforms(),
     }
+
+
+def default_material_paths():
+    """Absolute paths of the neutral placeholder texture set."""
+    curr = os.path.join(SERVER_IMDIR, "renderings", "current")
+    return {
+        "mat_image_texture": os.path.join(curr, "no_material.png"),
+        "mat_normal_texture": os.path.join(curr, "no_material_normal.png"),
+        "mat_height_texture": os.path.join(curr, "no_material_height.png"),
+    }
+
+
+def update_manifest(texture_parts):
+    """Persist a client-edited manifest, filling texture defaults for new
+    (e.g. freshly uploaded) parts."""
+    defaults = default_material_paths()
+    for obj in texture_parts:
+        for part in texture_parts[obj]:
+            entry = texture_parts[obj][part]
+            for key, value in defaults.items():
+                if not entry.get(key):
+                    entry[key] = value
+    curr_render_savedir = os.path.join(SERVER_IMDIR, "renderings", "current")
+    path = os.path.join(curr_render_savedir, "object_part_material.json")
+    with open(path, "w") as f:
+        json.dump(texture_parts, f, indent=4)
+    set_current_texture_parts(texture_parts)
+    return get_current_rendering()
 
 
 def init(static_imdir):

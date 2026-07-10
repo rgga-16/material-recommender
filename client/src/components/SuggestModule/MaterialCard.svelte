@@ -1,28 +1,19 @@
 <script>
     import DynamicImage from "../DynamicImage.svelte";
-    import SvelteMarkdown from 'svelte-markdown';
-    import {in_japanese} from '../../stores.js';
-    import {translate} from '../../main.js';
-    export let material_path;
-    export let material_name;
-    export let material_info; 
-    export let index;
+    import { in_japanese } from '../../stores.js';
+    import { translate } from '../../lib/i18n.js';
 
-    let is_selected=false;
+    let { material_path, material_name, material_info, index } = $props();
 
-    function copyText(text) {
-        navigator.clipboard.writeText(text);
-    }
+    let display_name = $state(material_name);
+    let display_info = $state(material_info);
 
-    let display_name = Object.assign("",material_name);
-    let display_info = Object.assign("",material_info);
-
-    in_japanese.subscribe(value => {
-        if (value) {
-            translate("EN","JA",material_name).then((result) => {
+    $effect(() => {
+        if ($in_japanese) {
+            translate("EN", "JA", material_name).then((result) => {
                 display_name = result;
             });
-            translate("EN","JA",material_info).then((result) => {
+            translate("EN", "JA", material_info).then((result) => {
                 display_info = result;
             });
         } else {
@@ -34,68 +25,55 @@
 </script>
 
 <div class="card">
-    <h3> {display_name} </h3>
-    <div class="card-body">
-        <div class="image-container">
-            <DynamicImage imagepath={material_path} alt={material_name} is_draggable={true} />
-        </div>
-        <div class="text-container">
-          <!-- <SvelteMarkdown source={material_info} /> -->
-          <p>{display_info}</p>
-        </div>
+    <div class="card-image">
+        <DynamicImage imagepath={material_path} alt={material_name} is_draggable={true} size="72px" />
     </div>
-    <!-- <button on:click={copyText}>Copy to clipboard</button> -->
+    <div class="card-body">
+        <h4 class="card-title">{display_name}</h4>
+        <p class="card-info">{display_info}</p>
+    </div>
 </div>
 
 <style>
     .card {
-      display: flex;
-      flex-direction: column;
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      padding: 20px;
-      background-color: inherit;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: var(--sp-2);
+        padding: var(--sp-2);
+        background: var(--bg-inset);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        transition: border-color 120ms ease;
     }
-  
-    .card h3 {
-      margin: 0 0 10px 0;
-      font-size: 1.5rem;
+
+    .card:hover {
+        border-color: var(--border-strong);
     }
-  
+
+    .card-image {
+        flex-shrink: 0;
+    }
+
     .card-body {
-      display: flex;
-      flex-wrap: wrap;
-      flex-direction: column;
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-1);
     }
-  
-    .image-container {
-      flex: 1 1 40%;
+
+    .card-title {
+        margin: 0;
+        font-size: var(--text-base);
+        font-weight: 600;
+        color: var(--text-primary);
     }
-  
-    .image-container img {
-      max-width: 100%;
-      height: auto;
-      display: block;
-      margin: 0 auto;
+
+    .card-info {
+        margin: 0;
+        font-size: var(--text-sm);
+        line-height: 1.5;
+        color: var(--text-secondary);
     }
-  
-    .text-container {
-      flex: 1 1 60%;
-      padding: 0 20px;
-    }
-  
-    button {
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      padding: 10px 20px;
-      margin-top: 20px;
-      cursor: pointer;
-    }
-  
-    button:hover {
-      background-color: #0056b3;
-    }
-  </style>
+</style>

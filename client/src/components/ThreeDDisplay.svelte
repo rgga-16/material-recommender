@@ -2,6 +2,7 @@
 
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { TransformControls } from 'three/addons/controls/TransformControls.js';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
     import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
@@ -13,13 +14,13 @@
 	import {curr_textureparts_path} from '../stores.js';
     import {action_history} from '../stores.js';
     import {in_japanese} from '../stores.js';
-    import {addToHistory} from '../main.js';
-    import {getImage} from '../main.js';
-    import {degreeToRadians} from '../main.js';
-    import {showToast} from '../main.js';
+    import {addToHistory} from '../lib/history.js';
+    import {getImage, degreeToRadians} from '../lib/utils.js';
+    import {showToast} from '../lib/toast.js';
 
     import {isDraggingImage} from '../stores.js';
     import {generated_texture_name} from '../stores.js';
+    import {object_transforms} from '../stores.js';
 
     // import {selected_part_name} from '../stores.js'; 
     // import {selected_obj_name} from '../stores.js';
@@ -34,9 +35,8 @@
     import {displayWidth} from '../stores.js';
     import {displayHeight} from '../stores.js';
 
-    import { onMount } from 'svelte';
-    
-    export let information_panel;
+    import { onMount, onDestroy } from 'svelte';
+    import { viewport, inspector } from '../lib/registry.js';
 
     export let current_texture_parts;
 
@@ -46,9 +46,7 @@
     });
 
     let width;
-    let height; 
-    const widthOffset = 35;
-    const heightOffset = 105;
+    let height;
 
     /**
      * model3d_infos = [
@@ -155,13 +153,29 @@
         }
     }
 
+    // Declared before the display-size subscriptions below, whose callbacks
+    // run synchronously on subscribe and reference renderer/camera.
+    let camera, scene, renderer, controls, raycaster;
+    let transformControls = null;
+
+    // The App shell feeds these stores from a ResizeObserver on the viewport
+    // cell; the canvas always fills that cell exactly.
     displayWidth.subscribe(value => {
-        width = value - widthOffset;
+        width = value;
+        resizeRenderer();
     });
 
     displayHeight.subscribe(value => {
-        height = value - heightOffset;
+        height = value;
+        resizeRenderer();
     });
+
+    function resizeRenderer() {
+        if (!renderer || !camera || !width || !height) return;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+    }
 
     selected_objs_and_parts.subscribe(value => {
         // console.log(get(objects_3d));
@@ -178,8 +192,49 @@
     });
 
 
-    let camera, scene, renderer, controls, raycaster;
+    let moveMode = false;
     const pointer = new THREE.Vector2();
+
+    /** Toggle scene-composition mode: click an object to attach move/rotate/
+     *  scale gizmos ('g'/'r'/'s' keys switch the gizmo while active). */
+    export function setMoveMode(on) {
+        moveMode = !!on;
+        if (!moveMode && transformControls) {
+            transformControls.detach();
+        }
+        return moveMode;
+    }
+
+    function saveObjectTransform() {
+        const obj = transformControls && transformControls.object;
+        if (!obj) return;
+        const transforms = { ...(get(object_transforms) || {}) };
+        transforms[obj.name] = {
+            position: obj.position.toArray(),
+            rotation: [obj.rotation.x, obj.rotation.y, obj.rotation.z],
+            scale: obj.scale.toArray(),
+        };
+        object_transforms.set(transforms);
+        fetch("/update_transforms", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({"transforms": transforms}),
+        }).catch((error) => console.error("Failed to persist transforms", error));
+    }
+
+    /** Render one high-resolution frame offscreen and return it as a PNG
+     *  dataURL. Replaces the removed Blender rendering path. */
+    export function captureScreenshot(scale=2) {
+        const gizmoWasVisible = transformControls ? transformControls.visible : false;
+        if (transformControls) transformControls.visible = false;
+        renderer.setSize(width * scale, height * scale, false);
+        renderer.render(scene, camera);
+        const dataURL = renderer.domElement.toDataURL("image/png");
+        renderer.setSize(width, height, false);
+        if (transformControls) transformControls.visible = gizmoWasVisible;
+        renderer.render(scene, camera);
+        return dataURL;
+    }
 
     const gltfLoader = new GLTFLoader();
     // gltfLoader.setMeshoptDecoder(THREE.MeshoptDecoder); // Set meshoptDecoder to THREE.MeshoptDecoder
@@ -218,6 +273,7 @@
                     "name":part,
                     "parent":obj,
                     "glb_url": current_texture_parts[obj][part]["model"],
+                    "node": current_texture_parts[obj][part]["node"] || null,
                     "is_selectable": current_texture_parts[obj][part]["is_selectable"]
                 })
                 model3d_infos=model3d_infos
@@ -226,9 +282,9 @@
         objects_3d.set(model3d_infos);
     }
 
-    let HIGHLIGHTED; 
+    let HIGHLIGHTED;
     let SELECTED_INFOS = [];
-    $: SELECTEDS = SELECTED_INFOS.map(item => item.model.children[0]);
+    $: SELECTEDS = SELECTED_INFOS.map(item => item.mesh);
 
     let mouseDown=false;
     let shiftPressed=false;
@@ -251,14 +307,16 @@
         }
 
         for (let i = 0; i < model3d_infos.length; i++) {
-            model3d_infos[i].model.children[0].material.emissive.setHex(0x000000);
+            if (model3d_infos[i].mesh) {
+                model3d_infos[i].mesh.material.emissive.setHex(0x000000);
+            }
         }
     }
 
     function removeHighlightsFromUnselecteds() {
         for (let i = 0; i < model3d_infos.length; i++) {
-            if(!SELECTED_INFOS.includes(model3d_infos[i])) {
-                model3d_infos[i].model.children[0].material.emissive.setHex(0x000000);
+            if(!SELECTED_INFOS.includes(model3d_infos[i]) && model3d_infos[i].mesh) {
+                model3d_infos[i].mesh.material.emissive.setHex(0x000000);
             }
         }
     }
@@ -288,6 +346,21 @@
     function onPointerClick(event) {
         event.preventDefault();
         if(!isMouseOver3DScene(event)) {
+            return;
+        }
+        if (moveMode) {
+            const pointed = getPointedObject();
+            if (pointed) {
+                let root = pointed;
+                while (root.parent && !root.is_object_group) {
+                    root = root.parent;
+                }
+                if (root.is_object_group && transformControls) {
+                    transformControls.attach(root);
+                }
+            } else if (transformControls) {
+                transformControls.detach();
+            }
             return;
         }
         raycaster.setFromCamera(pointer, camera);
@@ -340,8 +413,8 @@
                                 parent_name = parent_name.replace(/\d+/g, '');
 
                                 if (object_name === clicked_object_name && parent_name === clicked_object_parent) {
-                                    if (!SELECTEDS.includes(model3d_infos[i].model.children[0])) {
-                                        SELECTEDS.push(model3d_infos[i].model.children[0]);
+                                    if (model3d_infos[i].mesh && !SELECTEDS.includes(model3d_infos[i].mesh)) {
+                                        SELECTEDS.push(model3d_infos[i].mesh);
                                         SELECTED_INFOS.push(model3d_infos[i]);
                                         SELECTEDS=SELECTEDS;    
                                         SELECTED_INFOS=SELECTED_INFOS;
@@ -368,8 +441,8 @@
                                 let parent_name = model3d_infos[i].parent;
 
                                 if (parent_name === clicked_object_parent) {
-                                    if (!SELECTEDS.includes(model3d_infos[i].model.children[0])) {
-                                        SELECTEDS.push(model3d_infos[i].model.children[0]);
+                                    if (model3d_infos[i].mesh && !SELECTEDS.includes(model3d_infos[i].mesh)) {
+                                        SELECTEDS.push(model3d_infos[i].mesh);
                                         SELECTED_INFOS.push(model3d_infos[i]);
                                         SELECTEDS=SELECTEDS;    
                                         SELECTED_INFOS=SELECTED_INFOS;
@@ -433,8 +506,8 @@
                             parent_name = parent_name.replace(/\d+/g, '');
 
                             if (object_name.includes(clicked_object_name) && parent_name.includes(clicked_object_parent)) {
-                                if (!SELECTEDS.includes(model3d_infos[i].model.children[0])) {
-                                    SELECTEDS.push(model3d_infos[i].model.children[0]);
+                                if (model3d_infos[i].mesh && !SELECTEDS.includes(model3d_infos[i].mesh)) {
+                                    SELECTEDS.push(model3d_infos[i].mesh);
                                     SELECTED_INFOS.push(model3d_infos[i]);
                                     SELECTEDS=SELECTEDS;    
                                     SELECTED_INFOS=SELECTED_INFOS;
@@ -450,8 +523,8 @@
                         for (let i = 0; i < model3d_infos.length; i++) {
                             let parent_name = model3d_infos[i].parent;
                             if (parent_name === clicked_object_parent) {
-                                if (!SELECTEDS.includes(model3d_infos[i].model.children[0])) {
-                                    SELECTEDS.push(model3d_infos[i].model.children[0]);
+                                if (model3d_infos[i].mesh && !SELECTEDS.includes(model3d_infos[i].mesh)) {
+                                    SELECTEDS.push(model3d_infos[i].mesh);
                                     SELECTED_INFOS.push(model3d_infos[i]);
                                     SELECTEDS=SELECTEDS;    
                                     SELECTED_INFOS=SELECTED_INFOS;
@@ -478,7 +551,7 @@
             }
         } else {// If the user clicks on an empty space, then we want to deselect the selected object.
             if (SELECTEDS.length > 0) {
-                information_panel.clearTexturePart();
+                inspector.get()?.clearTexturePart();
                 for (let i = 0; i < SELECTEDS.length; i++) {
                     SELECTEDS[i].material.emissive.setHex(0x000000);
                 }
@@ -595,7 +668,11 @@
             showToast("Error: Could not find the object in the model3d_infos array.", 'error');
             return;
         }
-        let model = model3d_infos[index]['model']['children'][0];
+        let model = model3d_infos[index].mesh;
+        if(!model) {
+            console.error("Error: model for " + part_name + " has not finished loading.");
+            return;
+        }
 
         //Code to convert normal_url and height_url to blob
         let normal_mat_blob = await getImage(normal_path);
@@ -619,7 +696,7 @@
         // This function moves the file location of the texture map to the current directory
         await moveTextureMap(image_path);
 
-        model3d_infos[index]['model']['children'][0] = model;
+        model3d_infos[index].mesh = model;
         objects_3d.set(model3d_infos);
 
         cloned_texture_parts[object_name][part_name]["mat_name"] = mat_name;
@@ -666,44 +743,110 @@
     }
 
     
-    function add_glb_objects() {
-        for (let i = 0; i < model3d_infos.length; i++) {
-            let glbUrl = model3d_infos[i]["glb_url"];
-            gltfLoader.load(glbUrl, (gltf) => {
-                // console.log('GLTF loaded: ' + gltf);
-                let model = gltf.scene
-                
-                //Workaround. If the model.children[0] is Object3D, the Mesh is found in model.children[0].children[0]. 
-                // Replace model.children[0] with model.children[0].children[0]
-                if(model.children[0] instanceof THREE.Object3D && !(model.children[0] instanceof THREE.Mesh)) {
-                    // console.log("model.children[0] is Object3D. Changing it to a Mesh.");
-                    const real_mesh = model.children[0].children[0];
-                    if(current_texture_parts[model3d_infos[i]["parent"]][model3d_infos[i]["name"]]["color"]) {
-                        const color = current_texture_parts[model3d_infos[i]["parent"]][model3d_infos[i]["name"]]["color"];
-                        const hexNumber = parseInt(color.substring(1), 16);
-                        real_mesh.material.color.setHex(hexNumber);
-                        real_mesh.material.color_hex = hexNumber;
-                    } else {
-                        const hexNumber = 0xffffff;
-                        real_mesh.material.color.setHex(hexNumber);
-                        real_mesh.material.color_hex = hexNumber;
-                    }
-                    
-                    
-                    model.children[0] = real_mesh;
-                }
+    // Per-object containers so a whole object (all its parts) can be moved,
+    // rotated, or scaled as one unit for scene composition.
+    let object_groups = {};
 
-                model.traverse(function(child) {
-                    child.model_name = model3d_infos[i]["name"];
-                    child.model_parent = model3d_infos[i]["parent"];    
-                });
-
-                scene.add(model);
-                model3d_infos[i]["model"] = model;
-                model3d_infos=model3d_infos;
-            })
+    function getObjectGroup(objName) {
+        if (!object_groups[objName]) {
+            const group = new THREE.Group();
+            group.name = objName;
+            group.is_object_group = true;
+            const transforms = get(object_transforms) || {};
+            const t = transforms[objName];
+            if (t) {
+                if (t.position) group.position.fromArray(t.position);
+                if (t.rotation) group.rotation.set(t.rotation[0], t.rotation[1], t.rotation[2]);
+                if (t.scale) group.scale.fromArray(t.scale);
+            }
+            scene.add(group);
+            object_groups[objName] = group;
         }
-        // console.log(model3d_infos);
+        return object_groups[objName];
+    }
+
+    function applyManifestColor(mesh, info) {
+        const entry = (current_texture_parts[info.parent] || {})[info.name];
+        let hexNumber = 0xffffff;
+        if (entry && entry.color) {
+            hexNumber = parseInt(entry.color.substring(1), 16);
+        }
+        if (mesh.material && mesh.material.color) {
+            mesh.material.color.setHex(hexNumber);
+            mesh.material.color_hex = hexNumber;
+        }
+    }
+
+    function registerMesh(info, mesh, rootModel) {
+        rootModel.traverse(function(child) {
+            child.model_name = info.name;
+            child.model_parent = info.parent;
+        });
+        info.mesh = mesh;
+        info.model = rootModel;
+    }
+
+    function add_glb_objects() {
+        // v2 scenes share one .glb per object: load each unique URL once.
+        const shared_gltf_cache = {};
+
+        for (let i = 0; i < model3d_infos.length; i++) {
+            const info = model3d_infos[i];
+            const glbUrl = info.glb_url;
+            const group = getObjectGroup(info.parent);
+
+            if (info.node) {
+                // v2 entry: this part is a named mesh inside a shared .glb
+                if (!shared_gltf_cache[glbUrl]) {
+                    shared_gltf_cache[glbUrl] = new Promise((resolve, reject) => {
+                        gltfLoader.load(glbUrl, resolve, undefined, reject);
+                    }).then((gltf) => {
+                        group.add(gltf.scene);
+                        return gltf;
+                    });
+                }
+                shared_gltf_cache[glbUrl].then((gltf) => {
+                    let mesh = null;
+                    gltf.scene.traverse((child) => {
+                        if (!mesh && child.isMesh && child.name === info.node) {
+                            mesh = child;
+                        }
+                    });
+                    if (!mesh) {
+                        console.error("Mesh node '" + info.node + "' not found in " + glbUrl);
+                        return;
+                    }
+                    // Clone the material so highlighting/texturing one part
+                    // never leaks onto parts sharing a glTF material.
+                    if (mesh.material) {
+                        mesh.material = mesh.material.clone();
+                    }
+                    registerMesh(info, mesh, mesh);
+                    applyManifestColor(mesh, info);
+                    model3d_infos = model3d_infos;
+                }).catch((error) => {
+                    console.error("Failed to load " + glbUrl, error);
+                });
+            } else {
+                // Legacy entry: one .gltf file per part
+                gltfLoader.load(glbUrl, (gltf) => {
+                    let model = gltf.scene;
+
+                    //Workaround. If the model.children[0] is Object3D, the Mesh is found in model.children[0].children[0].
+                    if(model.children[0] instanceof THREE.Object3D && !(model.children[0] instanceof THREE.Mesh)) {
+                        model.children[0] = model.children[0].children[0];
+                    }
+                    const mesh = model.children[0];
+
+                    registerMesh(info, mesh, model);
+                    applyManifestColor(mesh, info);
+                    group.add(model);
+                    model3d_infos = model3d_infos;
+                }, undefined, (error) => {
+                    console.error("Failed to load " + glbUrl, error);
+                });
+            }
+        }
     }
 
     function changeTexture(object, url, normal_url, height_url,color, opacity,roughness,metalness,translationX,translationY,rotation,scaleX,scaleY,normalScale) {
@@ -841,16 +984,23 @@
     }
 
     function setup_scene() {
+        if (transformControls) {
+            transformControls.detach();
+        }
         while (scene.children.length > 0) {
             scene.remove(scene.children[0]);
         }
+        object_groups = {};
         add_glb_objects();
         const light = new THREE.AmbientLight(0x969696, 0.1);
         scene.add(light);
+        if (transformControls) {
+            scene.add(transformControls);
+        }
     }
 
     function init() {
-        const container = document.getElementById("3d-viewer");
+        const container = document.getElementById("viewer-3d");
         container.innerHTML = "";
         renderer = new THREE.WebGLRenderer({ alpha: true });
         // renderer.setSize( window.innerWidth/2, window.innerHeight/2); 
@@ -910,7 +1060,7 @@
         const environment = new RoomEnvironment();
         const pmremGenerator = new THREE.PMREMGenerator( renderer );
 
-        scene.background = new THREE.Color( 0xbbbbbb );
+        scene.background = new THREE.Color( 0x14171c ); // matches the dark viewport well
         scene.environment = pmremGenerator.fromScene( environment ).texture;
 
         controls = new OrbitControls( camera, renderer.domElement );
@@ -940,7 +1090,20 @@
         
         controls.target.set( 0, 0.35, 0 );
         controls.update();
-        
+
+        transformControls = new TransformControls(camera, renderer.domElement);
+        transformControls.addEventListener('dragging-changed', function(event) {
+            controls.enabled = !event.value;
+        });
+        transformControls.addEventListener('mouseUp', saveObjectTransform);
+        scene.add(transformControls);
+
+        window.addEventListener('keydown', function(event) {
+            if (!moveMode || !transformControls || !transformControls.object) return;
+            if (event.key === 'g') transformControls.setMode('translate');
+            if (event.key === 'r') transformControls.setMode('rotate');
+            if (event.key === 's') transformControls.setMode('scale');
+        });
     }
 
     
@@ -964,146 +1127,27 @@
         render();
     });
 
+    onDestroy(
+        viewport.register({
+            update_3d_scene,
+            fullTextureTransferAlgorithm,
+            setMoveMode,
+            captureScreenshot,
+            removeHighlights,
+            transferTexture,
+        })
+    );
+
 </script>
 
-<div id="3d-viewer"></div>
+<div id="viewer-3d"></div>
 
 
 <style>
 
-    #3d-viewer {
+    #viewer-3d {
         width: inherit;
         height: inherit;
     }
 
 </style>
-
-<!-- 
-DUMP
-
-<script> 
-
-
-    const objLoader = new OBJLoader();
-    const textureLoader = new TextureLoader();
-
-    const objUrls = [
-        'models/bedframe.obj',
-        'models/blanket.obj',
-        'models/mattress.obj'
-    ]
-
-    const textureUrls = [
-        'models/wood.png',
-        'models/fabric_blanket.png',
-        'models/fabric_mattress.png'
-    ]
-
-
-    function add_objects() {
-        for (let i=0; i < objUrls.length; i++) {
-            let objUrl = objUrls[i];
-            let textureUrl = textureUrls[i];
-
-            objLoader.load(objUrl, (obj) => { 
-                console.log('OBJ loaded: ' + obj);
-                console.log(obj);
-
-                textureLoader.load(textureUrl, (texture)=> {
-                    console.log('Texture loaded: ' + texture);
-                    obj.traverse( (child) => { 
-                        if (child instanceof THREE.Mesh) {
-                            console.log('Found mesh: ' + child);
-                            console.log(texture);
-                            child.material.map = texture;
-                            child.material.needsUpdate = true;
-                        }
-                    });
-                    scene.add(obj);
-                })
-            })
-        }
-    }
-
-    function onMouseMove(event) {
-
-        const mouse = new THREE.Vector2(
-            (event.clientX / width) * 2  - 1,
-            -(event.clientY / height) *2   + 1
-        );
-
-        raycaster.setFromCamera(mouse, camera);
-
-        let objects = model3d_infos.map(item => item.model);
-        const intersects = raycaster.intersectObjects(objects, true);
-
-        if (intersects.length > 0) {
-            const object = intersects[0].object;
-            if (object == selectedPart) {
-                return; 
-            }
-            if (object !== highlightedPart) {
-                if (highlightedPart) {
-                    // highlightedPart.material = originalMaterial;
-                    highlightedPart.model.children[0].material=originalMaterial;
-                }
-                const index = model3d_infos.findIndex(item => item.model.children[0] == object); //ASSUME that the first child of the model is the mesh
-
-                // highlightedPart = object;
-                highlightedPart = model3d_infos[index];
-                originalMaterial = object.material;
-                highlightedPart.model.children[0].material = highlightMaterial;
-                // object.material = highlightMaterial;
-            }
-        } else {
-            if (highlightedPart) {
-                // highlightedPart.material = originalMaterial;
-                highlightedPart.model.children[0].material=originalMaterial;
-                highlightedPart = null;
-            }
-        }
-
-        if (selectedPart && selectedPart !== highlightedPart) {
-            selectedPart.model.children[0].material = selectedMaterial;
-            // selectedPart = null;
-        }
-
-    }
-
-    // onClick event if the user clicks anywhere on the 3D display.
-    function onClick(event) {
-        event.preventDefault();
-
-        // If a selected part already exists, then we need to reset the material of the selected part
-        if (selectedPart) {
-            selectedPart.model.children[0].material = originalSelectedMaterial;
-            selectedPart =null;
-        }
-
-        if (highlightedPart) { //If a highlighted part exists, then we need to set the selected part to the highlighted part
-            selectedPart = highlightedPart;
-            originalSelectedMaterial=originalMaterial;
-            selectedPart.model.children[0].material = selectedMaterial;
-            // console.log(highlightedPart);
-            // alert('You clicked on the highlighted part: ' + highlightedPart.name);
-            selected_part_name.set(selectedPart.name);
-            selected_obj_name.set(selectedPart.parent);
-            //information_panel.displayTexturePart();
-
-        } else {
-            selectedPart.model.children[0].material = originalSelectedMaterial;
-            highlightedPart = null;
-            selectedPart = null; 
-        }
-
-        
-    }
-
-
-
-
-</script>
-
-
-
--->

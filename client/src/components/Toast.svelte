@@ -28,12 +28,12 @@
 <style>
     .toast-stack {
         position: fixed;
-        top: 12px;
-        right: 12px;
+        top: var(--sp-3);
+        right: var(--sp-3);
         z-index: 9999;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: var(--sp-2);
         max-width: 320px;
         pointer-events: none;
     }
@@ -42,24 +42,38 @@
         pointer-events: auto;
         cursor: pointer;
         text-align: left;
-        font-family: inherit;
-        font-size: 0.95em;
-        color: white;
-        padding: 10px 14px;
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        color: var(--text-primary);
+        background: var(--bg-elevated);
+        padding: var(--sp-2) var(--sp-3);
         border: none;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        border-left: 3px solid var(--accent);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-overlay);
+        animation: toast-in 180ms ease-out;
     }
 
     .toast-info {
-        background-color: #2c6e8f;
+        border-left-color: var(--accent);
     }
 
     .toast-success {
-        background-color: #2e7d32;
+        border-left-color: var(--success);
     }
 
     .toast-error {
-        background-color: #b3261e;
+        border-left-color: var(--danger);
+    }
+
+    @keyframes toast-in {
+        from {
+            opacity: 0;
+            transform: translateX(12px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
 </style>

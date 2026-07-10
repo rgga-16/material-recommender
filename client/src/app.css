@@ -1,0 +1,151 @@
+/* ==========================================================================
+   Texture Studio — global design tokens + base styles (dark studio theme)
+   Single source of truth for all colors/type/spacing. Components must style
+   themselves exclusively through these custom properties.
+   ========================================================================== */
+
+:root {
+	/* Surfaces */
+	--bg-app: #101216;
+	--bg-panel: #16191f;
+	--bg-elevated: #1d212a;
+	--bg-inset: #0a0c0f; /* viewport well */
+	--bg-hover: #242935;
+	--bg-active: #2c3342;
+
+	/* Borders */
+	--border-subtle: #262b35;
+	--border-strong: #39404e;
+
+	/* Text */
+	--text-primary: #e7eaf0;
+	--text-secondary: #9aa3b2;
+	--text-muted: #5f6775;
+	--text-on-accent: #ffffff;
+
+	/* Accent + semantic */
+	--accent: #7c8cf8;
+	--accent-hover: #94a2ff;
+	--accent-muted: rgba(124, 140, 248, 0.16);
+	--success: #4ade80;
+	--danger: #f87171;
+	--warning: #fbbf24;
+
+	/* Typography */
+	--font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI',
+		'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic UI', Meiryo, sans-serif;
+	--text-xs: 11px;
+	--text-sm: 12px;
+	--text-base: 13px;
+	--text-md: 14px;
+	--text-lg: 16px;
+	--text-xl: 20px;
+
+	/* Spacing */
+	--sp-1: 4px;
+	--sp-2: 8px;
+	--sp-3: 12px;
+	--sp-4: 16px;
+	--sp-5: 24px;
+	--sp-6: 32px;
+
+	/* Radii */
+	--radius-sm: 4px;
+	--radius-md: 6px;
+	--radius-lg: 10px;
+	--radius-full: 999px;
+
+	/* Shadows / focus */
+	--shadow-overlay: 0 4px 16px rgba(0, 0, 0, 0.45);
+	--shadow-modal: 0 12px 48px rgba(0, 0, 0, 0.6);
+	--ring: 0 0 0 2px rgba(124, 140, 248, 0.45);
+
+	/* Layout */
+	--topbar-h: 48px;
+	--rail-w: 48px;
+	--toolpanel-w: 300px;
+	--inspector-w: 340px;
+	--shelf-h: 132px;
+
+	color-scheme: dark;
+}
+
+html,
+body {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	overflow: hidden;
+	background: var(--bg-app);
+	color: var(--text-primary);
+	font-family: var(--font-sans);
+	font-size: var(--text-base);
+	-webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+a {
+	color: var(--accent);
+	text-decoration: none;
+}
+
+a:hover {
+	color: var(--accent-hover);
+	text-decoration: underline;
+}
+
+::selection {
+	background: var(--accent-muted);
+}
+
+/* Dark scrollbars */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+	background: var(--border-strong);
+	border-radius: var(--radius-full);
+}
+*::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+:focus-visible {
+	outline: none;
+	box-shadow: var(--ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* Form elements inherit the app typography by default. */
+input,
+button,
+select,
+textarea {
+	font-family: inherit;
+	font-size: inherit;
+	color: inherit;
+}

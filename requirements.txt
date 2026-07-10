@@ -1,0 +1,24 @@
+# Runtime dependencies for the local-first app (Flask backend + SD-Turbo texture
+# generation + Ollama-backed assistant). Install torch separately with CUDA support:
+#
+#   pip install torch --index-url https://download.pytorch.org/whl/cu124
+#
+# then install the rest of this file:
+#
+#   pip install -r requirements.txt
+
+flask
+pillow
+numpy
+imageio
+onnxruntime
+requests
+
+# Texture generation (SD-Turbo via diffusers). torch should already be installed
+# per the CUDA note above; listed here too so `pip install -r requirements.txt`
+# alone still works (CPU-only) if torch isn't preinstalled.
+torch
+diffusers
+transformers
+accelerate
+safetensors

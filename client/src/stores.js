@@ -90,8 +90,6 @@ export const actions_panel_tab = writable("generate"); //Keeps track of which ta
 export const information_panel_tab = writable("details"); //Keeps track of which tab is currently selected in the information panel
 export const display_panel_tab = writable("3d_display");
 
-export const generate_module = writable(); //Keeps track of the generate module. Used if you want to call the module to generate something.
-
 export const generate_tab_page = writable(0); //Keeps track of which page is currently selected in the generate tab
 
 export const displayWidth =writable(0); //Keeps track of the width of the display div which contains the Rendering View and 3D View
@@ -126,7 +124,6 @@ export let action_history = writable({
     currentIndex: -1
 }); //Keeps track of the action history
 
-export let threed_display_global = writable(null); //Keeps track of the 3D display. Can call the functions in the 3D display module
-export let information_panel_global = writable(null); //Keeps track of the information panel. Can call the functions in the information panel module
 
 export const toasts = writable([]); //Keeps track of the currently displayed toast notifications
+export const object_transforms = writable({}); //Per-object placement transforms {object: {position, rotation, scale}} for scene composition

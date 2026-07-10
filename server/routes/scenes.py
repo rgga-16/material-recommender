@@ -1,8 +1,8 @@
 """Scene, saved-scene, action-history, and image-serving routes."""
 import base64
 import io
-import json
 import os
+import re
 
 from flask import Blueprint, jsonify, request, send_file
 from PIL import Image
@@ -28,8 +28,13 @@ def get_saved_renderings():
 def save_rendering():
     form_data = request.get_json()
     rendering_path = os.path.join(CWD, "client", "public", form_data["rendering_path"])
+    thumbnail_png = None
+    thumbnail = form_data.get("thumbnail")
+    if thumbnail:
+        # dataURL from the Three.js canvas: "data:image/png;base64,...."
+        thumbnail_png = base64.b64decode(thumbnail.split(",", 1)[-1])
     scene_store.add_to_saved_renderings(rendering_path, form_data["textureparts_path"],
-                                        STATIC_IMDIR)
+                                        STATIC_IMDIR, thumbnail_png=thumbnail_png)
     return scene_store.get_saved_renderings()
 
 
@@ -112,41 +117,59 @@ def add_old_and_new_textures_to_history():
     return jsonify(result)
 
 
-# --- Transitional shims (frontend still calls these; removed in Phase 4F) ---
+# --- Scene composition: uploads, manifest edits, object transforms ---
 
-@bp.route("/get_static_dir")
-def get_static_dir():
-    return STATIC_IMDIR
+_ALLOWED_MODEL_EXTS = {".glb", ".gltf"}
 
 
-@bp.route("/use_chatgpt", methods=["GET"])
-def use_chatgpt():
-    return jsonify({"use_chatgpt": True})
+def _safe_name(name):
+    """Filesystem-safe object/file name (keep spaces, letters, digits)."""
+    return re.sub(r"[^\w\- .()]", "_", name).strip() or "object"
 
 
-@bp.route("/save_model", methods=["POST"])
-def update_3d_model():
+@bp.route("/upload_model", methods=["POST"])
+def upload_model():
+    if "file" not in request.files:
+        return jsonify({"error": "no file provided"}), 400
+    file = request.files["file"]
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in _ALLOWED_MODEL_EXTS:
+        return jsonify({"error": f"unsupported file type '{ext}'; upload .glb or .gltf"}), 400
+
+    object_name = _safe_name(request.form.get("object_name") or
+                             os.path.splitext(os.path.basename(file.filename))[0])
+    filename = _safe_name(os.path.basename(file.filename))
+
+    dest_dir = os.path.join(SERVER_IMDIR, "renderings", "current", object_name)
+    os.makedirs(dest_dir, exist_ok=True)
+    dest_path = os.path.join(dest_dir, filename)
+    file.save(dest_path)
+
+    client_path = "/".join(["gen_images", "renderings", "current", object_name, filename])
+    return jsonify({"object_name": object_name, "model_path": client_path})
+
+
+@bp.route("/update_manifest", methods=["POST"])
+def update_manifest():
     form_data = request.get_json()
-    server_model_path = os.path.join(STATIC_IMDIR, form_data["url"])
-    server_model_path = os.path.splitext(server_model_path)[0] + ".gltf"
-    with open(server_model_path, "w") as f:
-        f.write(form_data["model"])
-    return "ok"
+    return scene_store.update_manifest(form_data["texture_parts"])
 
 
-@bp.route("/render", methods=["POST"])
-def render():
-    # Blender rendering removed; persist the manifest so the flow still works
-    # until the frontend Render button is removed in Phase 4F.
+@bp.route("/remove_object", methods=["POST"])
+def remove_object():
     form_data = request.get_json()
-    textureparts = form_data["textureparts"]
-    curr_render_savedir = os.path.join(SERVER_IMDIR, "renderings", "current")
-    for obj in textureparts:
-        for part in textureparts[obj]:
-            entry = textureparts[obj][part]
-            if "model" in entry:
-                model_filename = os.path.basename(entry["model"])
-                entry["model"] = os.path.join(curr_render_savedir, obj, model_filename)
-    with open(form_data["texturepartspath"], "w") as f:
-        json.dump(textureparts, f, indent=4)
-    return "ok"
+    object_name = form_data["object"]
+    texture_parts = scene_store.get_current_texture_parts() or {}
+    texture_parts.pop(object_name, None)
+    transforms = scene_store.get_transforms()
+    if object_name in transforms:
+        transforms.pop(object_name)
+        scene_store.set_transforms(transforms)
+    return scene_store.update_manifest(texture_parts)
+
+
+@bp.route("/update_transforms", methods=["POST"])
+def update_transforms():
+    form_data = request.get_json()
+    scene_store.set_transforms(form_data["transforms"])
+    return jsonify({"transforms": scene_store.get_transforms()})
