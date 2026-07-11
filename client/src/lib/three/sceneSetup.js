@@ -70,6 +70,25 @@ export function createViewer(container, width, height) {
 		return dataURL;
 	}
 
+	/** Swap the lighting environment. null -> the default RoomEnvironment;
+	 *  a URL -> an equirectangular .exr/.hdr loaded and PMREM-filtered. */
+	async function setEnvironment(url) {
+		const previous = scene.environment;
+		if (!url) {
+			scene.environment = environmentMap;
+		} else {
+			const { EXRLoader } = await import('three/addons/loaders/EXRLoader.js');
+			const { RGBELoader } = await import('three/addons/loaders/RGBELoader.js');
+			const loader = url.toLowerCase().endsWith('.hdr') ? new RGBELoader() : new EXRLoader();
+			const equirect = await loader.loadAsync(url);
+			scene.environment = pmremGenerator.fromEquirectangular(equirect).texture;
+			equirect.dispose();
+		}
+		if (previous && previous !== environmentMap && previous !== scene.environment) {
+			previous.dispose();
+		}
+	}
+
 	function dispose() {
 		controls.dispose();
 		transformControls.dispose();
@@ -80,5 +99,5 @@ export function createViewer(container, width, height) {
 	}
 
 	return { renderer, scene, camera, controls, transformControls, transformGizmo,
-		raycaster, resize, captureScreenshot, dispose };
+		raycaster, resize, captureScreenshot, setEnvironment, dispose };
 }

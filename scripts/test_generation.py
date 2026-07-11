@@ -51,7 +51,7 @@ def main():
         print(f"Generated {prompt!r} -> {savepath} in {elapsed:.2f}s")
 
     # Run normal/height map generation on the first saved texture.
-    normal_path, height_path = maps.generate_normal_and_height(saved_paths[0])
+    normal_path, height_path, ao_path = maps.generate_normal_and_height(saved_paths[0])
     assert os.path.exists(normal_path), f"Missing normal map: {normal_path}"
     assert os.path.exists(height_path), f"Missing height map: {height_path}"
     print(f"Normal map: {normal_path}")

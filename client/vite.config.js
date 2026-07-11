@@ -14,6 +14,7 @@ const proxyPaths = [
 	'/get_texture_prompts', '/get_materials', '/feedback_materials',
 	'/brainstorm_prompt_keywords', '/brainstorm_material_queries',
 	'/add_old_and_new_textures_to_action_history', '/retrieve_textures_from_action_history',
+	'/generated_textures', '/export_texture_set', '/hdri_list', '/hdri',
 	'/gen_images', '/preset_materials', '/models',
 ];
 

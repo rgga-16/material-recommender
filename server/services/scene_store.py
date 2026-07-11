@@ -28,10 +28,12 @@ from utils.image import makedir, emptydir
 
 log = logging.getLogger(__name__)
 
-_TEXTURE_KEYS = ("mat_image_texture", "mat_normal_texture", "mat_height_texture")
+_TEXTURE_KEYS = ("mat_image_texture", "mat_normal_texture",
+                 "mat_height_texture", "mat_ao_texture")
 
 # Wiped at startup; nothing in renderings/ may reference files in these.
-_TRANSIENT_SUBDIRS = ("suggested", "feedbacked", "generated", "action_history")
+# generated/ persists — it backs the generation-history gallery.
+_TRANSIENT_SUBDIRS = ("suggested", "feedbacked", "action_history")
 
 _state = {
     "current_texture_parts": None,
@@ -248,9 +250,10 @@ def update_manifest(texture_parts):
     for obj in texture_parts:
         for part in texture_parts[obj]:
             entry = texture_parts[obj][part]
-            for key, default in defaults.items():
+            for key in _TEXTURE_KEYS:
                 if not entry.get(key):
-                    entry[key] = default
+                    if key in defaults:
+                        entry[key] = defaults[key]
                     continue
                 resolved = resolve_public_path(entry[key])
                 in_current = os.path.normcase(os.path.dirname(resolved)) == \

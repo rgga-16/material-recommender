@@ -1,5 +1,5 @@
 <script>
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import GeneratedTextures from './GeneratedTextures.svelte';
 	import { generate_tab_page } from '../../stores.js';
 	import { generated_texture_name } from '../../stores.js';
@@ -28,7 +28,6 @@
 
 	onDestroy(generator.register({ generate_textures, reset_page, empty_keywordlists }));
 
-	let { onCallUpdateCurrentRendering } = $props();
 
 	let japanese = $derived($in_japanese);
 
@@ -42,11 +41,32 @@
 	let keywords_open = $state(false);
 
 	let n_textures = $state(4);
+	// -1 = random; any other value makes generations reproducible (image i
+	// uses seed + i).
+	let seed = $state(-1);
+
+	// Persistent gallery: previously generated textures survive restarts on
+	// the server; show them until a fresh generation replaces them.
+	let is_showing_gallery = $state(false);
+	onMount(async () => {
+		if (generated_textures.length > 0) return;
+		try {
+			const response = await fetch('/generated_textures');
+			const data = await response.json();
+			if (generated_textures.length === 0 && data['results']?.length > 0) {
+				generated_textures = data['results'];
+				is_showing_gallery = true;
+			}
+		} catch (error) {
+			console.error('Could not load the generation gallery', error);
+		}
+	});
 
 	async function generate_similar_textures(texture_str) {
 		input_material = texture_str;
 		is_loading = true;
 		progress_message = '';
+		is_showing_gallery = false;
 		generated_textures = [];
 
 		let input = Object.assign('', texture_str);
@@ -84,6 +104,7 @@
 					n: n_textures,
 					imsize: 448,
 					impath: selected_texture,
+					seed: seed,
 				}),
 			});
 			selected_texture = null;
@@ -117,6 +138,7 @@
 		input_material = texture_str;
 		is_loading = true;
 		progress_message = '';
+		is_showing_gallery = false;
 		selected_texture = null;
 		generated_textures = [];
 
@@ -156,6 +178,7 @@
 					texture_string: input,
 					n: n_textures,
 					imsize: 448,
+					seed: seed,
 				}),
 			});
 
@@ -285,6 +308,10 @@
 		<NumberInput bind:value={n_textures} min={1} max={10} step={1} />
 	</Field>
 
+	<Field label={japanese ? 'シード（-1 = ランダム）：' : 'Seed (-1 = random):'} row>
+		<NumberInput bind:value={seed} min={-1} step={1} />
+	</Field>
+
 	<PanelSection title={keywords_title} bind:open={keywords_open}>
 		<div class="keyword-input-row">
 			<TextInput
@@ -314,7 +341,7 @@
 		</div>
 
 		<div class="keyword-tags">
-			{#each manual_prompt_keywords as manual_keyword, i}
+			{#each manual_prompt_keywords as manual_keyword, i (i)}
 				<span class="tag" class:selected={selected_prompt_keywords.includes(manual_keyword)}>
 					<button type="button" class="tag-label" onclick={() => toggle_keyword(manual_keyword)}>
 						"{manual_keyword}"
@@ -331,7 +358,7 @@
 			{/each}
 
 			{#if brainstormed_prompt_keywords.length > 0}
-				{#each brainstormed_prompt_keywords as bkeyword, j}
+				{#each brainstormed_prompt_keywords as bkeyword, j (j)}
 					<span class="tag" class:selected={selected_prompt_keywords.includes(bkeyword)}>
 						<button type="button" class="tag-label" onclick={() => toggle_keyword(bkeyword)}>
 							"{bkeyword}"
@@ -377,7 +404,9 @@
 	<div class="results">
 		{#if generated_textures.length > 0}
 			<p class="results-caption">
-				{#if japanese}
+				{#if is_showing_gallery}
+					{japanese ? '以前に生成されたテクスチャ' : 'Previously generated textures'}
+				{:else if japanese}
 					{input_material}のテクスチャマップの結果
 				{:else}
 					Texture map results for: {input_material}

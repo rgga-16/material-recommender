@@ -318,7 +318,7 @@
                                 commitColors();
                             }}
                         >
-                            {#each p["palette"] as swatch}
+                            {#each p["palette"] as swatch, si (si)}
                                 <span class="mini-swatch" style="background-color: {swatch};"></span>
                             {/each}
                             <span class="palette-name">{p["name"]}</span>

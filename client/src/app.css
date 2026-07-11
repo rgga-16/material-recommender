@@ -70,6 +70,38 @@
 	color-scheme: dark;
 }
 
+/* Light theme — same token contract, remapped surfaces/text/borders. The
+   accent hue stays; shadows and focus soften for the light background. */
+:root[data-theme='light'] {
+	--bg-app: #f2f3f6;
+	--bg-panel: #ffffff;
+	--bg-elevated: #f6f7fa;
+	--bg-inset: #e8eaef; /* viewport well */
+	--bg-hover: #e9ebf2;
+	--bg-active: #dde1ea;
+
+	--border-subtle: #dcdfe6;
+	--border-strong: #b9bfcc;
+
+	--text-primary: #1b1f27;
+	--text-secondary: #4c5563;
+	--text-muted: #8a93a3;
+	--text-on-accent: #ffffff;
+
+	--accent: #5261d6;
+	--accent-hover: #3e4dc4;
+	--accent-muted: rgba(82, 97, 214, 0.12);
+	--success: #16a34a;
+	--danger: #dc2626;
+	--warning: #d97706;
+
+	--shadow-overlay: 0 4px 16px rgba(23, 28, 40, 0.14);
+	--shadow-modal: 0 12px 48px rgba(23, 28, 40, 0.22);
+	--ring: 0 0 0 2px rgba(82, 97, 214, 0.35);
+
+	color-scheme: light;
+}
+
 html,
 body {
 	position: relative;

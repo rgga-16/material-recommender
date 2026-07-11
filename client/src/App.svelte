@@ -28,6 +28,9 @@
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Move from '@lucide/svelte/icons/move';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import Sun from '@lucide/svelte/icons/sun';
+	import Moon from '@lucide/svelte/icons/moon';
+	import Globe from '@lucide/svelte/icons/globe';
 
 	import {
 		curr_rendering_path,
@@ -67,6 +70,36 @@
 	let tool_panel_collapsed = $state(false);
 	let shelf_collapsed = $state(false);
 
+	// ----------------------------------------------------------------- theme
+
+	let theme = $state(localStorage.getItem('theme') || 'dark');
+	$effect(() => {
+		document.documentElement.dataset.theme = theme;
+		localStorage.setItem('theme', theme);
+	});
+
+	// ------------------------------------------------------ HDRI environment
+
+	let hdris = $state([]);
+	let selected_hdri = $state('');
+
+	async function loadHdris() {
+		try {
+			const response = await fetch('/hdri_list');
+			hdris = (await response.json())['hdris'] || [];
+		} catch {
+			hdris = [];
+		}
+	}
+
+	function applyEnvironment() {
+		threed_display?.setEnvironment(selected_hdri ? `/hdri/${selected_hdri}` : null)
+			.catch((error) => {
+				console.error(error);
+				showToast(japanese ? '環境の読み込みに失敗しました。' : 'Failed to load environment.', 'error');
+			});
+	}
+
 	// ------------------------------------------------------------------ data
 
 	async function getSavedRenderings() {
@@ -87,15 +120,6 @@
 		return data;
 	}
 	const promise = getInitialRendering();
-
-	async function updateCurrentRendering() {
-		const response = await fetch('/get_current_rendering');
-		const data = await response.json();
-		curr_rendering_path.set(data['rendering_path']);
-		curr_texture_parts.set(data['texture_parts']);
-		curr_textureparts_path.set(data['textureparts_path']);
-		object_transforms.set(data['transforms'] || {});
-	}
 
 	async function saveRendering() {
 		is_saving_scene = true;
@@ -192,8 +216,32 @@
 
 	let viewport_el = $state(null);
 
+	// Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) / Ctrl+S — skipped while typing.
+	function onShortcut(event) {
+		if (!(event.ctrlKey || event.metaKey)) return;
+		const target = event.target;
+		if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' ||
+				target.isContentEditable)) return;
+		const key = event.key.toLowerCase();
+		if (key === 'z' && event.shiftKey) {
+			event.preventDefault();
+			redoAction();
+		} else if (key === 'z') {
+			event.preventDefault();
+			undoAction();
+		} else if (key === 'y') {
+			event.preventDefault();
+			redoAction();
+		} else if (key === 's') {
+			event.preventDefault();
+			saveRendering();
+		}
+	}
+
 	onMount(() => {
 		design_brief_text = get(design_brief);
+		loadHdris();
+		window.addEventListener('keydown', onShortcut);
 
 		const observer = new ResizeObserver(() => {
 			if (!viewport_el) return;
@@ -205,7 +253,10 @@
 			displayHeight.set(viewport_el.offsetHeight);
 			observer.observe(viewport_el);
 		}
-		return () => observer.disconnect();
+		return () => {
+			window.removeEventListener('keydown', onShortcut);
+			observer.disconnect();
+		};
 	});
 </script>
 
@@ -255,6 +306,29 @@
 			</IconButton>
 		</div>
 
+		{#if hdris.length > 0}
+			<div class="env-picker" title={japanese ? '環境ライティング' : 'Environment lighting'}>
+				<Globe size={14} strokeWidth={1.75} />
+				<select bind:value={selected_hdri} onchange={applyEnvironment} aria-label={japanese ? '環境ライティング' : 'Environment lighting'}>
+					<option value="">{japanese ? 'スタジオ（標準）' : 'Studio (default)'}</option>
+					{#each hdris as hdri (hdri)}
+						<option value={hdri}>{hdri.replace(/\.(exr|hdr)$/i, '')}</option>
+					{/each}
+				</select>
+			</div>
+		{/if}
+
+		<IconButton
+			label={theme === 'dark' ? (japanese ? 'ライトテーマ' : 'Light theme') : (japanese ? 'ダークテーマ' : 'Dark theme')}
+			onclick={() => (theme = theme === 'dark' ? 'light' : 'dark')}
+		>
+			{#if theme === 'dark'}
+				<Sun size={16} strokeWidth={1.75} />
+			{:else}
+				<Moon size={16} strokeWidth={1.75} />
+			{/if}
+		</IconButton>
+
 		<div class="divider"></div>
 
 		<div class="lang-toggle" role="group" aria-label="Language">
@@ -284,7 +358,7 @@
 			{japanese ? active_rail_item?.ja : active_rail_item?.en}
 		</div>
 		<div class="tool-panel-body">
-			<ActionsPanel onCallUpdateCurrentRendering={updateCurrentRendering} />
+			<ActionsPanel />
 		</div>
 	</aside>
 
@@ -472,6 +546,24 @@
 		width: 1px;
 		height: 20px;
 		background: var(--border-subtle);
+	}
+
+	.env-picker {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-1);
+		color: var(--text-secondary);
+	}
+
+	.env-picker select {
+		font-family: var(--font-sans);
+		font-size: var(--text-sm);
+		color: var(--text-primary);
+		background: var(--bg-inset);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-md);
+		padding: 3px var(--sp-2);
+		max-width: 140px;
 	}
 
 	.lang-toggle {

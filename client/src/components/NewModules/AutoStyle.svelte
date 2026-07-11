@@ -251,7 +251,7 @@
     </div>
 
     <div class="chip-row">
-        {#each STYLE_CHIPS as chip}
+        {#each STYLE_CHIPS as chip (chip.key)}
             <button
                 type="button"
                 class="chip"

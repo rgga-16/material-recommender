@@ -245,7 +245,7 @@
             </div>
         {:else if toOutputGrid}
             <div class="suggestion-grid">
-                {#each suggestions as suggestion}
+                {#each suggestions as suggestion, i (i)}
                     <div class="thumb-wrap">
                         <DynamicImage imagepath={suggestion.texture_map} alt="suggestion" size="100%" is_draggable={true} />
                     </div>
@@ -253,7 +253,7 @@
             </div>
         {:else}
             <div class="suggestion-list">
-                {#each suggestions as suggestion}
+                {#each suggestions as suggestion, i (i)}
                     <div class="suggestion-row">
                         <div class="thumb-wrap suggestion-thumb">
                             <DynamicImage imagepath={suggestion.texture_map} alt={suggestion.material} size="100%" is_draggable={true} />

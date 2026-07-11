@@ -8,7 +8,6 @@
     import ChatBot from "./ChatBotModule/ChatBot.svelte";
     import { actions_panel_tab, use_chatgpt } from '../stores.js';
 
-    let { onCallUpdateCurrentRendering } = $props();
     let generate = $state(null);
 
     let activeTab = $derived($actions_panel_tab);
@@ -22,7 +21,7 @@
 
 <div class="actions-panel">
   <div class='tab-content' class:active={activeTab==='generate'} id="generate">
-    <Generate {onCallUpdateCurrentRendering} bind:this={generate} />
+    <Generate bind:this={generate} />
   </div>
 
   {#if $use_chatgpt}

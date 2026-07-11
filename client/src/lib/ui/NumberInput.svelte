@@ -17,11 +17,9 @@
 		return Number(num).toFixed(decimals);
 	}
 
-	let displayValue = $state(format(value));
-
-	$effect(() => {
-		displayValue = format(value);
-	});
+	// Writable derived: tracks the bound value, but the user's in-progress
+	// keystrokes overwrite it until the next external value change.
+	let displayValue = $derived(format(value));
 
 	function clamp(num) {
 		let result = num;

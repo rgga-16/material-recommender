@@ -10,7 +10,7 @@
 <div class="palette-container">
     <div class="palette-name">{name}</div>
     <div bind:this={palette} class="color-palette">
-        {#each color_codes as cc, i}
+        {#each color_codes as cc, i (i)}
             <input type="color" bind:value={color_codes[i]} title={cc} />
         {/each}
     </div>

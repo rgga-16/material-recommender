@@ -2,9 +2,15 @@
 
 Public contract:
 
-    generate(prompt: str, n: int = 1, imsize: int = 512, seamless: bool = True)
+    generate(prompt, n=1, imsize=512, seamless=True, seed=None)
         -> list[PIL.Image.Image]
+    generate_variations(init_image, prompt, n=1, imsize=512, strength=0.55,
+                        seamless=True, seed=None)
+        -> list[PIL.Image.Image]   # img2img around init_image
     unload() -> None   # free GPU memory
+
+Seeds: pass seed=<int >= 0> for reproducible output; image i uses seed+i so
+a batch stays diverse but re-creatable. None/negative -> random.
 
 The pipeline is a lazy singleton: it loads on the first generate() call and
 stays resident afterward. Thread safety is handled by the caller (the
@@ -22,6 +28,7 @@ log = logging.getLogger(__name__)
 # in the multi-GB ML stack.
 
 _pipe = None
+_img2img = None  # AutoPipelineForImage2Image sharing _pipe's components
 _device = None
 
 PROMPT_SUFFIX = ", seamless texture, top-down close-up, high detail"
@@ -121,7 +128,30 @@ def _get_pipeline():
     return _pipe
 
 
-def generate(prompt, n=1, imsize=512, seamless=True):
+def _make_generator(seed):
+    """A torch.Generator for a non-negative seed, else None (random)."""
+    if seed is None:
+        return None
+    try:
+        seed = int(seed)
+    except (TypeError, ValueError):
+        return None
+    if seed < 0:
+        return None
+    import torch
+    return torch.Generator(device=_device).manual_seed(seed)
+
+
+def _offset_seed(seed, i):
+    if seed is None:
+        return None
+    try:
+        return int(seed) + i if int(seed) >= 0 else None
+    except (TypeError, ValueError):
+        return None
+
+
+def generate(prompt, n=1, imsize=512, seamless=True, seed=None):
     ensure_vram()
 
     pipe = _get_pipeline()
@@ -131,21 +161,65 @@ def generate(prompt, n=1, imsize=512, seamless=True):
     full_prompt = f"{prompt}{PROMPT_SUFFIX}"
 
     images = []
-    for _ in range(n):
+    for i in range(n):
         output = pipe(
             prompt=full_prompt,
             num_inference_steps=2,
             guidance_scale=0.0,
             width=size,
             height=size,
+            generator=_make_generator(_offset_seed(seed, i)),
+        )
+        images.append(output.images[0])
+    return images
+
+
+def _get_img2img():
+    """Image-to-image pipeline sharing the text2img pipeline's weights."""
+    global _img2img
+    pipe = _get_pipeline()
+    if _img2img is None:
+        from diffusers import AutoPipelineForImage2Image
+        _img2img = AutoPipelineForImage2Image.from_pipe(pipe)
+    return _img2img
+
+
+def generate_variations(init_image, prompt, n=1, imsize=512, strength=0.55,
+                        seamless=True, seed=None):
+    """Generate n variations of init_image (a PIL image) via img2img.
+
+    strength in (0, 1]: higher drifts further from the original. With the
+    2-step turbo schedule, int(steps * strength) must be >= 1, so strength
+    is floored at 0.5.
+    """
+    ensure_vram()
+
+    pipe = _get_img2img()
+    _set_seamless(pipe, seamless)
+
+    size = _clamp_imsize(imsize)
+    strength = max(0.5, min(float(strength), 1.0))
+    init_image = init_image.convert("RGB").resize((size, size))
+    full_prompt = f"{prompt}{PROMPT_SUFFIX}"
+
+    images = []
+    for i in range(n):
+        output = pipe(
+            prompt=full_prompt,
+            image=init_image,
+            strength=strength,
+            num_inference_steps=2,
+            guidance_scale=0.0,
+            generator=_make_generator(_offset_seed(seed, i)),
         )
         images.append(output.images[0])
     return images
 
 
 def unload():
-    global _pipe
+    global _pipe, _img2img
     _pipe = None
+    _img2img = None
     import torch
     if torch.cuda.is_available():
         torch.cuda.empty_cache()

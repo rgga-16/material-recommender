@@ -6,7 +6,6 @@
 import { action_history, selected_objs_and_parts } from '../stores.js';
 import { curr_texture_parts, objects_3d } from '../stores.js';
 import { viewport } from './registry.js';
-import { get } from 'svelte/store';
 import { degreeToRadians } from './utils.js';
 
 let all_3d_objects;

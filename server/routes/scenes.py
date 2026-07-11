@@ -9,10 +9,10 @@ import io
 import os
 import re
 
-from flask import Blueprint, jsonify, request, send_file
+from flask import Blueprint, jsonify, request, send_file, send_from_directory
 from PIL import Image
 
-from server.config import SERVER_IMDIR, STATIC_IMDIR
+from server.config import DATA_DIR, SERVER_IMDIR, STATIC_IMDIR
 from server.http import get_json_body, require_fields
 from server.paths import resolve_public_path, to_public_url
 from server.services import scene_store
@@ -91,7 +91,28 @@ def transfer_texture():
         "img_url": _copy(""),
         "normal_url": _copy("_normal"),
         "height_url": _copy("_height"),
+        "ao_url": _copy("_ao"),
     })
+
+
+# --- HDRI environments (served from data/hdri, outside client/public) ---
+
+_HDRI_DIR = os.path.join(DATA_DIR, "hdri")
+_HDRI_EXTS = {".exr", ".hdr"}
+
+
+@bp.route("/hdri_list")
+def hdri_list():
+    if not os.path.isdir(_HDRI_DIR):
+        return jsonify({"hdris": []})
+    names = sorted(f for f in os.listdir(_HDRI_DIR)
+                   if os.path.splitext(f)[1].lower() in _HDRI_EXTS)
+    return jsonify({"hdris": names})
+
+
+@bp.route("/hdri/<path:name>")
+def hdri_file(name):
+    return send_from_directory(_HDRI_DIR, name)
 
 
 def _no_material_path():

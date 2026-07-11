@@ -1,9 +1,12 @@
-"""Texture generation routes and the job status/SSE endpoints."""
+"""Texture generation routes, the persistent gallery, texture-set export,
+and the job status/SSE endpoints."""
+import io
 import json
 import os
 import re
+import zipfile
 
-from flask import Blueprint, Response, jsonify
+from flask import Blueprint, Response, jsonify, request, send_file
 
 from server.config import SERVER_IMDIR
 from server.http import get_json_body, require_fields
@@ -13,6 +16,7 @@ from server.services import jobs, maps, texture_gen
 bp = Blueprint("textures", __name__)
 
 _GENERATED_DIR = os.path.join(SERVER_IMDIR, "generated")
+_MAP_SUFFIXES = ("_normal", "_height", "_ao")
 
 
 def safe_filename_stem(text):
@@ -32,26 +36,45 @@ def _clamp_count(n, default=1, maximum=8):
         return default
 
 
-def generate_and_save(texture_string, n, imsize, job_id=None):
-    """Generate n textures + normal/height maps; returns a result payload
+def _parse_seed(value):
+    """Non-negative int seed, else None (random)."""
+    try:
+        seed = int(value)
+    except (TypeError, ValueError):
+        return None
+    return seed if seed >= 0 else None
+
+
+def _save_textures(images, texture_string, seed=None, job_id=None,
+                   progress_from=0.5):
+    """Save generated images + derived maps; returns the result payload."""
+    os.makedirs(_GENERATED_DIR, exist_ok=True)
+    stem = safe_filename_stem(texture_string)
+    n = max(len(images), 1)
+    texture_loadpaths = []
+    for i, texture in enumerate(images):
+        savepath = os.path.join(_GENERATED_DIR, f"{stem}_{i}.png")
+        texture.save(savepath)
+        if job_id:
+            jobs.set_progress(job_id, progress_from + (1 - progress_from) * i / n,
+                              f"Deriving maps ({i + 1}/{len(images)})...")
+        maps.generate_normal_and_height(savepath)
+        texture_loadpaths.append({
+            "rendering": None,
+            "texture": to_public_url(savepath),
+            "seed": None if seed is None else seed + i,
+        })
+    return {"results": texture_loadpaths}
+
+
+def generate_and_save(texture_string, n, imsize, seed=None, job_id=None):
+    """Generate n textures + normal/height/AO maps; returns a result payload
     whose texture paths are public URLs."""
     n = _clamp_count(n)
     if job_id:
         jobs.set_progress(job_id, 0.05, "Generating textures...")
-    textures = texture_gen.generate(texture_string, n=n, imsize=imsize)
-
-    os.makedirs(_GENERATED_DIR, exist_ok=True)
-    stem = safe_filename_stem(texture_string)
-    texture_loadpaths = []
-    for i, texture in enumerate(textures):
-        savepath = os.path.join(_GENERATED_DIR, f"{stem}_{i}.png")
-        texture.save(savepath)
-        if job_id:
-            jobs.set_progress(job_id, 0.5 + 0.5 * i / max(n, 1),
-                              f"Deriving maps ({i + 1}/{n})...")
-        maps.generate_normal_and_height(savepath)
-        texture_loadpaths.append({"rendering": None, "texture": to_public_url(savepath)})
-    return {"results": texture_loadpaths}
+    images = texture_gen.generate(texture_string, n=n, imsize=imsize, seed=seed)
+    return _save_textures(images, texture_string, seed=seed, job_id=job_id)
 
 
 @bp.route("/generate_textures", methods=["POST"])
@@ -59,28 +82,83 @@ def generate_textures_route():
     body = get_json_body()
     texture_string, n, imsize = require_fields(body, "texture_string", "n", "imsize")
     job_id = jobs.submit(generate_and_save, texture_string, n, imsize,
-                         pass_job_id=True)
+                         seed=_parse_seed(body.get("seed")), pass_job_id=True)
     return jsonify({"job_id": job_id})
 
 
-def generate_similar_and_save(texture_string, n, impath, job_id=None):
-    """Generate n-1 fresh textures + normal/height maps, then prepend the
-    original image; returns result payload."""
-    result = generate_and_save(texture_string, _clamp_count(n) - 1, 512, job_id=job_id)
-    result["results"].insert(0, {"rendering": None, "texture": impath})
+def generate_similar_and_save(texture_string, n, impath, seed=None, job_id=None):
+    """img2img variations of an existing texture: generate n-1 variations,
+    then prepend the original image."""
+    from PIL import Image
+
+    n = _clamp_count(n)
+    result = {"results": []}
+    if n > 1:
+        if job_id:
+            jobs.set_progress(job_id, 0.05, "Generating variations...")
+        init_image = Image.open(resolve_public_path(impath))
+        images = texture_gen.generate_variations(init_image, texture_string,
+                                                 n=n - 1, seed=seed)
+        result = _save_textures(images, f"{texture_string}_var", seed=seed,
+                                job_id=job_id)
+    result["results"].insert(0, {"rendering": None, "texture": impath,
+                                 "seed": None})
     return result
 
 
 @bp.route("/generate_similar_textures", methods=["POST"])
 def generate_similar_textures():
-    # True image variations are a possible future img2img feature; for now
-    # approximate with fresh generations from the same prompt.
     body = get_json_body()
     texture_string, n, impath = require_fields(body, "texture_string", "n", "impath")
     impath = to_public_url(resolve_public_path(impath))
     job_id = jobs.submit(generate_similar_and_save, texture_string, n, impath,
-                         pass_job_id=True)
+                         seed=_parse_seed(body.get("seed")), pass_job_id=True)
     return jsonify({"job_id": job_id})
+
+
+def _is_map_file(stem):
+    return any(stem.endswith(suffix) for suffix in _MAP_SUFFIXES)
+
+
+@bp.route("/generated_textures", methods=["GET"])
+def generated_textures():
+    """The persistent generation gallery: every generated diffuse texture,
+    newest first."""
+    if not os.path.isdir(_GENERATED_DIR):
+        return jsonify({"results": []})
+    entries = []
+    for fname in os.listdir(_GENERATED_DIR):
+        stem, ext = os.path.splitext(fname)
+        if ext.lower() != ".png" or _is_map_file(stem):
+            continue
+        fpath = os.path.join(_GENERATED_DIR, fname)
+        entries.append((os.path.getmtime(fpath), fpath))
+    entries.sort(reverse=True)
+    return jsonify({"results": [{"rendering": None, "texture": to_public_url(p)}
+                                for _, p in entries]})
+
+
+@bp.route("/export_texture_set", methods=["GET"])
+def export_texture_set():
+    """Download a texture and its derived maps as one zip."""
+    texture = request.args.get("texture", "")
+    diffuse = resolve_public_path(texture)
+    if not os.path.isfile(diffuse):
+        return jsonify({"error": "texture not found"}), 404
+
+    stem, ext = os.path.splitext(os.path.basename(diffuse))
+    directory = os.path.dirname(diffuse)
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.write(diffuse, f"{stem}/albedo{ext}")
+        for suffix, out in (("_normal", "normal"), ("_height", "height"),
+                            ("_ao", "ao")):
+            src = os.path.join(directory, f"{stem}{suffix}{ext}")
+            if os.path.isfile(src):
+                zf.write(src, f"{stem}/{out}{ext}")
+    buffer.seek(0)
+    return send_file(buffer, mimetype="application/zip", as_attachment=True,
+                     download_name=f"{stem}_textures.zip")
 
 
 @bp.route("/jobs/<job_id>", methods=["GET"])

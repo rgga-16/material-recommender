@@ -3,7 +3,7 @@
 	import Button from '../../lib/ui/Button.svelte';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 
-	let { texture, rendering, info, size = '200px' } = $props();
+	let { texture, rendering, size = '200px' } = $props();
 
 	let currentImage = $state(0);
 	let viewString = $derived(currentImage === 0 ? 'View texture' : 'View rendering');

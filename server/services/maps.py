@@ -24,6 +24,7 @@ sys.path.insert(0, _DEEPBUMP_DIR)
 try:
     import utils_inference  # noqa: E402
     import module_normals_to_height  # noqa: E402
+    import module_normals_to_curvature  # noqa: E402
 finally:
     sys.path.remove(_DEEPBUMP_DIR)
 
@@ -78,7 +79,8 @@ def _write_chw(path, img):
 
 
 def generate_normal_and_height(texture_filepath):
-    """Create <name>_normal.png and <name>_height.png next to the texture."""
+    """Create <name>_normal.png, <name>_height.png, and <name>_ao.png next
+    to the texture."""
     directory = os.path.dirname(texture_filepath)
     name = os.path.splitext(os.path.basename(texture_filepath))[0]
 
@@ -90,4 +92,11 @@ def generate_normal_and_height(texture_filepath):
     height = module_normals_to_height.apply(normals, True, None)
     _write_chw(height_path, height)
 
-    return normal_path, height_path
+    # Ambient occlusion from curvature: the curvature map is normalized with
+    # cavities dark and flat areas mid-gray, so shift it up so flat surfaces
+    # are fully unoccluded (1.0) and only cavities darken.
+    ao_path = os.path.join(directory, f"{name}_ao.png")
+    curvature = module_normals_to_curvature.apply(normals, "SMALL", None)
+    _write_chw(ao_path, np.clip(curvature + 0.5, 0.0, 1.0))
+
+    return normal_path, height_path, ao_path

@@ -24,7 +24,7 @@
 
 	import { addToHistory } from '../lib/history.js';
 	import { getImage, degreeToRadians } from '../lib/utils.js';
-	import { postJson } from '../lib/api.js';
+	import { postJson, imageUrl } from '../lib/api.js';
 	import { showToast } from '../lib/toast.js';
 	import { viewport, inspector } from '../lib/registry.js';
 
@@ -109,6 +109,38 @@
 		return object_groups[objName];
 	}
 
+	/** Restore a part's persisted PBR material from its manifest entry (the
+	 *  scene survives restarts, so textures must reapply on load). Demo parts
+	 *  with mat_name "none" keep their GLB material + manifest color. */
+	function applyEntryMaterial(info) {
+		const entry = (manifest[info.parent] || {})[info.name];
+		if (!entry || !info.mesh) return;
+		if (!entry['mat_image_texture'] || !entry['mat_name'] || entry['mat_name'] === 'none') return;
+		const material = buildPartMaterial({
+			imageUrl: imageUrl(entry['mat_image_texture'], { bust: true }),
+			normalUrl: entry['mat_normal_texture'] ? imageUrl(entry['mat_normal_texture'], { bust: true }) : null,
+			heightUrl: entry['mat_height_texture'] ? imageUrl(entry['mat_height_texture'], { bust: true }) : null,
+			aoUrl: entry['mat_ao_texture'] ? imageUrl(entry['mat_ao_texture'], { bust: true }) : null,
+			color: entry['color'] || '#FFFFFF',
+			opacity: entry['opacity'] ?? 1,
+			roughness: entry['roughness'] ?? 0.5,
+			metalness: entry['metalness'] ?? 0.0,
+			normalScale: entry['normalScale'] ?? DEFAULT_NORMAL_SCALE,
+			displacementScale: entry['displacementScale'] ?? DEFAULT_DISPLACEMENT_SCALE,
+			offsetX: entry['offsetX'] ?? 0,
+			offsetY: entry['offsetY'] ?? 0,
+			rotation: degreeToRadians(entry['rotation'] ?? 0),
+			repeatX: entry['scaleX'] ?? 1,
+			repeatY: entry['scaleY'] ?? 1,
+		});
+		info.mesh.traverse((node) => {
+			if (node.isMesh) {
+				disposeMaterial(node.material);
+				node.material = material;
+			}
+		});
+	}
+
 	function setup_scene() {
 		viewer.transformControls.detach();
 		disposeSceneContent(viewer.scene, new Set([viewer.transformGizmo, ambientLight]));
@@ -117,8 +149,16 @@
 			renderer: viewer.renderer,
 			getGroup: getObjectGroup,
 			getEntry: (info) => (manifest[info.parent] || {})[info.name],
-			onLoaded: () => objects_3d.set(model3d_infos),
+			onLoaded: (info) => {
+				applyEntryMaterial(info);
+				objects_3d.set(model3d_infos);
+			},
 		});
+	}
+
+	/** Swap the lighting environment (null = default studio environment). */
+	export function setEnvironment(url) {
+		return viewer ? viewer.setEnvironment(url) : Promise.resolve();
 	}
 
 	export function update_3d_scene() {
@@ -147,11 +187,20 @@
 			return null;
 		}
 
+		// Persist the applied set into the current scene dir first — the
+		// response reports exactly which maps (normal/height/AO) exist, so
+		// the material is built only from real files.
+		const moved = await postJson('/transfer_texture', {
+			src_url: image_path,
+			curr_textureparts_path: get(curr_textureparts_path),
+		});
+
 		const entry = cloned_texture_parts[object_name][part_name];
 		const material = buildPartMaterial({
-			imageUrl: await getImage(image_path),
-			normalUrl: normal_path ? await getImage(normal_path) : null,
-			heightUrl: height_path ? await getImage(height_path) : null,
+			imageUrl: await getImage(moved.img_url),
+			normalUrl: moved.normal_url ? await getImage(moved.normal_url) : null,
+			heightUrl: moved.height_url ? await getImage(moved.height_url) : null,
+			aoUrl: moved.ao_url ? await getImage(moved.ao_url) : null,
 			color: entry['color'] || '#FFFFFF',
 			opacity: entry['opacity'] ?? 1,
 			roughness: entry['roughness'] ?? 0.5,
@@ -171,17 +220,11 @@
 			}
 		});
 
-		// Persist the applied set into the current scene dir so the scene
-		// stays self-contained on disk.
-		const moved = await postJson('/transfer_texture', {
-			src_url: image_path,
-			curr_textureparts_path: get(curr_textureparts_path),
-		});
-
 		entry['mat_name'] = mat_name;
 		entry['mat_image_texture'] = moved.img_url;
 		entry['mat_normal_texture'] = moved.normal_url;
 		entry['mat_height_texture'] = moved.height_url;
+		entry['mat_ao_texture'] = moved.ao_url;
 		curr_texture_parts.set(cloned_texture_parts);
 		objects_3d.set(model3d_infos);
 		return moved;
@@ -489,6 +532,7 @@
 			captureScreenshot,
 			removeHighlights,
 			transferTexture,
+			setEnvironment,
 		})
 	);
 </script>

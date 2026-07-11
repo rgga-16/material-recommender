@@ -16,7 +16,7 @@
 </script>
 
 <div class="image-grid">
-	{#each pairs as pair}
+	{#each pairs as pair (pair.texture)}
 		<div
 			class="texture-tile"
 			class:selected={selected_texture === pair.texture}

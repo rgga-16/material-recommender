@@ -25,7 +25,7 @@ export function disposeMaterial(material) {
 /** Apply the manifest's UV transform to every map on the material. */
 export function applyMapTransforms(material, { offsetX = 0, offsetY = 0,
 	rotation = 0, repeatX = 1, repeatY = 1 } = {}) {
-	for (const key of ['map', 'normalMap', 'displacementMap']) {
+	for (const key of ['map', 'normalMap', 'displacementMap', 'aoMap']) {
 		const map = material[key];
 		if (!map) continue;
 		map.offset.set(offsetX, offsetY);
@@ -38,7 +38,7 @@ export function applyMapTransforms(material, { offsetX = 0, offsetY = 0,
  * Build the MeshStandardMaterial for a part from its manifest entry and
  * texture URLs. Missing normal/height URLs are simply skipped.
  */
-export function buildPartMaterial({ imageUrl, normalUrl, heightUrl,
+export function buildPartMaterial({ imageUrl, normalUrl, heightUrl, aoUrl,
 	color = '#FFFFFF', opacity = 1, roughness = 0.5, metalness = 0,
 	normalScale = DEFAULT_NORMAL_SCALE,
 	displacementScale = DEFAULT_DISPLACEMENT_SCALE,
@@ -53,6 +53,12 @@ export function buildPartMaterial({ imageUrl, normalUrl, heightUrl,
 	if (heightUrl) {
 		material.displacementMap = loadDataTexture(heightUrl);
 		material.displacementScale = displacementScale;
+	}
+	if (aoUrl) {
+		material.aoMap = loadDataTexture(aoUrl);
+		// Sample AO with the base UV set — these models have no second set.
+		material.aoMap.channel = 0;
+		material.aoMapIntensity = 1.0;
 	}
 
 	// material.color must always remain a valid THREE.Color instance —

@@ -3,7 +3,7 @@
     import { in_japanese } from '../../stores.js';
     import { translate } from '../../lib/i18n.js';
 
-    let { material_path, material_name, material_info, index } = $props();
+    let { material_path, material_name, material_info } = $props();
 
     let display_name = $state(material_name);
     let display_info = $state(material_info);

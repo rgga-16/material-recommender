@@ -17,6 +17,7 @@
   import Ban from "@lucide/svelte/icons/ban";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import WandSparkles from "@lucide/svelte/icons/wand-sparkles";
+  import Download from "@lucide/svelte/icons/download";
 
   import { in_japanese, selected_objs_and_parts } from "../stores.js";
   import { translate } from "../lib/i18n.js";
@@ -36,7 +37,7 @@
   import { curr_texture_parts } from "../stores.js";
   import { generator } from "../lib/registry.js";
 
-  let { part_parent_name, part_name, index, parents: parents_prop = [] } = $props();
+  let { part_parent_name, part_name, index } = $props();
 
   let japanese = $derived($in_japanese);
 
@@ -59,7 +60,6 @@
   let scaleY = $state(entry["scaleY"] ?? 1);
   let scale = $state((entry["scaleX"] ?? 1) === (entry["scaleY"] ?? 1) ? (entry["scaleX"] ?? 1) : 1);
 
-  let feedback = $state(undefined);
   let formatted_feedback = $state(entry["feedback"]?.["formatted_feedback"]);
   let japanese_formatted_feedback = $state(undefined);
   let intro_text = $state(entry["feedback"]?.["intro_text"]);
@@ -81,6 +81,11 @@
   let image = $state(null);
   export function updateImage() {
     image?.getImage();
+  }
+
+  /** Download this part's albedo + normal/height/AO maps as one zip. */
+  function downloadTextureSet() {
+    window.location.href = "/export_texture_set?texture=" + encodeURIComponent(material_url);
   }
 
   // Re-sync editor state when a manifest VALUE changes (texture drag, undo/
@@ -120,10 +125,6 @@
   });
 
   // ------------------------------------------------- live material updates
-
-  function mat() {
-    return get(selected_objs_and_parts)[index]?.mesh?.material;
-  }
 
   export function updateOpacity(v) {
     selected_objs_and_parts.update((value) => {
@@ -243,7 +244,6 @@
   }
 
   async function requestMaterialFeedback() {
-    feedback = undefined;
     formatted_feedback = undefined;
     intro_text = undefined;
     references = undefined;
@@ -292,7 +292,6 @@
     formatted_feedback = data["formatted_response"];
     references = data["references"];
     activeAspect = Object.keys(formatted_feedback)[0];
-    feedback = data["unformatted_response"];
 
     curr_texture_parts.update((value) => {
       value[part_parent_name][part_name]["feedback"] = {
@@ -387,6 +386,14 @@
         <span class="color-chip" style="background-color: {$curr_texture_parts[part_parent_name][part_name]['color'] ?? '#FFFFFF'};"></span>
         <span class="color-code">{$curr_texture_parts[part_parent_name][part_name]["color"] ?? "none"}</span>
       </div>
+      {#if material_url && material_name && material_name !== "none" && material_name !== "None"}
+        <div class="meta-row">
+          <Button size="sm" variant="secondary" onclick={downloadTextureSet}>
+            <Download size={13} strokeWidth={1.75} />
+            {japanese ? "テクスチャ一式をDL" : "Download texture set"}
+          </Button>
+        </div>
+      {/if}
       {#if $use_chatgpt}
         <div class="assistant-actions">
           <Button size="sm" variant="secondary" onclick={suggestSimilarMaterials}>
@@ -546,7 +553,7 @@
                 commitColor();
               }}
             >
-              {#each p["palette"] as swatch}
+              {#each p["palette"] as swatch, si (si)}
                 <span class="mini-swatch" style="background-color: {swatch};"></span>
               {/each}
               <span class="palette-name">{p["name"]}</span>
@@ -575,7 +582,7 @@
   {:else if activeTab === "attached-parts"}
     <div class="tab-body">
       {#if parents.length > 0}
-        {#each parents as p}
+        {#each parents as p (p[0] + "|" + p[1])}
           <div class="attached-part">
             <DynamicImage
               imagepath={$curr_texture_parts[p[0]][p[1]]["mat_image_texture"]}
@@ -601,7 +608,7 @@
       {#if formatted_feedback || japanese_formatted_feedback}
         <div class="markdown"><SvelteMarkdown source={intro_text} /></div>
         <div class="aspect-pills">
-          {#each Object.keys(formatted_feedback) as aspect}
+          {#each Object.keys(formatted_feedback) as aspect (aspect)}
             <button
               class="pill"
               class:active={activeAspect === aspect}
@@ -612,7 +619,7 @@
           {/each}
         </div>
 
-        {#each Object.keys(formatted_feedback) as aspect}
+        {#each Object.keys(formatted_feedback) as aspect (aspect)}
           {#if activeAspect === aspect}
             <p class="feedback-text">
               {japanese && japanese_formatted_feedback
@@ -625,7 +632,7 @@
               <div class="empty-note">{japanese ? "提案はない。" : "No suggestions provided."}</div>
             {:else}
               <div class="suggestion-grid">
-                {#each formatted_feedback[aspect]["suggestions"] as suggestion, i}
+                {#each formatted_feedback[aspect]["suggestions"] as suggestion, i (i)}
                   <div class="suggestion-card">
                     <span class="suggestion-name">
                       {japanese && japanese_formatted_feedback

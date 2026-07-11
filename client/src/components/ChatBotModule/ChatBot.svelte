@@ -37,7 +37,9 @@
 
     let japanese = $derived($in_japanese);
 
-    let inputMessage = $state('');
+    // Writable derived: other modules compose queries for the chatbot by
+    // setting the chatbot_input_message store; the user then edits freely.
+    let inputMessage = $derived($chatbot_input_message);
     let use_internet = $state(false);
 
     let messages = $state([]);
@@ -288,13 +290,6 @@
         onProceedToGenerate(material_name);
     }
 
-    $effect(() => {
-        // If the chatbot_input_message global store is updated (e.g. by
-        // another module composing a query for the chatbot), mirror it into
-        // the composer's input.
-        inputMessage = $chatbot_input_message;
-    });
-
     onMount(async () => {
         await init_query(); // COMMENT IF YOU DON'T WANT TO USE THE CHATBOT
     });
@@ -303,7 +298,7 @@
 
 <div class="chatbot">
     <div class="messages">
-        {#each messages as message}
+        {#each messages as message, mi (mi)}
             <div class="message-row {message.role}">
                 <div class="bubble {message.role}">
                     <div class="bubble-role">
@@ -322,8 +317,8 @@
                     </div>
                     {#if message.type == "suggested_materials"}
                         <div class="material-suggestions">
-                            {#each message.content as m, i}
-                                <MaterialCard material_path={m["filepath"]} material_name={m["name"]} material_info={m["reason"]} index={i} />
+                            {#each message.content as m, i (i)}
+                                <MaterialCard material_path={m["filepath"]} material_name={m["name"]} material_info={m["reason"]} />
                                 <Button variant="ghost" size="sm" onclick={() => generate(m["name"])}>
                                     <WandSparkles size={14} strokeWidth={1.75} />
                                     {japanese ? "もっと生み出せ！" : "Generate more!"}
@@ -332,7 +327,7 @@
                         </div>
                     {:else if message.type == "suggested_color_palettes"}
                         <div class="color-suggestions">
-                            {#each message.content as m}
+                            {#each message.content as m, ci (ci)}
                                 <div class="color-suggestion-card">
                                     <ColorPalette name={m["name"]} color_codes={m["codes"]} />
                                     <Button variant="ghost" size="sm" onclick={() => saveColorPalette(m)}>
@@ -367,7 +362,7 @@
     <div class="composer">
         <div class="starter-chips">
             <div class="chips-row">
-                {#each (expanded_suggested_questions ? suggested_material_queries : suggested_material_queries.slice(0, 2)) as q}
+                {#each (expanded_suggested_questions ? suggested_material_queries : suggested_material_queries.slice(0, 2)) as q, qi (qi)}
                     <button type="button" class="chip" onclick={() => (inputMessage = q)}>{q}</button>
                 {/each}
             </div>
