@@ -45,9 +45,26 @@ SERVER_THREADS = _env_int("APP_SERVER_THREADS", 16)
 # Local Ollama assistant
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:1.5b-instruct")
+# Multimodal model used when a request carries scene screenshots. Pull with:
+#   ollama pull qwen2.5vl:3b
+OLLAMA_VISION_MODEL = os.environ.get("OLLAMA_VISION_MODEL", "qwen2.5vl:3b")
 MAX_HISTORY_MESSAGES = _env_int("MAX_HISTORY_MESSAGES", 20)
 # Idle chat sessions are dropped after this many seconds.
 CHAT_SESSION_TTL_SECONDS = _env_int("CHAT_SESSION_TTL_SECONDS", 6 * 3600)
+
+# Always-on DuckDuckGo web search for assistant prompts (best-effort; the
+# assistant degrades to no-web-context when offline or the lookup fails).
+WEBSEARCH_MAX_RESULTS = _env_int("WEBSEARCH_MAX_RESULTS", 5)
+WEBSEARCH_TIMEOUT_S = _env_float("WEBSEARCH_TIMEOUT_S", 6.0)
+
+# Proactive scene-feedback pacing, served to the client via GET /app_config.
+# Debounce: quiet period after the last scene change before feedback runs.
+# Min interval: floor between two feedback runs (also the idle-check cadence).
+FEEDBACK_DEBOUNCE_S = _env_int("FEEDBACK_DEBOUNCE_S", 20)
+FEEDBACK_MIN_INTERVAL_S = _env_int("FEEDBACK_MIN_INTERVAL_S", 180)
+
+# Persisted design brief (editable in the UI, or set from an uploaded PDF)
+DESIGN_BRIEF_PATH = os.path.join(DATA_DIR, "design_brief.json")
 
 # Diffusion model (any diffusers text-to-image repo id; defaults assume a
 # turbo-class model: 1-4 steps, guidance 0)

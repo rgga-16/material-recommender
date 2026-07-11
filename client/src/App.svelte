@@ -18,6 +18,7 @@
 	import Box from '@lucide/svelte/icons/box';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
+	import MessageSquareQuote from '@lucide/svelte/icons/message-square-quote';
 	import SwatchBook from '@lucide/svelte/icons/swatch-book';
 	import Upload from '@lucide/svelte/icons/upload';
 	import WandSparkles from '@lucide/svelte/icons/wand-sparkles';
@@ -31,6 +32,7 @@
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
 	import Globe from '@lucide/svelte/icons/globe';
+	import PanelRight from '@lucide/svelte/icons/panel-right';
 
 	import {
 		curr_rendering_path,
@@ -44,11 +46,13 @@
 		use_chatgpt,
 		action_history,
 		actions_panel_tab,
+		feedback_unread,
 	} from './stores.js';
 
 	import { undoAction, redoAction } from './lib/history.js';
 	import { showToast } from './lib/toast.js';
 	import { imageUrl } from './lib/api.js';
+	import { startFeedbackScheduler } from './lib/feedbackScheduler.js';
 
 	let japanese = $derived($in_japanese);
 	let history = $derived($action_history);
@@ -65,9 +69,12 @@
 
 	let show_design_brief = $state(false);
 	let design_brief_text = $state('');
+	let is_saving_brief = $state(false);
+	let brief_pdf_input = $state(null);
 
 	let move_mode = $state(false);
 	let tool_panel_collapsed = $state(false);
+	let inspector_collapsed = $state(false);
 	let shelf_collapsed = $state(false);
 
 	// ----------------------------------------------------------------- theme
@@ -120,6 +127,65 @@
 		return data;
 	}
 	const promise = getInitialRendering();
+
+	// ---------------------------------------------------------- design brief
+	// The brief lives server-side (every assistant prompt is grounded in it);
+	// the store is a synced read model for display.
+
+	async function syncDesignBrief() {
+		try {
+			const data = await (await fetch('/design_brief')).json();
+			if (data['brief']) {
+				design_brief.set(data['brief']);
+				design_brief_text = data['brief'];
+			}
+		} catch (error) {
+			console.warn('could not load design brief from server', error);
+		}
+	}
+
+	async function saveDesignBrief() {
+		is_saving_brief = true;
+		try {
+			const response = await fetch('/design_brief', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ brief: design_brief_text }),
+			});
+			if (!response.ok) throw new Error((await response.json())['error'] || 'save failed');
+			const data = await response.json();
+			design_brief.set(data['brief']);
+			design_brief_text = data['brief'];
+			showToast(japanese ? 'デザインブリーフを保存しました。' : 'Design brief saved.', 'success');
+		} catch (error) {
+			console.error(error);
+			showToast(japanese ? 'デザインブリーフの保存に失敗しました。' : 'Failed to save the design brief.', 'error');
+		} finally {
+			is_saving_brief = false;
+		}
+	}
+
+	async function uploadBriefPdf(event) {
+		const file = event.target.files?.[0];
+		event.target.value = '';
+		if (!file) return;
+		is_saving_brief = true;
+		try {
+			const form = new FormData();
+			form.append('file', file);
+			const response = await fetch('/design_brief_pdf', { method: 'POST', body: form });
+			const data = await response.json();
+			if (!response.ok) throw new Error(data['error'] || 'PDF upload failed');
+			design_brief.set(data['brief']);
+			design_brief_text = data['brief'];
+			showToast(japanese ? 'PDFからデザインブリーフを設定しました。' : 'Design brief set from PDF.', 'success');
+		} catch (error) {
+			console.error(error);
+			showToast(error.message, 'error');
+		} finally {
+			is_saving_brief = false;
+		}
+	}
 
 	async function saveRendering() {
 		is_saving_scene = true;
@@ -196,18 +262,26 @@
 	const rail_items = [
 		{ id: 'generate', icon: Sparkles, en: 'Generate', ja: '生成する' },
 		{ id: 'chatbot', icon: MessageSquare, en: 'ChatBot', ja: 'チャットボット', gated: true },
+		{ id: 'feedback', icon: MessageSquareQuote, en: 'Feedback', ja: 'フィードバック', gated: true },
 		{ id: 'mat_lib', icon: SwatchBook, en: 'Material Library', ja: '素材ライブラリ' },
 		{ id: 'upload', icon: Upload, en: 'Upload', ja: 'アップロード' },
 		{ id: 'auto_style', icon: WandSparkles, en: 'Auto-Style', ja: '自動スタイル' },
 	];
 
 	function railClick(id) {
+		if (id === 'feedback') feedback_unread.set(0);
 		if ($actions_panel_tab === id && !tool_panel_collapsed) {
 			tool_panel_collapsed = true;
 		} else {
 			tool_panel_collapsed = false;
 			actions_panel_tab.set(id);
 		}
+	}
+
+	function openFeedbackPanel() {
+		feedback_unread.set(0);
+		tool_panel_collapsed = false;
+		actions_panel_tab.set('feedback');
 	}
 
 	let active_rail_item = $derived(rail_items.find((r) => r.id === $actions_panel_tab));
@@ -240,7 +314,11 @@
 
 	onMount(() => {
 		design_brief_text = get(design_brief);
+		syncDesignBrief();
 		loadHdris();
+		if (get(use_chatgpt)) {
+			startFeedbackScheduler({ openPanel: openFeedbackPanel });
+		}
 		window.addEventListener('keydown', onShortcut);
 
 		const observer = new ResizeObserver(() => {
@@ -262,7 +340,7 @@
 
 <Toast />
 
-<div class="shell" class:tool-collapsed={tool_panel_collapsed} class:shelf-collapsed={shelf_collapsed}>
+<div class="shell" class:tool-collapsed={tool_panel_collapsed} class:inspector-collapsed={inspector_collapsed} class:shelf-collapsed={shelf_collapsed}>
 	<!-- ============================================================ top bar -->
 	<header class="topbar">
 		<div class="brand">
@@ -341,13 +419,18 @@
 	<nav class="rail">
 		{#each rail_items as item (item.id)}
 			{#if !item.gated || $use_chatgpt}
-				<IconButton
-					label={japanese ? item.ja : item.en}
-					active={$actions_panel_tab === item.id && !tool_panel_collapsed}
-					onclick={() => railClick(item.id)}
-				>
-					<item.icon size={20} strokeWidth={1.75} />
-				</IconButton>
+				<div class="rail-item">
+					<IconButton
+						label={japanese ? item.ja : item.en}
+						active={$actions_panel_tab === item.id && !tool_panel_collapsed}
+						onclick={() => railClick(item.id)}
+					>
+						<item.icon size={20} strokeWidth={1.75} />
+					</IconButton>
+					{#if item.id === 'feedback' && $feedback_unread > 0}
+						<span class="rail-badge">{$feedback_unread}</span>
+					{/if}
+				</div>
 			{/if}
 		{/each}
 	</nav>
@@ -387,6 +470,17 @@
 					{move_mode ? (japanese ? '移動モード: オン' : 'Move: ON') : japanese ? 'オブジェクトを移動' : 'Move Objects'}
 				</button>
 			</div>
+			<div class="inspector-toggle">
+				<IconButton
+					label={inspector_collapsed
+						? (japanese ? '詳細パネルを表示' : 'Show details panel')
+						: (japanese ? '詳細パネルを隠す' : 'Hide details panel')}
+					active={!inspector_collapsed}
+					onclick={() => (inspector_collapsed = !inspector_collapsed)}
+				>
+					<PanelRight size={16} strokeWidth={1.75} />
+				</IconButton>
+			</div>
 			{#if is_loading_scene || is_saving_scene}
 				<div class="viewport-scrim">
 					<Spinner size={28} />
@@ -401,7 +495,7 @@
 	</section>
 
 	<!-- =========================================================== inspector -->
-	<aside class="inspector">
+	<aside class="inspector" aria-hidden={inspector_collapsed}>
 		{#await promise}
 			<div class="viewport-status">
 				<Spinner size={24} />
@@ -473,17 +567,44 @@
 >
 	<textarea
 		class="brief-text"
-		placeholder="No design brief yet. Please write your design brief here."
-		readonly={true}
+		placeholder={japanese
+			? 'まだデザインブリーフがありません。ここに記入してください。'
+			: 'No design brief yet. Write your design brief here, or upload a PDF.'}
 		bind:value={design_brief_text}
 	></textarea>
+	<div class="brief-actions">
+		<p class="brief-hint">
+			{japanese
+				? 'アシスタントの提案とフィードバックは常にこのブリーフを参照します。'
+				: 'Every assistant suggestion and feedback is grounded in this brief.'}
+		</p>
+		<div class="brief-buttons">
+			<input
+				bind:this={brief_pdf_input}
+				type="file"
+				accept=".pdf"
+				class="hidden-input"
+				onchange={uploadBriefPdf}
+			/>
+			<Button size="sm" variant="secondary" onclick={() => brief_pdf_input?.click()} disabled={is_saving_brief}>
+				<Upload size={14} strokeWidth={1.75} />
+				{japanese ? 'PDFをアップロード' : 'Upload PDF'}
+			</Button>
+			<Button size="sm" variant="primary" onclick={saveDesignBrief} loading={is_saving_brief}>
+				<Save size={14} strokeWidth={1.75} />
+				{japanese ? '保存' : 'Save'}
+			</Button>
+		</div>
+	</div>
 </Modal>
 
 <style>
 	.shell {
+		--tool-col: var(--toolpanel-w);
+		--insp-col: var(--inspector-w);
 		display: grid;
 		grid-template-rows: var(--topbar-h) minmax(0, 1fr) auto;
-		grid-template-columns: var(--rail-w) var(--toolpanel-w) minmax(0, 1fr) var(--inspector-w);
+		grid-template-columns: var(--rail-w) var(--tool-col) minmax(0, 1fr) var(--insp-col);
 		grid-template-areas:
 			'topbar topbar topbar topbar'
 			'rail tool viewport inspector'
@@ -494,7 +615,11 @@
 	}
 
 	.shell.tool-collapsed {
-		grid-template-columns: var(--rail-w) 0 minmax(0, 1fr) var(--inspector-w);
+		--tool-col: 0px;
+	}
+
+	.shell.inspector-collapsed {
+		--insp-col: 0px;
 	}
 
 	/* ------------------------------------------------------------- top bar */
@@ -601,6 +726,28 @@
 		padding: var(--sp-3) 0;
 		background: var(--bg-panel);
 		border-right: 1px solid var(--border-subtle);
+	}
+
+	.rail-item {
+		position: relative;
+	}
+
+	.rail-badge {
+		position: absolute;
+		top: -3px;
+		right: -3px;
+		min-width: 15px;
+		height: 15px;
+		padding: 0 4px;
+		display: grid;
+		place-items: center;
+		font-size: 10px;
+		font-weight: 700;
+		line-height: 1;
+		color: #fff;
+		background: var(--danger, #e5484d);
+		border-radius: var(--radius-full);
+		pointer-events: none;
 	}
 
 	/* ---------------------------------------------------------- tool panel */
@@ -717,6 +864,22 @@
 		border-left: 1px solid var(--border-subtle);
 	}
 
+	.inspector-collapsed .inspector {
+		display: none;
+	}
+
+	.inspector-toggle {
+		position: absolute;
+		top: var(--sp-3);
+		right: var(--sp-3);
+		z-index: 5;
+		background: var(--bg-elevated);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-lg);
+		padding: 3px;
+		box-shadow: var(--shadow-overlay);
+	}
+
 	/* --------------------------------------------------------------- shelf */
 	.shelf {
 		grid-area: shelf;
@@ -809,5 +972,29 @@
 		font-family: inherit;
 		font-size: var(--text-base);
 		line-height: 1.55;
+	}
+
+	.brief-actions {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--sp-3);
+		margin-top: var(--sp-3);
+	}
+
+	.brief-hint {
+		margin: 0;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+	}
+
+	.brief-buttons {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+	}
+
+	.hidden-input {
+		display: none;
 	}
 </style>

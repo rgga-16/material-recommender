@@ -5,7 +5,7 @@
     import TexturePart from './TexturePart.svelte';
     import TextureParts from './TextureParts.svelte';
 
-    import { curr_texture_parts, selected_objs_and_parts, in_japanese } from '../stores.js';
+    import { selected_objs_and_parts, in_japanese } from '../stores.js';
     import { inspector } from '../lib/registry.js';
 
     let japanese = $derived($in_japanese);
@@ -36,7 +36,6 @@
                     index={i}
                     part_parent_name={sel_obj_part.parent}
                     part_name={sel_obj_part.name}
-                    parents={$curr_texture_parts[sel_obj_part.parent][sel_obj_part.name]['parents']}
                 />
             {/each}
         {:else}

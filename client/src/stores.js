@@ -127,3 +127,8 @@ export let action_history = writable({
 
 export const toasts = writable([]); //Keeps track of the currently displayed toast notifications
 export const object_transforms = writable({}); //Per-object placement transforms {object: {position, rotation, scale}} for scene composition
+
+// Proactive scene feedback: newest-first feed of {id, at, summary,
+// observations, references} entries plus an unread counter for the rail badge.
+export const feedback_feed = writable([]);
+export const feedback_unread = writable(0);

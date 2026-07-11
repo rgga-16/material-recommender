@@ -1,7 +1,7 @@
-// Loading scene models (GLB/GLTF) into per-object groups, and disposing
-// scene content on rebuild so GPU resources are actually released.
+// Loading scene models (GLB/GLTF/OBJ/FBX/STL) into per-object groups, and
+// disposing scene content on rebuild so GPU resources are actually released.
 import * as THREE from 'three';
-import { loadGltf } from './loaders.js';
+import { loadGltf, loadModel } from './loaders.js';
 import { disposeMaterial } from './materials.js';
 
 /** Remove and deep-dispose every scene child not in `keep`. */
@@ -58,14 +58,17 @@ export function loadSceneModels(infos, { renderer, getGroup, getEntry, onLoaded 
 
 		if (info.node) {
 			if (!sharedGltfCache[info.glb_url]) {
-				sharedGltfCache[info.glb_url] = loadGltf(info.glb_url, renderer).then((gltf) => {
-					group.add(gltf.scene);
-					return gltf;
+				// loadModel dispatches on extension (.glb/.gltf/.obj/.fbx/.stl)
+				// and normalizes mesh names/UVs the same way the upload parser
+				// did, so manifest "node" keys resolve for every format.
+				sharedGltfCache[info.glb_url] = loadModel(info.glb_url, renderer).then((root) => {
+					group.add(root);
+					return root;
 				});
 			}
-			sharedGltfCache[info.glb_url].then((gltf) => {
+			sharedGltfCache[info.glb_url].then((root) => {
 				let mesh = null;
-				gltf.scene.traverse((child) => {
+				root.traverse((child) => {
 					if (!mesh && child.isMesh && child.name === info.node) {
 						mesh = child;
 					}

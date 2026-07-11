@@ -4,38 +4,30 @@
   // release/blur (onCommit) via changeProperty().
   import DynamicImage from "./DynamicImage.svelte";
   import EditableTextbox from "./EditableTextbox.svelte";
-  import SvelteMarkdown from "@humanspeak/svelte-markdown";
 
   import Slider from "../lib/ui/Slider.svelte";
   import NumberInput from "../lib/ui/NumberInput.svelte";
-  import Spinner from "../lib/ui/Spinner.svelte";
   import Button from "../lib/ui/Button.svelte";
-  import Switch from "../lib/ui/Switch.svelte";
   import Field from "../lib/ui/Field.svelte";
 
   import Plus from "@lucide/svelte/icons/plus";
   import Ban from "@lucide/svelte/icons/ban";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
-  import WandSparkles from "@lucide/svelte/icons/wand-sparkles";
   import Download from "@lucide/svelte/icons/download";
+  import Lightbulb from "@lucide/svelte/icons/lightbulb";
 
   import { in_japanese, selected_objs_and_parts } from "../stores.js";
   import { translate } from "../lib/i18n.js";
   import { addToHistory } from "../lib/history.js";
   import { postJson } from "../lib/api.js";
-  import { pollJob } from "../lib/jobs.js";
-  import { showToast } from "../lib/toast.js";
   import { saved_color_palettes } from "../stores.js";
   import { chatbot_input_message } from "../stores.js";
   import { actions_panel_tab } from "../stores.js";
-  import { generate_tab_page } from "../stores.js";
-  import { design_brief } from "../stores.js";
   import { use_chatgpt } from "../stores.js";
   import { get } from "svelte/store";
   import { onMount, untrack } from "svelte";
 
   import { curr_texture_parts } from "../stores.js";
-  import { generator } from "../lib/registry.js";
 
   let { part_parent_name, part_name, index } = $props();
 
@@ -48,7 +40,6 @@
   let material_name = $state(entry["mat_name"] ?? "None");
   let material_url = $state(entry["mat_image_texture"] ?? "None");
   let material_color = $state(entry["color"] ?? "#FFFFFF");
-  let parents = $state(entry["parents"] ?? []);
   let opacity = $state(entry["opacity"] ?? 1.0);
   let roughness = $state(entry["roughness"] ?? 0.5);
   let metalness = $state(entry["metalness"] ?? 0.0);
@@ -59,16 +50,6 @@
   let scaleX = $state(entry["scaleX"] ?? 1);
   let scaleY = $state(entry["scaleY"] ?? 1);
   let scale = $state((entry["scaleX"] ?? 1) === (entry["scaleY"] ?? 1) ? (entry["scaleX"] ?? 1) : 1);
-
-  let formatted_feedback = $state(entry["feedback"]?.["formatted_feedback"]);
-  let japanese_formatted_feedback = $state(undefined);
-  let intro_text = $state(entry["feedback"]?.["intro_text"]);
-  let references = $state(entry["feedback"]?.["references"]);
-  let activeAspect = $state(formatted_feedback ? Object.keys(formatted_feedback)[0] : undefined);
-
-  let use_design_brief = $state(false);
-  let is_loading_feedback = $state(false);
-  let feedback_progress_message = $state('');
 
   let palettes = $state(get(saved_color_palettes));
   let selected_palette_idx = $state(0);
@@ -243,95 +224,54 @@
     chatbot_input_message.set(query);
   }
 
-  async function requestMaterialFeedback() {
-    formatted_feedback = undefined;
-    intro_text = undefined;
-    references = undefined;
-    japanese_formatted_feedback = undefined;
-    activeTab = "view-feedback";
+  // Prompt ideas for this part: instant template chips, refreshed by the
+  // brief-aware assistant in the background.
+  const part_label = part_parent_name === part_name
+    ? part_parent_name
+    : `${part_parent_name} ${part_name}`;
 
-    let context = null;
-    if (use_design_brief) {
-      context = get(design_brief);
-    }
+  let material_chips = $state([
+    `Suggest materials for the ${part_label}`,
+    `Suggest durable, low-maintenance materials for the ${part_label}`,
+  ]);
+  let color_chips = $state([
+    `Suggest colors for the ${part_label}`,
+    `Suggest a color palette that suits the ${part_label}`,
+  ]);
+  let is_refreshing_chips = $state(false);
 
-    const parts = get(curr_texture_parts);
-    const attached_parts = [];
-    for (const p in parents) {
-      const parent = parents[p];
-      const obj = parent[0];
-      const part = parent[1];
-      attached_parts.push([obj, part, parts[obj][part]["mat_name"]]);
-    }
-
-    is_loading_feedback = true;
-    let data;
+  async function refreshPromptChips() {
+    is_refreshing_chips = true;
     try {
-      // Feedback runs as a background job (LLM + a preview texture per
-      // suggestion); submit it and follow it over SSE.
-      const submit = await postJson("/feedback_materials", {
-        material_name: material_name,
+      const data = await postJson("/suggest_part_prompts", {
         object_name: part_parent_name,
         part_name: part_name,
-        attached_parts: attached_parts,
-        design_brief: context,
+        material_name: material_name,
       });
-      data = await pollJob(submit.job_id, {
-        onProgress: (job) => { feedback_progress_message = job.message || ''; },
-      });
-    } catch (error) {
-      console.error(error);
-      showToast(error.message, 'error');
-      is_loading_feedback = false;
-      feedback_progress_message = '';
-      return;
-    }
-    feedback_progress_message = '';
-
-    intro_text = data["intro_text"];
-    formatted_feedback = data["formatted_response"];
-    references = data["references"];
-    activeAspect = Object.keys(formatted_feedback)[0];
-
-    curr_texture_parts.update((value) => {
-      value[part_parent_name][part_name]["feedback"] = {
-        formatted_feedback: formatted_feedback,
-        intro_text: intro_text,
-        references: references,
-      };
-      return value;
-    });
-
-    japanese_formatted_feedback = { ...formatted_feedback };
-    if (japanese) {
-      for (let aspect in japanese_formatted_feedback) {
-        japanese_formatted_feedback[aspect]["feedback"] = await translate(
-          "EN", "JA", japanese_formatted_feedback[aspect]["feedback"]
-        );
-        for (let i = 0; i < japanese_formatted_feedback[aspect]["suggestions"].length; i++) {
-          const suggestion = japanese_formatted_feedback[aspect]["suggestions"][i][0];
-          japanese_formatted_feedback[aspect]["suggestions"][i][0] = await translate("EN", "JA", suggestion);
-        }
+      let mats = (data["material_prompts"] || []).filter(Boolean);
+      let cols = (data["color_prompts"] || []).filter(Boolean);
+      if (japanese) {
+        mats = await Promise.all(mats.map((p) => translate("EN", "JA", p)));
+        cols = await Promise.all(cols.map((p) => translate("EN", "JA", p)));
       }
+      if (mats.length > 0) material_chips = mats;
+      if (cols.length > 0) color_chips = cols;
+    } catch (error) {
+      // Template chips remain as the fallback.
+      console.warn("prompt ideas unavailable", error);
+    } finally {
+      is_refreshing_chips = false;
     }
-    is_loading_feedback = false;
   }
 
-  function generate(name) {
-    actions_panel_tab.set("generate");
-    generate_tab_page.set(0);
-    generator.get()?.generate_textures(name);
+  function useChip(text) {
+    chatbot_input_message.set(text);
+    actions_panel_tab.set("chatbot");
   }
 
-  function aspectLabelJa(aspect) {
-    return aspect === "assembly" ? "組み立て"
-      : aspect === "availability" ? "素材の入手性"
-      : aspect === "cost" ? "コスト"
-      : aspect === "durability" ? "素材の耐久性"
-      : aspect === "maintenance" ? "素材のメンテナンス"
-      : aspect === "sustainability" ? "持続可能性"
-      : aspect;
-  }
+  onMount(() => {
+    if (get(use_chatgpt)) refreshPromptChips();
+  });
 
   onMount(() => {
     // Seed a "Custom" palette from this part's current color.
@@ -352,13 +292,11 @@
     }
   });
 
-  const tabs = $derived([
+  const tabs = [
     { id: "adjust-finish", en: "Finish", ja: "仕上げ" },
     { id: "adjust-texture-map", en: "Texture", ja: "テクスチャ" },
     { id: "adjust-color", en: "Color", ja: "カラー" },
-    { id: "attached-parts", en: "Parts", ja: "付属部品" },
-    ...($use_chatgpt ? [{ id: "view-feedback", en: "Feedback", ja: "フィードバック" }] : []),
-  ]);
+  ];
 </script>
 
 <div class="part-editor">
@@ -399,14 +337,31 @@
           <Button size="sm" variant="secondary" onclick={suggestSimilarMaterials}>
             {japanese ? "類似素材の提案" : "Suggest similar"}
           </Button>
-          <Button size="sm" variant="secondary" onclick={requestMaterialFeedback}>
-            {japanese ? "フィードバック" : "Get feedback"}
-          </Button>
-          <Switch bind:checked={use_design_brief} label={japanese ? "デザインブリーフ" : "Use brief"} />
         </div>
       {/if}
     </div>
   </div>
+
+  <!-- prompt ideas -->
+  {#if $use_chatgpt}
+    <div class="prompt-ideas">
+      <div class="ideas-label">
+        <Lightbulb size={13} strokeWidth={1.75} />
+        {japanese ? "プロンプトのアイデア" : "Prompt ideas"}
+        {#if is_refreshing_chips}
+          <span class="ideas-refreshing">{japanese ? "更新中..." : "refreshing..."}</span>
+        {/if}
+      </div>
+      <div class="idea-chips">
+        {#each material_chips as chip (chip)}
+          <button class="idea-chip material" onclick={() => useChip(chip)}>{chip}</button>
+        {/each}
+        {#each color_chips as chip (chip)}
+          <button class="idea-chip color" onclick={() => useChip(chip)}>{chip}</button>
+        {/each}
+      </div>
+    </div>
+  {/if}
 
   <!-- tabs -->
   <div class="editor-tabs" role="tablist">
@@ -578,106 +533,6 @@
       {/if}
     </div>
 
-  <!-- attached parts -->
-  {:else if activeTab === "attached-parts"}
-    <div class="tab-body">
-      {#if parents.length > 0}
-        {#each parents as p (p[0] + "|" + p[1])}
-          <div class="attached-part">
-            <DynamicImage
-              imagepath={$curr_texture_parts[p[0]][p[1]]["mat_image_texture"]}
-              alt={$curr_texture_parts[p[0]][p[1]]["mat_name"]}
-              size="64px"
-            />
-            <div class="attached-meta">
-              <div class="attached-name">{p[0]} / {p[1]}</div>
-              <div class="attached-mat">{$curr_texture_parts[p[0]][p[1]]["mat_name"]}</div>
-            </div>
-          </div>
-        {/each}
-      {:else}
-        <div class="empty-note">
-          {japanese ? "このコンポーネントは何にも取り付けられていない。" : "This component is not attached to anything."}
-        </div>
-      {/if}
-    </div>
-
-  <!-- feedback -->
-  {:else if activeTab === "view-feedback" && $use_chatgpt}
-    <div class="tab-body">
-      {#if formatted_feedback || japanese_formatted_feedback}
-        <div class="markdown"><SvelteMarkdown source={intro_text} /></div>
-        <div class="aspect-pills">
-          {#each Object.keys(formatted_feedback) as aspect (aspect)}
-            <button
-              class="pill"
-              class:active={activeAspect === aspect}
-              onclick={() => (activeAspect = aspect)}
-            >
-              {japanese ? aspectLabelJa(aspect) : aspect}
-            </button>
-          {/each}
-        </div>
-
-        {#each Object.keys(formatted_feedback) as aspect (aspect)}
-          {#if activeAspect === aspect}
-            <p class="feedback-text">
-              {japanese && japanese_formatted_feedback
-                ? japanese_formatted_feedback[aspect]["feedback"]
-                : formatted_feedback[aspect]["feedback"]}
-            </p>
-
-            <div class="group-label">{japanese ? "ご提案" : "Suggestions"}</div>
-            {#if formatted_feedback[aspect]["suggestions"].length <= 0}
-              <div class="empty-note">{japanese ? "提案はない。" : "No suggestions provided."}</div>
-            {:else}
-              <div class="suggestion-grid">
-                {#each formatted_feedback[aspect]["suggestions"] as suggestion, i (i)}
-                  <div class="suggestion-card">
-                    <span class="suggestion-name">
-                      {japanese && japanese_formatted_feedback
-                        ? japanese_formatted_feedback[aspect]["suggestions"][i][0]
-                        : suggestion[0]}
-                    </span>
-                    {#if suggestion[1] === "material" && suggestion.length === 3}
-                      <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size="96px" is_draggable={true} />
-                      <span class="suggestion-kind">{japanese ? "素材" : "Material"}</span>
-                      <Button size="sm" variant="secondary" onclick={() => generate(suggestion[0])}>
-                        <WandSparkles size={14} strokeWidth={1.75} />
-                        {japanese ? "もっと生み出せ！" : "Generate more"}
-                      </Button>
-                    {:else if suggestion[1] === "attachment" && suggestion.length === 3}
-                      <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size="96px" />
-                      <span class="suggestion-kind">{japanese ? "添付ファイル" : "Attachment"}</span>
-                    {:else}
-                      <span class="suggestion-kind">
-                        {suggestion[1].charAt(0).toUpperCase() + suggestion[1].slice(1)}
-                      </span>
-                    {/if}
-                  </div>
-                {/each}
-              </div>
-            {/if}
-          {/if}
-        {/each}
-
-        <div class="group-label">{japanese ? "参考文献" : "References"}</div>
-        <div class="markdown"><SvelteMarkdown source={references} /></div>
-      {:else if is_loading_feedback}
-        <div class="loading-note">
-          <Spinner size={22} />
-          <span>
-            {feedback_progress_message
-              ? feedback_progress_message
-              : (japanese
-                ? "フィードバックをリクエストしています。しばらくお待ちください。"
-                : "Requesting feedback, please wait. This may take a while.")}
-          </span>
-        </div>
-      {:else}
-        <div class="empty-note">{japanese ? "フィードバックはありません。" : "No feedback available."}</div>
-      {/if}
-    </div>
   {/if}
 </div>
 
@@ -910,35 +765,40 @@
     cursor: pointer;
   }
 
-  /* attached parts */
-  .attached-part {
+  /* prompt ideas */
+  .prompt-ideas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-3);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .ideas-label {
     display: flex;
     align-items: center;
-    gap: var(--sp-3);
-  }
-
-  .attached-meta {
-    min-width: 0;
-  }
-
-  .attached-name {
-    font-size: var(--text-sm);
-    font-weight: 600;
-  }
-
-  .attached-mat {
+    gap: var(--sp-1);
     font-size: var(--text-xs);
+    font-weight: 600;
     color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
-  /* feedback */
-  .aspect-pills {
+  .ideas-refreshing {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--text-muted);
+  }
+
+  .idea-chips {
     display: flex;
     flex-wrap: wrap;
     gap: var(--sp-1);
   }
 
-  .pill {
+  .idea-chip {
     border: 1px solid var(--border-subtle);
     background: var(--bg-elevated);
     color: var(--text-secondary);
@@ -947,70 +807,24 @@
     padding: 3px 10px;
     border-radius: var(--radius-full);
     cursor: pointer;
-    text-transform: capitalize;
+    text-align: left;
+    transition:
+      border-color 120ms ease,
+      background 120ms ease,
+      color 120ms ease;
   }
 
-  .pill:hover {
+  .idea-chip:hover {
     background: var(--bg-hover);
     color: var(--text-primary);
+    border-color: var(--border-strong);
   }
 
-  .pill.active {
-    background: var(--accent-muted);
-    border-color: var(--accent);
-    color: var(--accent);
+  .idea-chip.material {
+    border-left: 3px solid var(--accent);
   }
 
-  .feedback-text {
-    font-size: var(--text-sm);
-    line-height: 1.6;
-    color: var(--text-primary);
-    margin: 0;
-  }
-
-  .suggestion-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: var(--sp-2);
-  }
-
-  .suggestion-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--sp-1);
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    padding: var(--sp-2);
-    text-align: center;
-  }
-
-  .suggestion-name {
-    font-size: var(--text-sm);
-    font-weight: 600;
-  }
-
-  .suggestion-kind {
-    font-size: var(--text-xs);
-    color: var(--text-muted);
-  }
-
-  .markdown {
-    font-size: var(--text-sm);
-    line-height: 1.6;
-  }
-
-  .empty-note {
-    color: var(--text-muted);
-    font-size: var(--text-sm);
-  }
-
-  .loading-note {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-2);
-    color: var(--text-secondary);
-    font-size: var(--text-sm);
+  .idea-chip.color {
+    border-left: 3px solid #c084fc;
   }
 </style>

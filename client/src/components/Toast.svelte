@@ -4,8 +4,9 @@
 
     let current_toasts = $derived($toasts);
 
-    function dismiss(id) {
-        toasts.update(current => current.filter(t => t.id !== id));
+    function dismiss(toast) {
+        toast.onClick?.();
+        toasts.update(current => current.filter(t => t.id !== toast.id));
     }
 </script>
 
@@ -15,7 +16,7 @@
             type="button"
             class="toast toast-{toast.type}"
             transition:fade={{ duration: 200 }}
-            onclick={() => dismiss(toast.id)}
+            onclick={() => dismiss(toast)}
         >
             {toast.message}
         </button>

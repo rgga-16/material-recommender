@@ -1,8 +1,7 @@
 <script>
     import { onMount } from 'svelte';
-    import { get } from 'svelte/store';
 
-    import { design_brief, in_japanese } from '../../stores.js';
+    import { in_japanese } from '../../stores.js';
     import { pollJob } from '../../lib/jobs.js';
     import { showToast } from '../../lib/toast.js';
 
@@ -11,7 +10,6 @@
     import TextArea from '../../lib/ui/TextArea.svelte';
     import Button from '../../lib/ui/Button.svelte';
     import NumberInput from '../../lib/ui/NumberInput.svelte';
-    import Switch from '../../lib/ui/Switch.svelte';
     import Field from '../../lib/ui/Field.svelte';
     import Spinner from '../../lib/ui/Spinner.svelte';
 
@@ -22,7 +20,6 @@
 
     let selected_texture = ""; // not rendered directly; scratch value for the fetch bodies below
     let selected_material_name = $state("");
-    let use_design_brief = $state(true);
 
     let suggestions = $state([]);
     let prompt = $state("");
@@ -30,8 +27,6 @@
     let toOutputGrid = $state(false);
     let n = $state(4);
     let is_exploring = $state(false);
-
-    let context = get(design_brief);
 
     async function loadPresetMaterials() {
         let response = await fetch('/get_preset_materials');
@@ -45,7 +40,6 @@
         try {
             preset_materials = await loadPresetMaterials();
             console.log("Preset materials: ", preset_materials);
-            context = get(design_brief);
         } finally {
             loading_presets = false;
         }
@@ -74,7 +68,6 @@
                 body: JSON.stringify({
                     "prompt": prompt,
                     "n": n,
-                    "design_brief": use_design_brief ? context : null,
                     "image_path": selected_texture,
                     "material_name": selected_material_name
                 }),
@@ -89,15 +82,16 @@
 
             // Generate n textures from the prompts
             for (let i=0; i<texture_prompts.length; i++) {
-                let texture_string = texture_prompts[i] + " texture map, seamless, 4k";
-
+                // The prompt is already LLM-detailed; skip server-side
+                // enrichment (the server still appends its quality suffix).
                 let texture_response = await fetch("/generate_textures", {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({
-                        "texture_string": texture_string,
+                        "texture_string": texture_prompts[i],
                         "n":1,
                         "imsize":448,
+                        "enrich": false,
                     }),
                 });
                 let results_json = await texture_response.json();
@@ -138,7 +132,6 @@
                 body: JSON.stringify({
                     "prompt": prompt,
                     "n": n,
-                    "design_brief": use_design_brief ? context : null,
                     "image_path": selected_texture,
                 }),
             });
@@ -149,15 +142,16 @@
 
             // Generate n textures from the prompts
             for (let i=0; i<texture_prompts.length; i++) {
-                let texture_string = texture_prompts[i] + " texture map, seamless, 4k";
-
+                // The prompt is already LLM-detailed; skip server-side
+                // enrichment (the server still appends its quality suffix).
                 let texture_response = await fetch("/generate_textures", {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({
-                        "texture_string": texture_string,
+                        "texture_string": texture_prompts[i],
                         "n":1,
                         "imsize":448,
+                        "enrich": false,
                     }),
                 });
                 let results_json = await texture_response.json();
@@ -227,7 +221,6 @@
                 <Field label={japanese ? "出力数" : "Number of Outputs"} row>
                     <NumberInput bind:value={n} min={1} max={10} step={1} />
                 </Field>
-                <Switch bind:checked={use_design_brief} label={japanese ? "デザインブリーフ" : "Design brief"} />
             </div>
         </div>
     </PanelSection>

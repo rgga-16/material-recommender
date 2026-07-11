@@ -18,6 +18,8 @@ numpy==2.5.1
 imageio==2.37.3
 onnxruntime==1.27.0
 requests==2.34.2
+ddgs==9.14.4
+pypdf==6.14.2
 
 # Texture generation (SD-Turbo via diffusers). torch should already be installed
 # per the CUDA note above; listed here too so `pip install -r requirements.txt`

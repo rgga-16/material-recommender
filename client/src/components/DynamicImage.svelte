@@ -40,11 +40,19 @@ function dragStart(event) {
     transferred_texture_name.set(alt);
 }
 
+/** Human-readable texture name; falls back to the file name when the
+ *  caller gave no alt text (e.g. the persisted gallery). */
+function textureName() {
+    if (alt && alt.trim()) return alt;
+    const base = (imagepath || '').split('/').pop() || '';
+    return base.replace(/\.[^.]+$/, '').replace(/_\d+$/, '').replace(/_/g, ' ') || 'texture';
+}
+
 export async function apply_texture() {
-    transferred_textureimg_url.set(imagepath);
-    transferred_texture_url.set(imagesource);
-    transferred_texture_name.set(alt);
-    viewport.get()?.fullTextureTransferAlgorithm();
+    viewport.get()?.applyTexture({
+        name: textureName(),
+        imagePath: imagepath,
+    });
 }
 
 </script>

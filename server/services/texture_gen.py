@@ -31,7 +31,51 @@ _pipe = None
 _img2img = None  # AutoPipelineForImage2Image sharing _pipe's components
 _device = None
 
-PROMPT_SUFFIX = ", seamless texture, top-down close-up, high detail"
+PROMPT_SUFFIX = (", seamless texture, top-down close-up, photorealistic, "
+                 "highly detailed, sharp focus, 4k")
+
+# material -> enriched prompt, keyed per design brief so brief edits refresh it
+_enrich_cache = {}
+
+
+def enrich_prompt(material):
+    """Expand a bare material name ("wood") into a detail-rich SD prompt via
+    the local LLM, grounded in the design brief. Best-effort: any failure
+    returns the material unchanged (the static PROMPT_SUFFIX still applies).
+    """
+    material = (material or "").strip()
+    if not material:
+        return material
+
+    from server.services import design_brief, llm, prompts
+
+    brief = design_brief.get_brief()
+    cache_key = (material.lower(), hash(brief))
+    if cache_key in _enrich_cache:
+        return _enrich_cache[cache_key]
+
+    try:
+        parsed = llm.generate_json(
+            [{"role": "user", "content": prompts.enrich_texture_prompt(material)}],
+            schema=prompts.ENRICHED_PROMPT_SCHEMA,
+            system=prompts.system_prompt(brief),
+            temperature=0.4,
+        )
+        enriched = (parsed.get("prompt") or "").strip().strip(",")
+    except llm.LLMUnavailableError:
+        return material
+    except Exception:
+        log.warning("prompt enrichment failed for %r", material, exc_info=True)
+        return material
+
+    if not enriched:
+        return material
+    # Keep the user's material name up front so the subject can't drift.
+    if material.lower() not in enriched.lower():
+        enriched = f"{material}, {enriched}"
+    _enrich_cache[cache_key] = enriched
+    log.info("enriched %r -> %r", material, enriched)
+    return enriched
 
 
 def ensure_vram(min_free_gb=MIN_FREE_VRAM_GB):
@@ -151,7 +195,10 @@ def _offset_seed(seed, i):
         return None
 
 
-def generate(prompt, n=1, imsize=512, seamless=True, seed=None):
+def generate(prompt, n=1, imsize=512, seamless=True, seed=None, enrich=True):
+    # Enrich first: it needs Ollama, which ensure_vram may evict right after.
+    if enrich:
+        prompt = enrich_prompt(prompt)
     ensure_vram()
 
     pipe = _get_pipeline()
@@ -185,13 +232,15 @@ def _get_img2img():
 
 
 def generate_variations(init_image, prompt, n=1, imsize=512, strength=0.55,
-                        seamless=True, seed=None):
+                        seamless=True, seed=None, enrich=True):
     """Generate n variations of init_image (a PIL image) via img2img.
 
     strength in (0, 1]: higher drifts further from the original. With the
     2-step turbo schedule, int(steps * strength) must be >= 1, so strength
     is floored at 0.5.
     """
+    if enrich:
+        prompt = enrich_prompt(prompt)
     ensure_vram()
 
     pipe = _get_img2img()

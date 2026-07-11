@@ -67,13 +67,16 @@ def _save_textures(images, texture_string, seed=None, job_id=None,
     return {"results": texture_loadpaths}
 
 
-def generate_and_save(texture_string, n, imsize, seed=None, job_id=None):
+def generate_and_save(texture_string, n, imsize, seed=None, job_id=None,
+                      enrich=True):
     """Generate n textures + normal/height/AO maps; returns a result payload
-    whose texture paths are public URLs."""
+    whose texture paths are public URLs. enrich=False skips the LLM prompt
+    enrichment (used for assistant preview thumbnails)."""
     n = _clamp_count(n)
     if job_id:
         jobs.set_progress(job_id, 0.05, "Generating textures...")
-    images = texture_gen.generate(texture_string, n=n, imsize=imsize, seed=seed)
+    images = texture_gen.generate(texture_string, n=n, imsize=imsize, seed=seed,
+                                  enrich=enrich)
     return _save_textures(images, texture_string, seed=seed, job_id=job_id)
 
 
@@ -82,7 +85,9 @@ def generate_textures_route():
     body = get_json_body()
     texture_string, n, imsize = require_fields(body, "texture_string", "n", "imsize")
     job_id = jobs.submit(generate_and_save, texture_string, n, imsize,
-                         seed=_parse_seed(body.get("seed")), pass_job_id=True)
+                         seed=_parse_seed(body.get("seed")),
+                         enrich=body.get("enrich", True) is not False,
+                         pass_job_id=True)
     return jsonify({"job_id": job_id})
 
 

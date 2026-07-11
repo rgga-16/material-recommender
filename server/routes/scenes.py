@@ -166,7 +166,7 @@ def add_old_and_new_textures_to_history():
 
 # --- Scene composition: uploads, manifest edits, object transforms ---
 
-_ALLOWED_MODEL_EXTS = {".glb", ".gltf"}
+_ALLOWED_MODEL_EXTS = {".glb", ".gltf", ".obj", ".fbx", ".stl"}
 
 
 def _safe_name(name):
@@ -181,7 +181,8 @@ def upload_model():
     file = request.files["file"]
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in _ALLOWED_MODEL_EXTS:
-        return jsonify({"error": f"unsupported file type '{ext}'; upload .glb or .gltf"}), 400
+        allowed = ", ".join(sorted(_ALLOWED_MODEL_EXTS))
+        return jsonify({"error": f"unsupported file type '{ext}'; upload one of {allowed}"}), 400
 
     object_name = _safe_name(request.form.get("object_name") or
                              os.path.splitext(os.path.basename(file.filename))[0])

@@ -86,6 +86,21 @@ const PROPERTY_ACTIONS = {
  *  action-history storage, then re-run the viewport texture transfer. */
 async function applyTextureAction(action, index, old_or_new) {
 	const props = action.properties;
+
+	// Auto-finish values recorded alongside the texture (roughness, tiling,
+	// ...) are written into the manifest first so the rebuilt material picks
+	// them up.
+	const finishKeys = Object.keys(props).filter((k) => !k.startsWith('mat_'));
+	if (finishKeys.length > 0) {
+		curr_texture_parts.update((parts) => {
+			const entry = (parts[action.object] || {})[action.part];
+			if (entry) {
+				for (const key of finishKeys) entry[key] = props[key][old_or_new];
+			}
+			return parts;
+		});
+	}
+
 	const response = await fetch('/retrieve_textures_from_action_history', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
@@ -118,8 +133,8 @@ async function applyAction(action, index, old_or_new) {
 
 	const entry = PROPERTY_ACTIONS[name.replace(/^change /, '')];
 	if (!entry) {
-		// Actions without a live-material effect (e.g. "Change mat_finish")
-		// only move the history index — same as the old fall-through behavior.
+		// Unknown/no-op property actions only move the history index
+		// (defensive fall-through).
 		return;
 	}
 

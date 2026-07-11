@@ -1,6 +1,5 @@
 <script>
     import { onMount } from 'svelte';
-    import { get } from 'svelte/store';
     import SvelteMarkdown from '@humanspeak/svelte-markdown';
 
     import MaterialCard from '../SuggestModule/MaterialCard.svelte';
@@ -10,11 +9,9 @@
     import TextInput from '../../lib/ui/TextInput.svelte';
     import IconButton from '../../lib/ui/IconButton.svelte';
     import Button from '../../lib/ui/Button.svelte';
-    import Switch from '../../lib/ui/Switch.svelte';
 
     import Send from '@lucide/svelte/icons/send';
     import MessageCircle from '@lucide/svelte/icons/message-circle';
-    import Palette from '@lucide/svelte/icons/palette';
     import Bookmark from '@lucide/svelte/icons/bookmark';
     import WandSparkles from '@lucide/svelte/icons/wand-sparkles';
     import RefreshCw from '@lucide/svelte/icons/refresh-cw';
@@ -23,7 +20,6 @@
 
     import { saved_color_palettes } from '../../stores.js';
     import { chatbot_input_message } from '../../stores.js';
-    import { design_brief } from '../../stores.js';
     import { actions_panel_tab } from '../../stores.js';
     import { generate_tab_page } from '../../stores.js';
     import { in_japanese } from '../../stores.js';
@@ -32,6 +28,7 @@
     import { showToast } from '../../lib/toast.js';
     import { sessionId, streamChat } from '../../lib/api.js';
     import { pollJob } from '../../lib/jobs.js';
+    import { viewport } from '../../lib/registry.js';
 
     let { onProceedToGenerate = () => {} } = $props();
 
@@ -40,7 +37,6 @@
     // Writable derived: other modules compose queries for the chatbot by
     // setting the chatbot_input_message store; the user then edits freely.
     let inputMessage = $derived($chatbot_input_message);
-    let use_internet = $state(false);
 
     let messages = $state([]);
     /*
@@ -48,8 +44,10 @@
     {
         "message": "Hello",
         "role": "user",
-        "type": "regular" OR "suggested_materials" OR "suggested_color palettes"
-        "content": [list of suggested materials or color palettes] if type is "suggested_materials" or "suggested_color palettes"
+        "type": "regular" OR "suggestions",
+        "materials": [...],   // when type is "suggestions"
+        "palettes": [...],    // when type is "suggestions"
+        "references": ""      // markdown reference links from web search
     }
     */
 
@@ -65,8 +63,6 @@
     function expand() {
         expanded_suggested_questions = !expanded_suggested_questions;
     }
-
-    let use_design_brief = $state(false);
 
     let is_loading_response = $state(false);
     let is_loading_material_queries = $state(false);
@@ -87,7 +83,10 @@
         return response.json();
     }
 
-    async function suggest_materials() {
+    /** Single smart suggest: the server classifies the prompt (materials,
+     *  colors, or both), grounds it in the design brief + web search, and can
+     *  see the scene via a screenshot when a vision model is available. */
+    async function suggest() {
         if (inputMessage.trim() === '') {
             showToast(japanese ? "クエリを入力してください。" : "Please enter a query.", 'error');
             return;
@@ -100,20 +99,21 @@
         messages = messages;
         is_loading_response = true;
 
-        let context = null;
-        if (use_design_brief) {
-            context = get(design_brief);
+        let screenshot = null;
+        try {
+            screenshot = viewport.get()?.captureScreenshot(1) ?? null;
+        } catch (error) {
+            console.warn('scene screenshot unavailable', error);
         }
 
         try {
-            const submit = await fetchJson("/suggest_materials", {
+            const submit = await fetchJson("/suggest", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     "prompt": japanese ? await translate("JA", "EN-US", inputMessage) : inputMessage,
                     "role": "user",
-                    "use_internet": use_internet,
-                    "context": context,
+                    "screenshot": screenshot,
                     "session_id": sessionId()
                 }),
             });
@@ -126,17 +126,21 @@
 
             inputMessage = '';
 
-            let intro_text = json["intro_text"];
-            let role = json["role"];
-            let suggested_materials = json["suggested_materials"];
-            console.log(suggested_materials);
+            const palettes = json["suggested_color_palettes"] ?? [];
+            if (japanese) {
+                for (let i = 0; i < palettes.length; i++) {
+                    palettes[i]["name"] = await translate("EN", "JA", palettes[i]["name"]);
+                    palettes[i]["description"] = await translate("EN", "JA", palettes[i]["description"]);
+                }
+            }
 
-            let message_type = "suggested_materials";
             messages.push({
-                "message": intro_text,
-                "role": role,
-                "type": message_type,
-                "content": suggested_materials
+                "message": json["intro_text"],
+                "role": json["role"],
+                "type": "suggestions",
+                "materials": json["suggested_materials"] ?? [],
+                "palettes": palettes,
+                "references": json["references"] ?? ""
             });
             messages = messages;
         } catch (error) {
@@ -145,59 +149,6 @@
         } finally {
             is_loading_response = false;
             loading_message = '';
-        }
-    }
-
-    async function suggest_color_palettes() {
-        if (inputMessage.trim() === '') {
-            showToast(japanese ? "クエリを入力してください。" : "Please enter a query.", 'error');
-            return;
-        }
-
-        messages.push({
-            "message": inputMessage,
-            "role": "user",
-            "type": "regular"
-        });
-        messages = messages;
-        is_loading_response = true;
-
-        try {
-            const json = await fetchJson("/suggest_colors", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    "prompt": inputMessage,
-                    "role": "user",
-                    "use_internet": use_internet
-                }),
-            });
-
-            inputMessage = '';
-
-            let intro_text = json["intro_text"];
-            let role = json["role"];
-            let suggested_color_palettes = json["suggested_color_palettes"];
-
-            if (japanese) {
-                for (let i = 0; i < suggested_color_palettes.length; i++) {
-                    suggested_color_palettes[i]["name"] = await translate("EN", "JA", suggested_color_palettes[i]["name"]);
-                    suggested_color_palettes[i]["description"] = await translate("EN", "JA", suggested_color_palettes[i]["description"]);
-                }
-            }
-
-            let message_type = "suggested_color_palettes";
-            messages.push({
-                "message": intro_text,
-                "role": role,
-                "type": message_type,
-                "content": suggested_color_palettes
-            });
-            messages = messages;
-        } catch (error) {
-            console.error(error);
-        } finally {
-            is_loading_response = false;
         }
     }
 
@@ -315,31 +266,39 @@
                     <div class="markdown-content">
                         <SvelteMarkdown source={message.message} />
                     </div>
-                    {#if message.type == "suggested_materials"}
-                        <div class="material-suggestions">
-                            {#each message.content as m, i (i)}
-                                <MaterialCard material_path={m["filepath"]} material_name={m["name"]} material_info={m["reason"]} />
-                                <Button variant="ghost" size="sm" onclick={() => generate(m["name"])}>
-                                    <WandSparkles size={14} strokeWidth={1.75} />
-                                    {japanese ? "もっと生み出せ！" : "Generate more!"}
-                                </Button>
-                            {/each}
-                        </div>
-                    {:else if message.type == "suggested_color_palettes"}
-                        <div class="color-suggestions">
-                            {#each message.content as m, ci (ci)}
-                                <div class="color-suggestion-card">
-                                    <ColorPalette name={m["name"]} color_codes={m["codes"]} />
-                                    <Button variant="ghost" size="sm" onclick={() => saveColorPalette(m)}>
-                                        <Bookmark size={14} strokeWidth={1.75} />
-                                        {japanese ? "パレットを保存する" : "Save Palette"}
+                    {#if message.type == "suggestions"}
+                        {#if message.materials?.length > 0}
+                            <div class="material-suggestions">
+                                {#each message.materials as m, i (i)}
+                                    <MaterialCard material_path={m["filepath"]} material_name={m["name"]} material_info={m["reason"]} />
+                                    <Button variant="ghost" size="sm" onclick={() => generate(m["name"])}>
+                                        <WandSparkles size={14} strokeWidth={1.75} />
+                                        {japanese ? "もっと生み出せ！" : "Generate more!"}
                                     </Button>
-                                    <div class="markdown-content">
-                                        <SvelteMarkdown source={m["description"]} />
+                                {/each}
+                            </div>
+                        {/if}
+                        {#if message.palettes?.length > 0}
+                            <div class="color-suggestions">
+                                {#each message.palettes as m, ci (ci)}
+                                    <div class="color-suggestion-card">
+                                        <ColorPalette name={m["name"]} color_codes={m["codes"]} />
+                                        <Button variant="ghost" size="sm" onclick={() => saveColorPalette(m)}>
+                                            <Bookmark size={14} strokeWidth={1.75} />
+                                            {japanese ? "パレットを保存する" : "Save Palette"}
+                                        </Button>
+                                        <div class="markdown-content">
+                                            <SvelteMarkdown source={m["description"]} />
+                                        </div>
                                     </div>
-                                </div>
-                            {/each}
-                        </div>
+                                {/each}
+                            </div>
+                        {/if}
+                        {#if message.references}
+                            <div class="markdown-content references">
+                                <SvelteMarkdown source={message.references} />
+                            </div>
+                        {/if}
                     {/if}
                 </div>
             </div>
@@ -398,27 +357,24 @@
         <div class="composer-input-row">
             <TextInput
                 bind:value={inputMessage}
-                placeholder={japanese ? "ここに資料やカラーパレットに関するお問い合わせを入力してください。" : "Type your queries for materials or color palettes here..."}
-                onEnter={() => suggest_materials()}
+                placeholder={japanese ? "ここに資料やカラーパレットに関するお問い合わせを入力してください。" : "Ask for materials, colors, or both..."}
+                onEnter={() => suggest()}
             />
-            <IconButton label={japanese ? "送信" : "Send"} onclick={() => suggest_materials()}>
+            <IconButton label={japanese ? "提案" : "Suggest"} onclick={() => suggest()}>
                 <Send size={16} strokeWidth={1.75} />
             </IconButton>
         </div>
 
         <div class="composer-toolbar">
-            <div class="toggles">
-                <Switch bind:checked={use_internet} label={japanese ? "ウェブ検索" : "Web search"} />
-                <Switch bind:checked={use_design_brief} label={japanese ? "デザイン・ブリーフ" : "Design brief"} />
+            <div class="toolbar-hint">
+                {japanese
+                    ? "デザインブリーフとウェブ検索は常に参照されます。"
+                    : "Always grounded in the design brief + web search."}
             </div>
             <div class="toolbar-actions">
                 <Button variant="ghost" size="sm" onclick={() => query()}>
                     <MessageCircle size={14} strokeWidth={1.75} />
                     {japanese ? "チャット" : "Chat"}
-                </Button>
-                <Button variant="ghost" size="sm" onclick={() => suggest_color_palettes()}>
-                    <Palette size={14} strokeWidth={1.75} />
-                    {japanese ? "色を提案する" : "Suggest Colors"}
                 </Button>
             </div>
         </div>
@@ -618,10 +574,14 @@
         gap: var(--sp-2);
     }
 
-    .toggles {
-        display: flex;
-        align-items: center;
-        gap: var(--sp-4);
+    .toolbar-hint {
+        font-size: var(--text-xs);
+        color: var(--text-muted);
+    }
+
+    .references {
+        font-size: var(--text-xs);
+        color: var(--text-secondary);
     }
 
     .toolbar-actions {

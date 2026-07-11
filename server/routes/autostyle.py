@@ -248,7 +248,10 @@ def run_auto_style(style, parts, job_id=None):
             if job_id:
                 jobs.set_progress(job_id, 0.1 + 0.85 * i / total,
                                    f"Generating {material_name or texture_prompt} texture...")
-            result = generate_and_save(full_prompt, 1, 512)
+            # The prompt is already LLM-authored for this style; skip the
+            # per-material enrichment pass (avoids a redundant LLM round-trip
+            # and subject drift).
+            result = generate_and_save(full_prompt, 1, 512, enrich=False)
             diffuse_path = result["results"][0]["texture"]
             normal_path, height_path = _derive_map_paths(diffuse_path)
             gen_paths = {"diffuse": diffuse_path, "normal": normal_path, "height": height_path}

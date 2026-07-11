@@ -1,9 +1,10 @@
 <script>
-    // Upload your own rooms and furniture (.glb / self-contained .gltf).
-    // The file is parsed client-side with GLTFLoader: every mesh node becomes
-    // a selectable, texturable part in the scene manifest (schema v2: parts
-    // share one model file and reference their mesh via "node").
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    // Upload your own rooms and furniture (.glb, .gltf, .obj, .fbx, .stl).
+    // The file is parsed client-side: every mesh node becomes a selectable,
+    // texturable part in the scene manifest (schema v2: parts share one model
+    // file and reference their mesh via "node"). No manual pre-cutting or
+    // manifest authoring needed — parts are auto-detected.
+    import { parseModelFile } from '../../lib/three/loaders.js';
     import { get } from 'svelte/store';
 
     import { curr_texture_parts } from '../../stores.js';
@@ -29,16 +30,20 @@
     let selected_file = $state(null);
     let object_name = $state("");
 
+    const MODEL_EXT_RE = /\.(glb|gltf|obj|fbx|stl)$/i;
+
     function chooseFile(files) {
         if (!files || files.length === 0) return;
         const file = files[0];
-        if (!/\.(glb|gltf)$/i.test(file.name)) {
-            showToast(japanese ? ".glbまたは.gltfファイルをアップロードしてください。" : "Please upload a .glb or .gltf file.", 'error');
+        if (!MODEL_EXT_RE.test(file.name)) {
+            showToast(japanese
+                ? ".glb / .gltf / .obj / .fbx / .stl ファイルをアップロードしてください。"
+                : "Please upload a .glb, .gltf, .obj, .fbx, or .stl file.", 'error');
             return;
         }
         selected_file = file;
         if (!object_name) {
-            object_name = file.name.replace(/\.(glb|gltf)$/i, '');
+            object_name = file.name.replace(MODEL_EXT_RE, '');
         }
     }
 
@@ -49,16 +54,14 @@
     }
 
     async function parseMeshNodes(file) {
-        const buffer = await file.arrayBuffer();
-        return new Promise((resolve, reject) => {
-            new GLTFLoader().parse(buffer, '', (gltf) => {
-                const nodes = [];
-                gltf.scene.traverse((child) => {
-                    if (child.isMesh) nodes.push(child.name || "part");
-                });
-                resolve(nodes);
-            }, (error) => reject(error));
+        // parseModelFile normalizes names/UVs exactly like the scene loader
+        // will, so the node names recorded here resolve after upload.
+        const root = await parseModelFile(file);
+        const nodes = [];
+        root.traverse((child) => {
+            if (child.isMesh) nodes.push(child.name || "part");
         });
+        return nodes;
     }
 
     async function upload() {
@@ -99,7 +102,6 @@
                 parts[node_name] = {
                     "is_selectable": true,
                     "mat_name": "none",
-                    "mat_finish": "none",
                     "mat_image_texture": null,
                     "mat_normal_texture": null,
                     "mat_height_texture": null,
@@ -174,8 +176,8 @@
         <h3 class="section-title">{japanese ? "モデルをアップロード" : "Upload Model"}</h3>
         <p class="hint">
             {japanese
-                ? "部屋や家具の.glb/.gltfファイルをアップロードします。各メッシュが選択・テクスチャ適用可能なパーツになります。"
-                : "Upload a room or furniture .glb/.gltf. Every mesh becomes a selectable, texturable part."}
+                ? "部屋や家具の3Dファイル(.glb/.gltf/.obj/.fbx/.stl)をアップロードします。各メッシュが自動的に選択・テクスチャ適用可能なパーツになります。.mtl等の外部マテリアルは無視されます。"
+                : "Upload a room or furniture model (.glb, .gltf, .obj, .fbx, .stl). Every mesh is auto-detected as a selectable, texturable part — no manual cutting needed. External materials (e.g. .mtl) are ignored."}
         </p>
 
         <div
@@ -198,14 +200,14 @@
             {:else}
                 <span class="dropzone-text">
                     {japanese
-                        ? "ここに.glb/.gltfをドロップ、またはクリックして選択"
-                        : "Drop a .glb / .gltf here or click to browse"}
+                        ? "ここに3Dモデルをドロップ、またはクリックして選択"
+                        : "Drop a 3D model here or click to browse"}
                 </span>
             {/if}
         </div>
         <input
             type="file"
-            accept=".glb,.gltf"
+            accept=".glb,.gltf,.obj,.fbx,.stl"
             bind:this={file_input}
             class="hidden-input"
             onchange={(e) => chooseFile(e.target.files)}

@@ -6,6 +6,7 @@
     import UploadPanel from "./NewModules/UploadPanel.svelte";
     import AutoStyle from "./NewModules/AutoStyle.svelte";
     import ChatBot from "./ChatBotModule/ChatBot.svelte";
+    import FeedbackPanel from "./FeedbackModule/FeedbackPanel.svelte";
     import { actions_panel_tab, use_chatgpt } from '../stores.js';
 
     let generate = $state(null);
@@ -13,7 +14,6 @@
     let activeTab = $derived($actions_panel_tab);
 
     function proceedToGenerate(material_name) {
-        generate.empty_keywordlists();
         generate.generate_textures(material_name);
         generate.reset_page();
     }
@@ -27,6 +27,10 @@
   {#if $use_chatgpt}
     <div class="tab-content" class:active={activeTab==='chatbot'} id="chatbot">
       <ChatBot onProceedToGenerate={proceedToGenerate} />
+    </div>
+
+    <div class="tab-content" class:active={activeTab==='feedback'} id="feedback">
+      <FeedbackPanel />
     </div>
   {/if}
 

@@ -237,52 +237,94 @@
 		isDraggingImage.set(false);
 	}
 
-	/** Apply the currently dragged texture to every selected part, recording
-	 *  one history entry per part. */
-	export async function fullTextureTransferAlgorithm() {
+	// Finish keys auto-tuned from the material class (server lookup). They are
+	// baked into the manifest entry before transferTexture rebuilds the
+	// material, and recorded in the same history entry as the texture change.
+	const AUTO_FINISH_KEYS = ['roughness', 'metalness', 'opacity', 'normalScale'];
+	const AUTO_SCALE_KEYS = ['scaleX', 'scaleY'];
+
+	async function fetchMaterialProps(materialName) {
+		try {
+			return await postJson('/material_properties', { material_name: materialName });
+		} catch (error) {
+			console.warn('material properties lookup failed', error);
+			return null;
+		}
+	}
+
+	/** Apply a named texture to every selected part, auto-tuning finish and
+	 *  tiling for the material class, with one history entry per part. */
+	export async function applyTexture({ name, imagePath } = {}) {
 		if (selection.infos.length === 0) {
-			clearDragState();
 			showToast(japanese
-				? '選択されたオブジェクトがありません。先にオブジェクトを選択してください。'
-				: 'No selected object. Please select an object first.', 'error');
+				? '先に3Dビューでパーツを選択してください。'
+				: 'Select a part in the 3D view first.', 'error');
 			return;
 		}
-		if (!dragged_texture_name || !dragged_textureimg_url) {
-			clearDragState();
-			showToast('Error in dragging and dropping texture. Please try again.', 'error');
+		if (!name || !imagePath) {
+			showToast(japanese
+				? 'テクスチャを適用できませんでした。もう一度お試しください。'
+				: 'Could not apply that texture. Please try again.', 'error');
 			return;
 		}
 
-		const texture_name = dragged_texture_name;
-		const textureimg_url = dragged_textureimg_url;
-		const dot = textureimg_url.lastIndexOf('.');
-		const base = textureimg_url.slice(0, dot);
-		const ext = textureimg_url.slice(dot + 1);
-		const texturenormal_url = `${base}_normal.${ext}`;
-		const textureheight_url = `${base}_height.${ext}`;
+		const dot = imagePath.lastIndexOf('.');
+		const base = imagePath.slice(0, dot);
+		const ext = imagePath.slice(dot + 1);
+		const normal_url = `${base}_normal.${ext}`;
+		const height_url = `${base}_height.${ext}`;
+
+		const matProps = await fetchMaterialProps(name);
 
 		for (const info of [...selection.infos]) {
-			const entry = get(curr_texture_parts)[info.parent][info.name];
+			const parts = get(curr_texture_parts);
+			const entry = parts[info.parent][info.name];
+			const history_props = ['mat_name', 'mat_image_texture', 'mat_normal_texture', 'mat_height_texture'];
 			const old_values = [
 				entry['mat_name'] ?? null,
 				entry['mat_image_texture'] ?? null,
 				entry['mat_normal_texture'] ?? null,
 				entry['mat_height_texture'] ?? null,
 			];
+			const finish_values = [];
+
+			if (matProps) {
+				const auto = { ...(matProps.properties || {}) };
+				for (const key of AUTO_SCALE_KEYS) {
+					if (matProps.scale?.[key] !== undefined) auto[key] = matProps.scale[key];
+				}
+				for (const key of [...AUTO_FINISH_KEYS, ...AUTO_SCALE_KEYS]) {
+					if (auto[key] === undefined) continue;
+					history_props.push(key);
+					old_values.push(entry[key] ?? null);
+					finish_values.push(auto[key]);
+					entry[key] = auto[key];
+				}
+				curr_texture_parts.set(parts);
+			}
 
 			const moved = await transferTexture(
-				info.parent, info.name, texture_name,
-				textureimg_url, texturenormal_url, textureheight_url
+				info.parent, info.name, name,
+				imagePath, normal_url, height_url
 			);
 			if (!moved) continue;
 
 			await addToHistory('Change Texture',
 				info.parent, info.name,
-				['mat_name', 'mat_image_texture', 'mat_normal_texture', 'mat_height_texture'],
+				history_props,
 				old_values,
-				[texture_name, moved.img_url, moved.normal_url, moved.height_url]);
+				[name, moved.img_url, moved.normal_url, moved.height_url, ...finish_values]);
 		}
+		// The inspector's per-part editor re-syncs its finish sliders reactively
+		// from curr_texture_parts (its SYNCED_PROPS $effect), so no manual push.
+	}
+
+	/** Drag-and-drop path: apply the currently dragged texture. */
+	export async function fullTextureTransferAlgorithm() {
+		const name = dragged_texture_name;
+		const imagePath = dragged_textureimg_url;
 		clearDragState();
+		await applyTexture({ name, imagePath });
 	}
 
 	// --------------------------------------------------- selection/highlight
@@ -527,6 +569,7 @@
 	onDestroy(
 		viewport.register({
 			update_3d_scene,
+			applyTexture,
 			fullTextureTransferAlgorithm,
 			setMoveMode,
 			captureScreenshot,

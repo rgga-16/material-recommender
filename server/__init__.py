@@ -29,12 +29,14 @@ def create_app():
     configure_logging()
     app = Flask(__name__, static_folder=STATIC_IMDIR)
 
-    from server.routes import assistant, autostyle, presets, scenes, static, textures
+    from server.routes import (assistant, autostyle, brief, presets, scenes,
+                               static, textures)
     app.register_blueprint(scenes.bp)
     app.register_blueprint(textures.bp)
     app.register_blueprint(presets.bp)
     app.register_blueprint(autostyle.bp)
     app.register_blueprint(assistant.bp)
+    app.register_blueprint(brief.bp)
     app.register_blueprint(static.bp)  # last: has the catch-all /<path>
 
     @app.errorhandler(ValidationError)
