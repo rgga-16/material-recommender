@@ -135,9 +135,10 @@ async function applyAction(action, index, old_or_new) {
 		parts[action.object][action.part][entry.prop] = value;
 		return parts;
 	});
-	// …and onto the live three.js material.
+	// …and onto the live three.js material. info.mesh is the part's mesh in
+	// both scene formats (legacy one-file-per-part and v2 shared-GLB).
 	objects_3d.update((objects) => {
-		entry.apply(objects[idx].model.children[0].material, value);
+		if (objects[idx].mesh) entry.apply(objects[idx].mesh.material, value);
 		return objects;
 	});
 	// Select the affected part so the change is visible in the inspector.

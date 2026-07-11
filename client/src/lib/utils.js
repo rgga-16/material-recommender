@@ -14,20 +14,12 @@ export function degreeToRadians(degrees) {
 	return degrees * (Math.PI/180);
 }
 
+import { imageUrl } from './api.js';
+
+/** Browser-loadable URL for a server image path. Generated files are
+ * overwritten in place by the server, so always cache-bust. Kept async for
+ * compatibility with existing callers (it used to fetch a blob). */
 export async function getImage(path) {
-	let path_blob = null;
-	try {
-		const response = await fetch("/get_image", {
-			method: "POST",
-			headers: {"Content-Type": "application/json"},
-			body: JSON.stringify({
-				"image_data": path,
-			}),
-		});
-		const blob = await response.blob();
-		path_blob = URL.createObjectURL(blob);
-	} catch (error) {
-		console.error(error);
-	}
-	return path_blob
+	if (!path) return null;
+	return imageUrl(path, { bust: true });
 }

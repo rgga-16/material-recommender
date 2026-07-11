@@ -48,20 +48,16 @@
         chooseFile(event.dataTransfer.files);
     }
 
-    function parseMeshNodes(file) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const buffer = await file.arrayBuffer();
-                new GLTFLoader().parse(buffer, '', (gltf) => {
-                    const nodes = [];
-                    gltf.scene.traverse((child) => {
-                        if (child.isMesh) nodes.push(child.name || "part");
-                    });
-                    resolve(nodes);
-                }, (error) => reject(error));
-            } catch (error) {
-                reject(error);
-            }
+    async function parseMeshNodes(file) {
+        const buffer = await file.arrayBuffer();
+        return new Promise((resolve, reject) => {
+            new GLTFLoader().parse(buffer, '', (gltf) => {
+                const nodes = [];
+                gltf.scene.traverse((child) => {
+                    if (child.isMesh) nodes.push(child.name || "part");
+                });
+                resolve(nodes);
+            }, (error) => reject(error));
         });
     }
 

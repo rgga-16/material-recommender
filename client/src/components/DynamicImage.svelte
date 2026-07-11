@@ -1,6 +1,4 @@
 <script>
-import { onMount, onDestroy } from "svelte";
-import Spinner from "../lib/ui/Spinner.svelte";
 import Button from "../lib/ui/Button.svelte";
 import {transferred_texture_url} from '../stores.js';
 import {transferred_textureimg_url} from '../stores.js';
@@ -8,37 +6,27 @@ import {transferred_texture_name} from '../stores.js';
 import {isDraggingImage} from '../stores.js';
 import { viewport } from '../lib/registry.js';
 import {in_japanese} from '../stores.js';
+import { imageUrl } from '../lib/api.js';
 
-// This component is a dynamic image component. It should dynamically load an image given its path.
+// Displays a server image straight from its static URL. The server
+// overwrites generated files in place, so URLs are cache-busted whenever
+// the path changes or a refresh is requested.
 let {
-    imagepath = $bindable(), // Image path that will be passed to the server to get the image
+    imagepath = $bindable(), // Public image path from the server (e.g. "gen_images/...")
     alt, // Alternate text to be displayed
     size = "200px",
     is_draggable = false,
 } = $props();
 
-let imagesource = $state(); // Returned image (object URL)
-let is_loading = $state(false);
+let refresh_token = $state(0);
+let imagesource = $derived.by(() => {
+    void refresh_token;
+    return imageUrl(imagepath, { bust: true });
+});
 
-export async function getImage() {
-    is_loading = true;
-    try {
-        const response = await fetch("/get_image", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                "image_data": imagepath,
-            }),
-        });
-        const blob = await response.blob();
-        const previous = imagesource;
-        imagesource = URL.createObjectURL(blob);
-        if (previous) URL.revokeObjectURL(previous);
-    } catch (error) {
-        console.error(error);
-    } finally {
-        is_loading = false;
-    }
+/** Re-derive the src with a fresh cache-buster (the file changed on disk). */
+export function getImage() {
+    refresh_token += 1;
 }
 
 function dragStart(event) {
@@ -53,60 +41,27 @@ function dragStart(event) {
 }
 
 export async function apply_texture() {
-
-    transferred_textureimg_url.update(value => {
-        value = imagepath;
-        return value;
-    });
-    transferred_texture_url.update(value => {
-        value = imagesource;
-        return value;
-    });
-    transferred_texture_name.update(value => {
-        value = alt;
-        return value;
-    });
+    transferred_textureimg_url.set(imagepath);
+    transferred_texture_url.set(imagesource);
+    transferred_texture_name.set(alt);
     viewport.get()?.fullTextureTransferAlgorithm();
 }
-
-let previousImagepath = imagepath;
-
-$effect(() => {
-    // Track imagepath; skip the very first run since onMount already fetches
-    // the initial value. Re-fetch only when it actually changes afterwards.
-    if (imagepath !== previousImagepath) {
-        previousImagepath = imagepath;
-        getImage();
-    }
-});
-
-onMount(getImage);
-
-onDestroy(() => {
-    if (imagesource) URL.revokeObjectURL(imagesource);
-});
 
 </script>
 
 <div class="container" class:draggable={is_draggable} style:width={size} style:height={size}>
-    {#if is_loading}
-        <div class="placeholder">
-            <Spinner size={Math.min(32, parseInt(size) || 32)} />
+    <img
+        src={imagesource}
+        alt={alt ? alt : "Image"}
+        draggable={is_draggable}
+        ondragstart={dragStart}
+    />
+    {#if is_draggable}
+        <div class="overlay">
+            <Button variant="primary" size="sm" fullWidth onclick={apply_texture}>
+                {$in_japanese ? "テクスチャーを貼る" : "Apply Texture"}
+            </Button>
         </div>
-    {:else}
-        <img
-            src={imagesource}
-            alt={alt ? alt : "Image"}
-            draggable={is_draggable}
-            ondragstart={dragStart}
-        />
-        {#if is_draggable}
-            <div class="overlay">
-                <Button variant="primary" size="sm" fullWidth onclick={apply_texture}>
-                    {$in_japanese ? "テクスチャーを貼る" : "Apply Texture"}
-                </Button>
-            </div>
-        {/if}
     {/if}
 </div>
 
@@ -130,17 +85,6 @@ onDestroy(() => {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--border-subtle);
-    }
-
-    .placeholder {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--bg-inset);
         border-radius: var(--radius-md);
         border: 1px solid var(--border-subtle);
     }

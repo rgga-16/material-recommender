@@ -2,10 +2,7 @@
     import { fade } from 'svelte/transition';
     import { toasts } from '../stores.js';
 
-    let current_toasts = [];
-    toasts.subscribe(value => {
-        current_toasts = value;
-    });
+    let current_toasts = $derived($toasts);
 
     function dismiss(id) {
         toasts.update(current => current.filter(t => t.id !== id));
@@ -18,7 +15,7 @@
             type="button"
             class="toast toast-{toast.type}"
             transition:fade={{ duration: 200 }}
-            on:click={() => dismiss(toast.id)}
+            onclick={() => dismiss(toast.id)}
         >
             {toast.message}
         </button>

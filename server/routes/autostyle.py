@@ -25,15 +25,12 @@ does the following:
         - colors are validated as #RRGGBB (else replaced with a neutral
           grey) and roughness/metalness are clamped to [0, 1].
     4. Reports progress via jobs.set_progress as each part is finalized.
-
-Registration (done by the main agent, not here):
-    from server.routes import autostyle
-    app.register_blueprint(autostyle.bp)
 """
 import re
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
+from server.http import get_json_body
 from server.routes.presets import _scan_preset_materials
 from server.routes.textures import generate_and_save
 from server.services import jobs, llm
@@ -281,8 +278,9 @@ def run_auto_style(style, parts, job_id=None):
 
 @bp.route("/api/auto_style", methods=["POST"])
 def auto_style_route():
-    form_data = request.get_json()
-    style = form_data.get("style", "")
-    parts = form_data.get("parts", [])
+    body = get_json_body()
+    style = str(body.get("style", ""))
+    parts = [p for p in body.get("parts", [])
+             if isinstance(p, dict) and p.get("object") and p.get("part")]
     job_id = jobs.submit(run_auto_style, style, parts, pass_job_id=True)
     return jsonify({"job_id": job_id})

@@ -73,7 +73,7 @@
     function forEachSelected(fn) {
         selected_objs_and_parts.update((value) => {
             for (let i = 0; i < value.length; i++) {
-                fn(value[i].model.children[0].material);
+                fn(value[i].mesh.material);
             }
             return value;
         });

@@ -45,6 +45,7 @@
 
 	import { undoAction, redoAction } from './lib/history.js';
 	import { showToast } from './lib/toast.js';
+	import { imageUrl } from './lib/api.js';
 
 	let japanese = $derived($in_japanese);
 	let history = $derived($action_history);
@@ -298,8 +299,6 @@
 			<ThreeDDisplay
 				bind:this={threed_display}
 				current_texture_parts={get(curr_texture_parts)}
-				{displayHeight}
-				{displayWidth}
 			/>
 			<div class="viewport-toolbar">
 				<button
@@ -376,7 +375,7 @@
 					{:else}
 						{#each saved_renderings as saved, i (i)}
 							<Card
-								image={saved['rendering_path']}
+								image={imageUrl(saved['rendering_path'])}
 								label={(japanese ? 'シーン ' : 'Scene ') + (i + 1)}
 								size={72}
 								selected={selected_saved_rendering_idx === i}

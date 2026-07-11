@@ -1,39 +1,33 @@
 <script>
-    // Tool-panel body. Tab switching now lives in the App shell's icon rail,
-    // which drives the shared actions_panel_tab store.
+    // Tool-panel body (runes mode). Tab switching lives in the App shell's
+    // icon rail, which drives the shared actions_panel_tab store.
     import Generate from "./GenerationModule/Generate.svelte";
     import PresetMaterials from "./NewModules/PresetMaterials.svelte";
     import UploadPanel from "./NewModules/UploadPanel.svelte";
     import AutoStyle from "./NewModules/AutoStyle.svelte";
     import ChatBot from "./ChatBotModule/ChatBot.svelte";
-    import {actions_panel_tab} from '../stores.js';
-    import {use_chatgpt} from '../stores.js';
-    import {get} from 'svelte/store';
+    import { actions_panel_tab, use_chatgpt } from '../stores.js';
 
-    export let onCallUpdateCurrentRendering;
-    let generate;
+    let { onCallUpdateCurrentRendering } = $props();
+    let generate = $state(null);
 
-    function callUpdateCurrentRendering() {
-        onCallUpdateCurrentRendering();
+    let activeTab = $derived($actions_panel_tab);
+
+    function proceedToGenerate(material_name) {
+        generate.empty_keywordlists();
+        generate.generate_textures(material_name);
+        generate.reset_page();
     }
-
-    let activeTab;
-    actions_panel_tab.subscribe(value => {
-        activeTab = value;
-    });
 </script>
 
 <div class="actions-panel">
   <div class='tab-content' class:active={activeTab==='generate'} id="generate">
-    <Generate onCallUpdateCurrentRendering={callUpdateCurrentRendering} bind:this={generate} />
+    <Generate {onCallUpdateCurrentRendering} bind:this={generate} />
   </div>
 
-  {#if get(use_chatgpt)}
+  {#if $use_chatgpt}
     <div class="tab-content" class:active={activeTab==='chatbot'} id="chatbot">
-      <ChatBot on:proceedToGenerate={arg => {
-        generate.empty_keywordlists();
-        generate.generate_textures(arg.detail);
-        generate.reset_page(); }}/>
+      <ChatBot onProceedToGenerate={proceedToGenerate} />
     </div>
   {/if}
 

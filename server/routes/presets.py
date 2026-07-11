@@ -29,6 +29,7 @@ import shutil
 from flask import Blueprint, jsonify
 
 from server.config import SERVER_PRESET_IMDIR, STATIC_IMDIR
+from server.paths import to_public_url
 
 bp = Blueprint("presets", __name__)
 
@@ -136,9 +137,9 @@ def _scan_preset_materials():
             height_path = None
 
         presets[display_name] = {
-            "diffuse": diffuse_path,
-            "normal": normal_path,
-            "height": height_path,
+            "diffuse": to_public_url(diffuse_path),
+            "normal": to_public_url(normal_path) if normal_path else None,
+            "height": to_public_url(height_path) if height_path else None,
         }
 
     return presets

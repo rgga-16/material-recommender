@@ -1,6 +1,5 @@
 <script>
     import { onMount } from 'svelte';
-    import { createEventDispatcher } from 'svelte';
     import { get } from 'svelte/store';
     import SvelteMarkdown from '@humanspeak/svelte-markdown';
 
@@ -14,6 +13,7 @@
     import Switch from '../../lib/ui/Switch.svelte';
 
     import Send from '@lucide/svelte/icons/send';
+    import MessageCircle from '@lucide/svelte/icons/message-circle';
     import Palette from '@lucide/svelte/icons/palette';
     import Bookmark from '@lucide/svelte/icons/bookmark';
     import WandSparkles from '@lucide/svelte/icons/wand-sparkles';
@@ -30,10 +30,12 @@
 
     import { translate } from '../../lib/i18n.js';
     import { showToast } from '../../lib/toast.js';
+    import { sessionId, streamChat } from '../../lib/api.js';
+    import { pollJob } from '../../lib/jobs.js';
+
+    let { onProceedToGenerate = () => {} } = $props();
 
     let japanese = $derived($in_japanese);
-
-    const dispatch = createEventDispatcher();
 
     let inputMessage = $state('');
     let use_internet = $state(false);
@@ -66,6 +68,7 @@
 
     let is_loading_response = $state(false);
     let is_loading_material_queries = $state(false);
+    let loading_message = $state('');
 
     // Shared fetch helper: surfaces the backend's LLM-unavailable response
     // (503 with a JSON {error} body) as a toast, and rethrows so callers can
@@ -101,15 +104,22 @@
         }
 
         try {
-            const json = await fetchJson("/suggest_materials", {
+            const submit = await fetchJson("/suggest_materials", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     "prompt": japanese ? await translate("JA", "EN-US", inputMessage) : inputMessage,
                     "role": "user",
                     "use_internet": use_internet,
-                    "context": context
+                    "context": context,
+                    "session_id": sessionId()
                 }),
+            });
+
+            // Suggestions run as a background job (LLM + one texture per
+            // material); follow it over SSE and surface its progress.
+            const json = await pollJob(submit.job_id, {
+                onProgress: (job) => { loading_message = job.message || ''; }
             });
 
             inputMessage = '';
@@ -129,8 +139,10 @@
             messages = messages;
         } catch (error) {
             console.error(error);
+            showToast(error.message, 'error');
         } finally {
             is_loading_response = false;
+            loading_message = '';
         }
     }
 
@@ -205,37 +217,38 @@
             "message": inputMessage,
             "role": "user"
         });
+        // Placeholder assistant bubble that fills in as tokens stream.
+        const reply = { "message": "", "role": "assistant" };
+        messages.push(reply);
         messages = messages;
 
+        const prompt = inputMessage;
+        inputMessage = '';
+
         try {
-            const json = await fetchJson("/query", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    "prompt": inputMessage,
-                    "role": "user",
-                }),
+            await streamChat("/query_stream", {
+                "prompt": prompt,
+                "role": "user",
+                "session_id": sessionId(),
+            }, {
+                onDelta: (_chunk, full) => {
+                    reply.message = full;
+                    messages = messages;
+                }
             });
-
-            let message = json["response"];
-            let role = json["role"];
-
-            messages.push({
-                "message": message,
-                "role": role
-            });
-            messages = messages;
-
-            inputMessage = '';
         } catch (error) {
             console.error(error);
+            showToast(error.message, 'error');
+            reply.message = reply.message ||
+                (japanese ? "応答を取得できませんでした。" : "Could not get a response.");
+            messages = messages;
         }
     }
 
     async function init_query() {
         is_loading_response = true;
         try {
-            const json = await fetchJson('./init_query');
+            const json = await fetchJson(`./init_query?session_id=${encodeURIComponent(sessionId())}`);
 
             let message = json["response"];
             let role = json["role"];
@@ -272,7 +285,7 @@
     function generate(material_name) {
         actions_panel_tab.set("generate");
         generate_tab_page.set(0);
-        dispatch('proceedToGenerate', material_name);
+        onProceedToGenerate(material_name);
     }
 
     $effect(() => {
@@ -342,7 +355,9 @@
                 <div class="bubble assistant loading">
                     <Spinner size={18} />
                     <span>
-                        {japanese ? "応答を読み込んでいます。しばらくお待ちください。" : "Loading response, please wait. This may take a while."}
+                        {loading_message
+                            ? loading_message
+                            : (japanese ? "応答を読み込んでいます。しばらくお待ちください。" : "Loading response, please wait. This may take a while.")}
                     </span>
                 </div>
             </div>
@@ -401,10 +416,16 @@
                 <Switch bind:checked={use_internet} label={japanese ? "ウェブ検索" : "Web search"} />
                 <Switch bind:checked={use_design_brief} label={japanese ? "デザイン・ブリーフ" : "Design brief"} />
             </div>
-            <Button variant="ghost" size="sm" onclick={() => suggest_color_palettes()}>
-                <Palette size={14} strokeWidth={1.75} />
-                {japanese ? "色を提案する" : "Suggest Colors"}
-            </Button>
+            <div class="toolbar-actions">
+                <Button variant="ghost" size="sm" onclick={() => query()}>
+                    <MessageCircle size={14} strokeWidth={1.75} />
+                    {japanese ? "チャット" : "Chat"}
+                </Button>
+                <Button variant="ghost" size="sm" onclick={() => suggest_color_palettes()}>
+                    <Palette size={14} strokeWidth={1.75} />
+                    {japanese ? "色を提案する" : "Suggest Colors"}
+                </Button>
+            </div>
         </div>
     </div>
 </div>
@@ -606,5 +627,11 @@
         display: flex;
         align-items: center;
         gap: var(--sp-4);
+    }
+
+    .toolbar-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-1);
     }
 </style>

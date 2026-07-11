@@ -1,17 +1,30 @@
 """LLM assistant routes: chat, suggestions, feedback, brainstorming, translate.
 
-Backed by a local Ollama LLM (server/services/llm.py) instead of the OpenAI
-API. Route URLs and response JSON shapes are kept identical to the previous
-OpenAI-backed implementation so the frontend does not need any changes.
+Backed by a local Ollama LLM (server/services/llm.py). Chat endpoints accept
+an optional "session_id" so each browser session gets its own conversation.
+Endpoints that also run texture generation (/suggest_materials,
+/feedback_materials) submit a background job and return {"job_id": ...};
+poll GET /jobs/<id> or subscribe to GET /jobs/<id>/events for the result.
 """
 import functools
+import json
+import logging
+import os
+import uuid
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, Response, jsonify, request
 
-from server.routes.textures import generate_and_save
-from server.services import llm, prompts
+from server.config import SERVER_IMDIR
+from server.http import get_json_body, require_fields
+from server.paths import to_public_url
+from server.routes.textures import generate_and_save, safe_filename_stem
+from server.services import jobs, llm, prompts, texture_gen
 
 bp = Blueprint("assistant", __name__)
+
+log = logging.getLogger(__name__)
+
+_SSE_HEADERS = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
 
 
 def _handle_llm_errors(fn):
@@ -24,28 +37,55 @@ def _handle_llm_errors(fn):
     return wrapper
 
 
+def _session_id(body=None):
+    if body and body.get("session_id"):
+        return str(body["session_id"])
+    return request.args.get("session_id") or llm.DEFAULT_SESSION
+
+
 @bp.route("/init_query", methods=["GET"])
 @_handle_llm_errors
 def init_query():
-    response = llm.init_conversation()
+    response = llm.init_conversation(_session_id())
     return jsonify({"response": response, "role": "assistant"})
 
 
 @bp.route("/query", methods=["POST"])
 @_handle_llm_errors
 def query():
-    form_data = request.get_json()
-    response = llm.query(form_data["prompt"], form_data.get("role", "user"))
+    body = get_json_body()
+    prompt = require_fields(body, "prompt")
+    response = llm.query(prompt, session_id=_session_id(body),
+                         role=body.get("role", "user"))
     return jsonify({"response": response, "role": "assistant"})
+
+
+@bp.route("/query_stream", methods=["POST"])
+def query_stream():
+    """Streaming chat turn (SSE over a POST body). Events carry
+    {"delta": chunk} then {"done": true}, or {"error": message}."""
+    body = get_json_body()
+    prompt = require_fields(body, "prompt")
+    session_id = _session_id(body)
+    role = body.get("role", "user")
+
+    def stream():
+        try:
+            for chunk in llm.query_stream(prompt, session_id=session_id, role=role):
+                yield f"data: {json.dumps({'delta': chunk})}\n\n"
+            yield f"data: {json.dumps({'done': True})}\n\n"
+        except llm.LLMUnavailableError as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return Response(stream(), mimetype="text/event-stream", headers=_SSE_HEADERS)
 
 
 @bp.route("/translate", methods=["POST"])
 @_handle_llm_errors
 def translate():
-    form_data = request.get_json()
-    text = form_data["text"]
-    target_lang = form_data["target_lang"]
-    source_lang = form_data["source_lang"]
+    body = get_json_body()
+    text, target_lang, source_lang = require_fields(
+        body, "text", "target_lang", "source_lang")
     translated = llm.chat(
         [{"role": "user", "content": prompts.translate_prompt(text, target_lang, source_lang)}],
         system=prompts.TRANSLATE_SYSTEM_PROMPT,
@@ -60,38 +100,47 @@ def _generate_suggested_texture(name):
     return result["results"][0]["texture"]
 
 
-@bp.route("/suggest_materials", methods=["POST"])
-@_handle_llm_errors
-def suggest_materials():
-    form_data = request.get_json()
-    design_brief = form_data.get("context")
+def _suggest_materials_job(prompt_text, design_brief, job_id=None):
+    if job_id:
+        jobs.set_progress(job_id, 0.05, "Asking the assistant for materials...")
     parsed = llm.generate_json(
-        [{"role": "user", "content": prompts.suggest_materials_prompt(form_data["prompt"], design_brief)}],
+        [{"role": "user", "content": prompts.suggest_materials_prompt(prompt_text, design_brief)}],
         schema=prompts.MATERIALS_SCHEMA,
         system=prompts.SYSTEM_PROMPT,
     )
     intro_text = parsed.get("intro_text", "")
-    materials = parsed.get("materials", [])
+    materials = [m for m in parsed.get("materials", []) if m.get("name")]
 
     suggested_materials = []
-    for item in materials:
+    for i, item in enumerate(materials):
         name = item.get("name", "")
-        reason = item.get("reason", "")
-        if not name:
-            continue
+        if job_id:
+            jobs.set_progress(job_id, 0.2 + 0.8 * i / max(len(materials), 1),
+                              f"Generating {name} preview...")
         filepath = _generate_suggested_texture(name)
-        suggested_materials.append({"name": name, "reason": reason, "filepath": filepath})
+        suggested_materials.append({"name": name, "reason": item.get("reason", ""),
+                                    "filepath": filepath})
 
-    return jsonify({"intro_text": intro_text, "role": "assistant",
-                    "suggested_materials": suggested_materials})
+    return {"intro_text": intro_text, "role": "assistant",
+            "suggested_materials": suggested_materials}
+
+
+@bp.route("/suggest_materials", methods=["POST"])
+def suggest_materials():
+    body = get_json_body()
+    prompt_text = require_fields(body, "prompt")
+    job_id = jobs.submit(_suggest_materials_job, prompt_text, body.get("context"),
+                         pass_job_id=True)
+    return jsonify({"job_id": job_id})
 
 
 @bp.route("/suggest_colors", methods=["POST"])
 @_handle_llm_errors
 def suggest_colors():
-    form_data = request.get_json()
+    body = get_json_body()
+    prompt_text = require_fields(body, "prompt")
     parsed = llm.generate_json(
-        [{"role": "user", "content": prompts.suggest_color_palettes_prompt(form_data["prompt"])}],
+        [{"role": "user", "content": prompts.suggest_color_palettes_prompt(prompt_text)}],
         schema=prompts.COLOR_PALETTES_SCHEMA,
         system=prompts.SYSTEM_PROMPT,
     )
@@ -110,13 +159,10 @@ def suggest_colors():
 @bp.route("/get_texture_prompts", methods=["POST"])
 @_handle_llm_errors
 def get_texture_prompts():
-    form_data = request.get_json()
-    # image_path is accepted for backwards compatibility but ignored: the
-    # local model is text-only.
-    design_brief = form_data.get("design_brief")
+    body = get_json_body()
     parsed = llm.generate_json(
         [{"role": "user", "content": prompts.get_texture_prompts_prompt(
-            form_data.get("prompt", ""), form_data.get("n", 3), design_brief)}],
+            body.get("prompt", ""), body.get("n", 3), body.get("design_brief"))}],
         schema=prompts.TEXTURE_PROMPTS_SCHEMA,
         system=prompts.SYSTEM_PROMPT,
     )
@@ -127,33 +173,39 @@ def get_texture_prompts():
 @bp.route("/get_materials", methods=["POST"])
 @_handle_llm_errors
 def get_materials():
-    form_data = request.get_json()
-    # image_path is accepted for backwards compatibility but ignored: the
-    # local model is text-only.
-    design_brief = form_data.get("design_brief")
+    body = get_json_body()
     parsed = llm.generate_json(
         [{"role": "user", "content": prompts.get_materials_prompt(
-            form_data.get("material_name", ""), form_data.get("prompt", ""),
-            form_data.get("n", 3), design_brief)}],
+            body.get("material_name", ""), body.get("prompt", ""),
+            body.get("n", 3), body.get("design_brief"))}],
         schema=prompts.MATERIALS_TEXTUREBASED_SCHEMA,
         system=prompts.SYSTEM_PROMPT,
     )
-    materials = parsed.get("suggested_materials", [])
-    explanations = parsed.get("explanations", [])
-    texture_prompts = parsed.get("texture_prompts", [])
-    return jsonify({"materials": materials, "explanations": explanations,
-                    "prompts": texture_prompts})
+    return jsonify({"materials": parsed.get("suggested_materials", []),
+                    "explanations": parsed.get("explanations", []),
+                    "prompts": parsed.get("texture_prompts", [])})
 
 
-@bp.route("/feedback_materials", methods=["POST"])
-@_handle_llm_errors
-def feedback_materials():
-    form_data = request.get_json()
+def _generate_color_preview(name):
+    """Photorealistic preview image for a non-material suggestion, saved
+    under the transient feedbacked/ dir; returns its public URL."""
+    image = texture_gen.generate(f"{name}, photorealistic", n=1, imsize=512)[0]
+    feedback_dir = os.path.join(SERVER_IMDIR, "feedbacked")
+    os.makedirs(feedback_dir, exist_ok=True)
+    savepath = os.path.join(
+        feedback_dir, f"{safe_filename_stem(name)}_{uuid.uuid4().hex[:8]}.png")
+    image.save(savepath)
+    return to_public_url(savepath)
+
+
+def _feedback_materials_job(material_name, object_name, part_name,
+                            attached_parts, design_brief, job_id=None):
+    if job_id:
+        jobs.set_progress(job_id, 0.05, "Asking the assistant for feedback...")
     parsed = llm.generate_json(
         [{"role": "user", "content": prompts.feedback_materials_prompt(
-            form_data["material_name"], form_data["object_name"], form_data["part_name"],
-            attached_parts=form_data.get("attached_parts"),
-            design_brief=form_data.get("design_brief"))}],
+            material_name, object_name, part_name,
+            attached_parts=attached_parts, design_brief=design_brief)}],
         schema=prompts.FEEDBACK_SCHEMA,
         system=prompts.SYSTEM_PROMPT,
     )
@@ -166,38 +218,49 @@ def feedback_materials():
             "suggestions": aspect_data.get("suggestions", []),
         }
 
-    for aspect in suggestions_dict:
-        for suggestion in suggestions_dict[aspect]["suggestions"]:
-            if len(suggestion) < 2:
-                continue
-            name, kind = suggestion[0], suggestion[1]
-            try:
-                if kind == "material":
-                    result = generate_and_save(f"{name}, texture map, seamless", 1, 512)
-                    savepath = result["results"][0]["texture"]
-                    suggestion.append(savepath)
-                else:
-                    from server.services import texture_gen
-                    from utils.image import im_2_b64
-                    image = texture_gen.generate(f"{name}, photorealistic", n=1, imsize=512)[0]
-                    suggestion.append(im_2_b64(image).decode("utf-8"))
-            except Exception:
-                # Don't let a failed preview generation take down the whole
-                # feedback response.
-                suggestion.append(None)
+    all_suggestions = [s for aspect in suggestions_dict
+                       for s in suggestions_dict[aspect]["suggestions"] if len(s) >= 2]
+    for i, suggestion in enumerate(all_suggestions):
+        name, kind = suggestion[0], suggestion[1]
+        if job_id:
+            jobs.set_progress(job_id, 0.2 + 0.8 * i / max(len(all_suggestions), 1),
+                              f"Generating {name} preview...")
+        try:
+            if kind == "material":
+                result = generate_and_save(f"{name}, texture map, seamless", 1, 512)
+                suggestion.append(result["results"][0]["texture"])
+            else:
+                suggestion.append(_generate_color_preview(name))
+        except Exception:
+            # Don't let a failed preview generation take down the whole
+            # feedback response.
+            log.warning("preview generation failed for %r", name, exc_info=True)
+            suggestion.append(None)
 
-    return jsonify({"intro_text": "", "unformatted_response": "",
-                    "formatted_response": suggestions_dict, "references": "",
-                    "role": "assistant"})
+    return {"intro_text": "", "unformatted_response": "",
+            "formatted_response": suggestions_dict, "references": "",
+            "role": "assistant"}
+
+
+@bp.route("/feedback_materials", methods=["POST"])
+def feedback_materials():
+    body = get_json_body()
+    material_name, object_name, part_name = require_fields(
+        body, "material_name", "object_name", "part_name")
+    job_id = jobs.submit(_feedback_materials_job, material_name, object_name,
+                         part_name, body.get("attached_parts"),
+                         body.get("design_brief"), pass_job_id=True)
+    return jsonify({"job_id": job_id})
 
 
 @bp.route("/brainstorm_prompt_keywords", methods=["POST"])
 @_handle_llm_errors
 def brainstorm_prompt_keywords():
-    form_data = request.get_json()
+    body = get_json_body()
+    texture_string = require_fields(body, "texture_string")
     parsed = llm.generate_json(
         [{"role": "user", "content": prompts.brainstorm_prompt_keywords_prompt(
-            form_data["texture_string"], form_data.get("design_brief"))}],
+            texture_string, body.get("design_brief"))}],
         schema=prompts.TEXTURE_KEYWORDS_SCHEMA,
         system=prompts.SYSTEM_PROMPT,
     )

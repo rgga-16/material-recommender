@@ -1,0 +1,38 @@
+Summary of the Paper:
+The paper introduces a co-creative system using generative AI (DALLE-2 and ChatGPT) to assist interior designers in choosing suitable material textures for 3D scenes. A formative study with professional designers informs the development of this system, which includes a Material Generator, Suggestion Chatbot, and Feedback Module. Two user studies assess usability, creativity support, and system effectiveness in material selection. Findings indicate that users found the system easier with AI suggestions and feedback, but also faced challenges related to input methods, precision in texture suggestions, and system response times.
+
+Strengths of the Research and the Paper:
+- The research addresses a relevant and practical problem in interior design, providing a novel application for generative AI in material and texture map selection.
+- The formative study conducted lends credibility and context to the solution by incorporating feedback from professional designers.
+- The use of two generative AI models (DALLE-2 and ChatGPT) for different functionalities within the system shows an innovative integration approach.
+- Two user studies have been conducted, which is a strength as it showcases both initial usability feedback from general users and more detailed feedback from design professionals and students.
+- The paper is well-structured and appears to be thoroughly researched, with comprehensive related work and detailed methodology sections.
+- Quantitative and qualitative measures were used for evaluation, providing a robust view of the system’s effectiveness.
+
+Weaknesses of the Research and the Paper:
+- The research might overemphasize usability and superficial interaction metrics without deeply investigating the impact on the end-to-end design process and outcomes for professional work.
+- The limitation related to system slowness and precision issues suggests the research might benefit from additional technical optimization before deployment in professional settings.
+- The user studies may have limited scopes or be prone to bias due to convenience sampling, and time-constrained tasks that might not reflect real-world use cases.
+- The prototype system seems to lack some critical features that professional designers need, such as a preset material library and the ability to adjust lighting, which may affect the research validity in high-fidelity design scenarios.
+- The feedback module was largely unused, which suggests that the design and perceived utility of this feature need reevaluation.
+- Despite the integration of generative AI, the paper does not deeply explore the transformational potential or limitations of the AI itself within the creative design.
+
+Originality:
+- The tool’s integration with DALLE-2 and ChatGPT for the specific application of material selection in interior design is a novel contribution.
+- The co-creative approach, blending AI suggestions with designer interaction, is an innovative thread in human-AI collaborative systems.
+
+Significance:
+- The system presents a potentially transformative tool for interior designers by automating part of the material selection process, enhancing creativity, and allowing for rapid experimentation.
+- The paper has the potential to influence future development of generative AI in design fields.
+
+Research Quality:
+- The research appears to be systematically conducted with clear objectives, methodology, and articulated research questions.
+- The analysis of qualitative and quantitative data from user studies provides insights into the system’s performance, but further work may be necessary to validate findings.
+
+Summary of the Review:
+This research introduces interesting integration of generative AI into an interior design co-creative system. While the initial user studies suggest promise, with users finding the system more usable with the integration of suggestion and feedback functionalities of AI, the research is hampered by limitations in system speed, user resistance to feedback modules, and other issues such as the lack of critical features and potential bias in user studies. It indicates maturation is needed before deploying the system in professional settings. Consequently, more rigorous and field-based studies would bolster confidence in the system's utility.
+
+Recommendation:
+RRX - I can go with either Reject or Revise and Resubmit
+
+The system shows potential and originality but requires significant revisions to address the critical issues raised during evaluation, notably the need for a more in-depth analysis into the impact on professional design workflows, and addressing technical and feature limitations. The research should benefit from additional iterations of development informed by sustained designer feedback and possibly integration into real-world projects for more accurate validation.

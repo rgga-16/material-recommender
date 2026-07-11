@@ -1,0 +1,32 @@
+**Summary:**
+The paper presents a co-creative system for assisting interior designers in selecting suitable material textures using generative AI, specifically DALL-E 2 and ChatGPT. The system comprises a material generator, suggestion chatbot, and feedback module. Two user studies were conducted: one comparing system use with and without the chatbot and feedback module, and the other with professionals and students assessing full functionality. The results showed that the system was more user-friendly with the additional modules and assisted in exploring materials, with context-aware suggestions valuable for the designers. However, lack of visual inputs and outputs, perceived limitations, and trust issues concerning the feedback module were noted as challenges.
+
+**Strengths:**
+- The co-creative system addresses a clear gap in interior design - the selection of materials - leveraging advanced AI technologies to improve the design process.
+- A comprehensive formative study with 10 designers identified key challenges and preferences, laying a solid foundation for system design goals.
+- Two user studies were carried out effectively with different participant groups (students with no design experience and professional designers/students), providing a robust evaluation of the system.
+- Integration of the system with existing design practices, such as the necessity to align material choices with aspects like durability and aesthetics, is well-considered.
+- The quantitative and qualitative methods provide a multidimensional picture of the system's utility and areas for improvement.
+
+**Weaknesses:**
+- The lack of ability to adjust 3D objects and lighting within the system can limit the scope of material perception and application, which is critical in design.
+- The system's reported slow performance in generating suggestions and materials might impede its practical use, impacting user satisfaction.
+- Non-utilization of the feedback module suggests a disconnect between what designers expect in terms of feedback and what the AI module provides, indicating room for improvement in this feature.
+- Reliance on network latency for AI functions can limit real-time interactions and hinder user experience, especially in bandwidth-constrained environments.
+- The implemented user studies lacked exploration of long-term usage and iterative design scenarios, which might yield different insights into the system's efficacy and adoption.
+
+**Originality:**
+The research appears novel in the specific application of generative AI for material texturing in interior design, as it considers both practical and aesthetic factors, indicating a clear contribution to the field.
+
+**Significance:**
+The implications for practice are significant, as the paper demonstrates the potential to streamline a fundamental aspect of interior design and potentially enhance the creative process through AI support.
+
+**Research Quality:**
+Overall, the research quality seems high, with a well-documented methodology, recruitment of relevant participants, and comprehensive analysis. However, more rigorous technical validation and a discussion of long-term impact would further enhance the quality of the paper.
+
+**Summary of Review:**
+The paper has many strengths, including a novel approach to integrating AI into the material selection process in interior design, supported by thorough research and a clear presentation of findings. However, key issues need to be addressed, such as system limitations, effectiveness of the feedback module, and the long-term impact on design workflow.
+
+**Recommendation:** RR - I recommend Revise and Resubmit
+
+Given the insights from both user studies and the potential significance of the paper, I recommend a revise and resubmit with an emphasis on addressing the reported system limitations, particularly improving the feedback module's utility, ensuring better integration with 3D object manipulation and lighting adjustments, and exploring solutions to improve speed and performance. Additional user studies over an extended period with iterative design projects could provide further insights into the system's long-term effectiveness and user adoption.

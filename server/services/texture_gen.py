@@ -1,6 +1,5 @@
-"""Texture generation service.
+"""Texture generation service (local diffusers pipeline, SD-Turbo by default).
 
-Local SD-Turbo implementation (Phase 3B). Replaces the legacy DALL-E stub.
 Public contract:
 
     generate(prompt: str, n: int = 1, imsize: int = 512, seamless: bool = True)
@@ -12,23 +11,29 @@ stays resident afterward. Thread safety is handled by the caller (the
 single-worker jobs executor serializes all GPU-bound work), so no locking is
 needed here.
 """
-import torch
+import logging
+
+from server.config import MIN_FREE_VRAM_GB, OLLAMA_MODEL, OLLAMA_URL, SD_MODEL_ID
+
+log = logging.getLogger(__name__)
+
+# torch is imported lazily inside the functions that need it, so importing
+# this module (e.g. registering routes, running the API tests) doesn't pull
+# in the multi-GB ML stack.
 
 _pipe = None
 _device = None
 
 PROMPT_SUFFIX = ", seamless texture, top-down close-up, high detail"
 
-MIN_FREE_VRAM_GB = 3.0
-OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "qwen2.5:1.5b-instruct"
-
 
 def ensure_vram(min_free_gb=MIN_FREE_VRAM_GB):
     """Best-effort: evict the local Ollama model if VRAM is tight.
 
-    Swallows all errors — this is an optimization, not a hard dependency.
+    Failures are logged but never raised — this is an optimization, not a
+    hard dependency.
     """
+    import torch
     if not torch.cuda.is_available():
         return
     try:
@@ -38,14 +43,14 @@ def ensure_vram(min_free_gb=MIN_FREE_VRAM_GB):
             import requests
             try:
                 requests.post(
-                    OLLAMA_URL,
+                    f"{OLLAMA_URL}/api/generate",
                     json={"model": OLLAMA_MODEL, "keep_alive": 0},
                     timeout=5,
                 )
             except Exception:
-                pass
+                log.warning("could not ask Ollama to release VRAM", exc_info=True)
     except Exception:
-        pass
+        log.warning("VRAM check failed", exc_info=True)
 
 
 def _clamp_imsize(imsize):
@@ -61,6 +66,7 @@ def _clamp_imsize(imsize):
 
 
 def _set_seamless(pipe, seamless):
+    import torch
     mode = "circular" if seamless else "zeros"
     for module in (pipe.unet, pipe.vae):
         for m in module.modules():
@@ -73,6 +79,7 @@ def _get_pipeline():
     if _pipe is not None:
         return _pipe
 
+    import torch
     from diffusers import AutoPipelineForText2Image
 
     _device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -89,7 +96,8 @@ def _get_pipeline():
     if not os.environ.get("HF_TOKEN_OVERRIDE_DISABLE_ANON"):
         kwargs["token"] = False
 
-    pipe = AutoPipelineForText2Image.from_pretrained("stabilityai/sd-turbo", **kwargs)
+    log.info("loading %s on %s", SD_MODEL_ID, _device)
+    pipe = AutoPipelineForText2Image.from_pretrained(SD_MODEL_ID, **kwargs)
     pipe = pipe.to(_device)
 
     # sd-turbo doesn't ship a safety checker, but guard against pipelines that do.
@@ -99,7 +107,7 @@ def _get_pipeline():
     try:
         pipe.enable_attention_slicing()
     except Exception:
-        pass
+        log.warning("attention slicing unavailable", exc_info=True)
 
     try:
         pipe.vae.enable_tiling()
@@ -107,7 +115,7 @@ def _get_pipeline():
         try:
             pipe.enable_vae_tiling()
         except Exception:
-            pass
+            log.warning("VAE tiling unavailable", exc_info=True)
 
     _pipe = pipe
     return _pipe
@@ -138,5 +146,6 @@ def generate(prompt, n=1, imsize=512, seamless=True):
 def unload():
     global _pipe
     _pipe = None
+    import torch
     if torch.cuda.is_available():
         torch.cuda.empty_cache()

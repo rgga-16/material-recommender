@@ -21,6 +21,9 @@
   import { in_japanese, selected_objs_and_parts } from "../stores.js";
   import { translate } from "../lib/i18n.js";
   import { addToHistory } from "../lib/history.js";
+  import { postJson } from "../lib/api.js";
+  import { pollJob } from "../lib/jobs.js";
+  import { showToast } from "../lib/toast.js";
   import { saved_color_palettes } from "../stores.js";
   import { chatbot_input_message } from "../stores.js";
   import { actions_panel_tab } from "../stores.js";
@@ -48,7 +51,7 @@
   let opacity = $state(entry["opacity"] ?? 1.0);
   let roughness = $state(entry["roughness"] ?? 0.5);
   let metalness = $state(entry["metalness"] ?? 0.0);
-  let normalScale = $state(entry["normalScale"] ?? 0.0);
+  let normalScale = $state(entry["normalScale"] ?? 1.0);
   let translationX = $state(entry["offsetX"] ?? 0);
   let translationY = $state(entry["offsetY"] ?? 0);
   let rotation = $state(entry["rotation"] ?? 0);
@@ -65,6 +68,7 @@
 
   let use_design_brief = $state(false);
   let is_loading_feedback = $state(false);
+  let feedback_progress_message = $state('');
 
   let palettes = $state(get(saved_color_palettes));
   let selected_palette_idx = $state(0);
@@ -118,42 +122,42 @@
   // ------------------------------------------------- live material updates
 
   function mat() {
-    return get(selected_objs_and_parts)[index]?.model?.children[0]?.material;
+    return get(selected_objs_and_parts)[index]?.mesh?.material;
   }
 
   export function updateOpacity(v) {
     selected_objs_and_parts.update((value) => {
-      value[index].model.children[0].material.transparent = true;
-      value[index].model.children[0].material.opacity = v;
+      value[index].mesh.material.transparent = true;
+      value[index].mesh.material.opacity = v;
       return value;
     });
   }
 
   export function updateRoughness(v) {
     selected_objs_and_parts.update((value) => {
-      value[index].model.children[0].material.roughness = v;
+      value[index].mesh.material.roughness = v;
       return value;
     });
   }
 
   export function updateMetalness(v) {
     selected_objs_and_parts.update((value) => {
-      value[index].model.children[0].material.metalness = v;
+      value[index].mesh.material.metalness = v;
       return value;
     });
   }
 
   export function updateNormalScale(v) {
     selected_objs_and_parts.update((value) => {
-      value[index].model.children[0].material.normalScale.x = v;
-      value[index].model.children[0].material.normalScale.y = v;
+      value[index].mesh.material.normalScale.x = v;
+      value[index].mesh.material.normalScale.y = v;
       return value;
     });
   }
 
   export function updateDisplacementScale(v) {
     selected_objs_and_parts.update((value) => {
-      value[index].model.children[0].material.displacementScale = v;
+      value[index].mesh.material.displacementScale = v;
       return value;
     });
   }
@@ -165,7 +169,7 @@
 
   function forEachMap(fn) {
     selected_objs_and_parts.update((value) => {
-      const material = value[index].model.children[0].material;
+      const material = value[index].mesh.material;
       for (const key of ALL_MAPS) {
         if (material[key]) fn(material[key]);
       }
@@ -218,8 +222,8 @@
     const color = palettes[selected_palette_idx]["palette"][selected_swatch_idx];
     const hexNumber = parseInt(color.substring(1), 16);
     selected_objs_and_parts.update((value) => {
-      value[index].model.children[0].material.color.setHex(hexNumber);
-      value[index].model.children[0].material.color_hex = hexNumber;
+      value[index].mesh.material.color.setHex(hexNumber);
+      value[index].mesh.material.color_hex = hexNumber;
       return value;
     });
   }
@@ -261,19 +265,29 @@
     }
 
     is_loading_feedback = true;
-    const response = await fetch("/feedback_materials", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    let data;
+    try {
+      // Feedback runs as a background job (LLM + a preview texture per
+      // suggestion); submit it and follow it over SSE.
+      const submit = await postJson("/feedback_materials", {
         material_name: material_name,
         object_name: part_parent_name,
         part_name: part_name,
         attached_parts: attached_parts,
         design_brief: context,
-      }),
-    });
+      });
+      data = await pollJob(submit.job_id, {
+        onProgress: (job) => { feedback_progress_message = job.message || ''; },
+      });
+    } catch (error) {
+      console.error(error);
+      showToast(error.message, 'error');
+      is_loading_feedback = false;
+      feedback_progress_message = '';
+      return;
+    }
+    feedback_progress_message = '';
 
-    const data = await response.json();
     intro_text = data["intro_text"];
     formatted_feedback = data["formatted_response"];
     references = data["references"];
@@ -352,7 +366,7 @@
   <!-- header -->
   <div class="part-header">
     <div class="preview">
-      <DynamicImage bind:this={image} bind:imagepath={material_url} alt={material_name} size={"120px"} />
+      <DynamicImage bind:this={image} bind:imagepath={material_url} alt={material_name} size="120px" />
     </div>
     <div class="part-meta">
       <div class="part-title">
@@ -423,7 +437,7 @@
       <Field label={japanese ? "法線マップの強度" : "Normal Scale"}>
         <Slider bind:value={normalScale} min={0} max={10} step={0.1}
           onInput={(v) => updateNormalScale(v)}
-          onCommit={(v) => changeProperty("normalScale", v, 0.0)} />
+          onCommit={(v) => changeProperty("normalScale", v, 1.0)} />
       </Field>
     </div>
 
@@ -566,7 +580,7 @@
             <DynamicImage
               imagepath={$curr_texture_parts[p[0]][p[1]]["mat_image_texture"]}
               alt={$curr_texture_parts[p[0]][p[1]]["mat_name"]}
-              size={"64px"}
+              size="64px"
             />
             <div class="attached-meta">
               <div class="attached-name">{p[0]} / {p[1]}</div>
@@ -619,14 +633,14 @@
                         : suggestion[0]}
                     </span>
                     {#if suggestion[1] === "material" && suggestion.length === 3}
-                      <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"96px"} is_draggable={true} />
+                      <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size="96px" is_draggable={true} />
                       <span class="suggestion-kind">{japanese ? "素材" : "Material"}</span>
                       <Button size="sm" variant="secondary" onclick={() => generate(suggestion[0])}>
                         <WandSparkles size={14} strokeWidth={1.75} />
                         {japanese ? "もっと生み出せ！" : "Generate more"}
                       </Button>
                     {:else if suggestion[1] === "attachment" && suggestion.length === 3}
-                      <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size={"96px"} />
+                      <DynamicImage imagepath={suggestion[2]} alt={suggestion[0]} size="96px" />
                       <span class="suggestion-kind">{japanese ? "添付ファイル" : "Attachment"}</span>
                     {:else}
                       <span class="suggestion-kind">
@@ -646,9 +660,11 @@
         <div class="loading-note">
           <Spinner size={22} />
           <span>
-            {japanese
-              ? "フィードバックをリクエストしています。しばらくお待ちください。"
-              : "Requesting feedback, please wait. This may take a while."}
+            {feedback_progress_message
+              ? feedback_progress_message
+              : (japanese
+                ? "フィードバックをリクエストしています。しばらくお待ちください。"
+                : "Requesting feedback, please wait. This may take a while.")}
           </span>
         </div>
       {:else}

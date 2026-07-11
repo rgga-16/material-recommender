@@ -1,18 +1,26 @@
 """Local LLM client backed by Ollama.
 
-Replaces the old OpenAI-based models/llm/gpt3 module. Talks to a locally
-running Ollama server (https://ollama.com) over its HTTP API.
+Talks to a locally running Ollama server (https://ollama.com) over its HTTP
+API. Chat history is kept per client session (the frontend sends a session
+id) instead of one process-global conversation; idle sessions expire after
+CHAT_SESSION_TTL_SECONDS.
 """
 import json
+import logging
+import threading
+import time
 
 import requests
 
+from server.config import (CHAT_SESSION_TTL_SECONDS, MAX_HISTORY_MESSAGES,
+                           OLLAMA_MODEL, OLLAMA_URL)
 from server.services.prompts import SYSTEM_PROMPT
 
-MODEL = "qwen2.5:1.5b-instruct"
-OLLAMA_URL = "http://localhost:11434"
+log = logging.getLogger(__name__)
 
-MAX_HISTORY_MESSAGES = 20
+MODEL = OLLAMA_MODEL
+
+DEFAULT_SESSION = "default"
 
 
 class LLMUnavailableError(Exception):
@@ -22,7 +30,7 @@ class LLMUnavailableError(Exception):
 
 UNAVAILABLE_MSG = (
     "Ollama is not running. Install from https://ollama.com and run: "
-    "ollama pull qwen2.5:1.5b-instruct"
+    f"ollama pull {OLLAMA_MODEL}"
 )
 
 
@@ -35,17 +43,21 @@ def is_available() -> bool:
         return False
 
 
-def _post_chat(messages, temperature=0.7, format_schema=None, timeout=120):
+def _chat_payload(messages, temperature, format_schema=None, stream=False):
     payload = {
         "model": MODEL,
         "messages": messages,
-        "stream": False,
+        "stream": stream,
         "options": {"temperature": temperature},
         "keep_alive": "2m",
     }
     if format_schema is not None:
         payload["format"] = format_schema
+    return payload
 
+
+def _post_chat(messages, temperature=0.7, format_schema=None, timeout=120):
+    payload = _chat_payload(messages, temperature, format_schema)
     try:
         resp = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, timeout=timeout)
         resp.raise_for_status()
@@ -55,6 +67,30 @@ def _post_chat(messages, temperature=0.7, format_schema=None, timeout=120):
     data = resp.json()
     message = data.get("message", {})
     return message.get("content", "")
+
+
+def _post_chat_stream(messages, temperature=0.7, timeout=120):
+    """Yield reply text chunks from a streaming Ollama chat completion."""
+    payload = _chat_payload(messages, temperature, stream=True)
+    try:
+        resp = requests.post(f"{OLLAMA_URL}/api/chat", json=payload,
+                             stream=True, timeout=timeout)
+        resp.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        raise LLMUnavailableError(UNAVAILABLE_MSG) from e
+
+    for line in resp.iter_lines():
+        if not line:
+            continue
+        try:
+            data = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        chunk = data.get("message", {}).get("content", "")
+        if chunk:
+            yield chunk
+        if data.get("done"):
+            break
 
 
 def chat(messages: list, system: str | None = None, temperature: float = 0.7) -> str:
@@ -89,62 +125,94 @@ def generate_json(messages: list, schema: dict, system: str | None = None,
         try:
             return json.loads(content)
         except (json.JSONDecodeError, TypeError):
+            log.warning("LLM returned unparseable JSON twice; returning {}")
             return {}
 
 
 # ---------------------------------------------------------------------------
-# Chatbot conversation history (ported from the old gpt3.message_history)
+# Chatbot conversation history, per client session
 # ---------------------------------------------------------------------------
 
-message_history = []
+_sessions = {}  # session_id -> {"messages": [...], "last_used": monotonic}
+_sessions_lock = threading.Lock()
 
 
 def _system_message():
     return {"role": "system", "content": SYSTEM_PROMPT}
 
 
-def init_conversation() -> str:
-    """Reset the conversation history and return the assistant's intro."""
-    global message_history
-    message_history = [_system_message()]
-    intro_prompt = "Introduce yourself briefly to the user."
-    message_history.append({"role": "user", "content": intro_prompt})
-    reply = _post_chat(message_history, temperature=0.7)
-    message_history.append({"role": "assistant", "content": reply})
-    _trim_history()
-    return reply
+def _evict_stale_locked():
+    cutoff = time.monotonic() - CHAT_SESSION_TTL_SECONDS
+    for sid in [s for s, sess in _sessions.items() if sess["last_used"] < cutoff]:
+        del _sessions[sid]
 
 
-def _trim_history():
+def _session_messages(session_id, reset=False):
+    """A copy of the session's message list (creating the session if needed)."""
+    with _sessions_lock:
+        _evict_stale_locked()
+        sess = _sessions.get(session_id)
+        if sess is None or reset:
+            sess = {"messages": [_system_message()], "last_used": time.monotonic()}
+            _sessions[session_id] = sess
+        sess["last_used"] = time.monotonic()
+        return list(sess["messages"])
+
+
+def _store_turn(session_id, user_msg, assistant_reply):
+    """Append a completed user/assistant exchange to the session history."""
+    with _sessions_lock:
+        sess = _sessions.get(session_id)
+        if sess is None:
+            sess = {"messages": [_system_message()], "last_used": time.monotonic()}
+            _sessions[session_id] = sess
+        sess["messages"].append(user_msg)
+        sess["messages"].append({"role": "assistant", "content": assistant_reply})
+        sess["messages"] = _trimmed(sess["messages"])
+        sess["last_used"] = time.monotonic()
+
+
+def _trimmed(messages):
     """Keep at most MAX_HISTORY_MESSAGES messages, always preserving the
     leading system message."""
-    global message_history
-    if not message_history:
-        return
-    system_msg = message_history[0] if message_history[0]["role"] == "system" else None
-    rest = message_history[1:] if system_msg else message_history[:]
+    if not messages:
+        return messages
+    system_msg = messages[0] if messages[0]["role"] == "system" else None
+    rest = messages[1:] if system_msg else messages[:]
     max_rest = MAX_HISTORY_MESSAGES - (1 if system_msg else 0)
     if len(rest) > max_rest:
         rest = rest[-max_rest:]
-    message_history = ([system_msg] if system_msg else []) + rest
+    return ([system_msg] if system_msg else []) + rest
 
 
-def query(prompt: str, role: str = "user", temperature: float = 0.7) -> str:
-    """Append a user turn to the conversation history and return the reply."""
-    global message_history
-    if not message_history:
-        message_history = [_system_message()]
-    message_history.append({"role": role, "content": prompt})
-    _trim_history()
-    try:
-        reply = _post_chat(message_history, temperature=temperature)
-    except LLMUnavailableError:
-        message_history.pop()
-        raise
-    message_history.append({"role": "assistant", "content": reply})
-    _trim_history()
+def init_conversation(session_id: str = DEFAULT_SESSION) -> str:
+    """Reset the session's history and return the assistant's intro."""
+    messages = _session_messages(session_id, reset=True)
+    intro_msg = {"role": "user", "content": "Introduce yourself briefly to the user."}
+    reply = _post_chat(messages + [intro_msg], temperature=0.7)
+    _store_turn(session_id, intro_msg, reply)
     return reply
 
 
-def get_message_history():
-    return message_history
+def query(prompt: str, session_id: str = DEFAULT_SESSION, role: str = "user",
+          temperature: float = 0.7) -> str:
+    """Run one conversation turn against the session history."""
+    messages = _session_messages(session_id)
+    user_msg = {"role": role, "content": prompt}
+    reply = _post_chat(_trimmed(messages + [user_msg]), temperature=temperature)
+    _store_turn(session_id, user_msg, reply)
+    return reply
+
+
+def query_stream(prompt: str, session_id: str = DEFAULT_SESSION,
+                 role: str = "user", temperature: float = 0.7):
+    """Streaming version of query(): yields reply chunks, then persists the
+    full exchange to the session history."""
+    messages = _session_messages(session_id)
+    user_msg = {"role": role, "content": prompt}
+    parts = []
+    for chunk in _post_chat_stream(_trimmed(messages + [user_msg]),
+                                   temperature=temperature):
+        parts.append(chunk)
+        yield chunk
+    _store_turn(session_id, user_msg, "".join(parts))

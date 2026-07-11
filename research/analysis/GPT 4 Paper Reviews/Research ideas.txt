@@ -1,0 +1,57 @@
+Based on the extensive overview of the paper titled "PractiMat: A Co-Creative System for Practical Material Texturing in Interior Design using Generative AI," several future research directions arise. Each research idea is an extension or a refinement of the current system, addressing the challenges and gaps identified through the user studies and expert validation. Here are the research ideas:
+
+1. **Integration with 3D Modeling and Rendering Software:**
+Given the need for better visualization of materials and adjustments in the 3D space, future research could focus on integrating the AI-generated materials within popular 3D modeling and rendering environments as plugins. This would allow for instant application of textures and material properties, thus combining the generative power of AI with the precision of manual adjustments that designers rely on.
+
+   *Justification:*
+   Several feedback points highlighted the need for better visualization of materials on objects and the ability to adjust objects in the 3D space, which standalone web applications currently do not support.
+
+2. **Human-AI Interactive Feedback Mechanisms:**
+Another direction is to refine the feedback mechanisms by establishing interactive sessions where the AI provides feedback, and designers can iteratively refine their requests until the AI suggestions align with their expectations. Also incorporating qualitative data from human feedback could potentially enrich the AI's understanding.
+
+   *Justification:*
+   Designers expressed a preference for human feedback and indicated doubts regarding the AI's credibility. An interactive approach that mimics a human-in-the-loop could encourage trust and utility.
+
+3. **Educational Tools for Teaching AI-assisted Design:**
+AI in design is emerging, and there's an educational gap. Research to develop training modules or workshops that focus on teaching designers how to interact with AI effectively, create accurate prompts, and critically evaluate AI suggestions could be valuable. These educational tools could become part of design curricula.
+
+   *Justification:*
+   Designers faced difficulties with optimal prompting and evaluating AI suggestions due to unfamiliarity with the technology, indicating a need for educational resources.
+
+4. **Multimodal Context-Aware Generative Systems:**
+To address the issue of AI generation accuracy, future work could utilize multimodal AI models capable of understanding both text (design briefs, user queries) and visual data (current textures, 3D scene configurations) to make more accurate and context-aware suggestions.
+
+   *Justification:*
+   Expert validation and designer feedback suggested that current AI suggestions were context-aware but lacked specificity and visual harmony with the 3D scene.
+
+5. **Localized Material and Supplier Databases:**
+Integrating localized databases of materials that include detailed information about costs, availability, and sustainability could enhance the practicality of material suggestions. This database could be constantly updated by industry partners to ensure relevancy.
+
+   *Justification:*
+   There were concerns regarding the specificity of suggestions related to cost, sourcing, and sustainability, which could be addressed by integrating more detailed local databases.
+
+6. **AI-driven 3D Model and Lighting Configuration Suggestions:**
+Beyond textures, the system could be expanded to suggest 3D furniture models and optimal lighting configurations using AI. This would offer a more comprehensive design assistant tool that accounts for the entire space rather than textures alone.
+
+   *Justification:*
+   Designers mentioned the need for features like 3D warehouse integration and lighting adjustments, suggesting that a comprehensive design tool could be more beneficial.
+
+7. **Transparent and Explainable AI for Design:**
+Research into making AI suggestions more transparent and explainable could enhance trust and user understanding. This could involve transparent sourcing of AI training data, explanations of suggestion bases, and mechanisms that allow users to understand and trust AI feedback.
+
+   *Justification:*
+   Trust in AI output was cited as a concern, and transparency and explainability could bridge this gap.
+
+8. **User Interface Optimization for Co-creative Systems:**
+An iterative design study focusing on the user interface (UI) optimization could make interactions with AI smooth. Special attention to designers' workflows and needs could further tailor the system to be a seamless part of the creative process.
+
+   *Justification:*
+   Interaction issues and technical difficulties encountered by participants indicate that UI/UX improvements are necessary for better integration into designers' workflows.
+
+9. **Cross-Disciplinary Co-Creation Platforms:**
+Finally, exploring co-creative platforms that could be utilized across different disciplines like architecture, fashion, and graphic design may open avenues for interdisciplinary collaboration and innovation, fostering a new ecosystem of design practices.
+
+   *Justification:*
+   Design practices are often interconnected, and a universal system that caters to different disciplines could encourage broader adoption and cross-pollination of ideas.
+
+These research directions capitalize on the study's finding and are aimed at developing systems that not only create material textures but also holistically assist the design process, making the co-creative journey between humans and AI more productive, instructive, and enjoyable.

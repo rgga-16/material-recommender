@@ -1,4 +1,5 @@
 import base64
+import logging
 import math
 import os
 import re
@@ -7,6 +8,8 @@ from base64 import encodebytes
 from io import BytesIO
 
 from PIL import Image
+
+log = logging.getLogger(__name__)
 
 # Borrowed function from: https://www.generacodice.com/en/articolo/4761261/check-if-a-string-is-encoded-in-base64-using-python
 RE_BASE64 = "^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$"
@@ -46,7 +49,7 @@ def emptydir(dir, delete_dirs=False):
             elif delete_dirs and os.path.isdir(file_path):
                 shutil.rmtree(file_path)
         except Exception as e:
-            print(f"Failed to delete {file_path}. Reason: {e}")
+            log.warning("failed to delete %s: %s", file_path, e)
 
 def makedir(dir_path):
     os.makedirs(dir_path, exist_ok=True)
